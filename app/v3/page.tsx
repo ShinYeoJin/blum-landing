@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import BlumNav from "@/components/BlumNav";
-import BlumFooter from "@/components/BlumFooter";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -56,8 +54,6 @@ export default function V3() {
         @keyframes v3-ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
         .v3-ticker{animation:v3-ticker 26s linear infinite;}
       `}</style>
-
-      <BlumNav theme="dark" forceTransparent forcedColor="#f0f0f0" />
 
       {/* ── Hero ── */}
       <section className="relative flex flex-col justify-end overflow-hidden" style={{ minHeight: "100vh", paddingTop: "86px" }}>
@@ -266,7 +262,6 @@ export default function V3() {
         </BoldReveal>
       </section>
 
-      <BlumFooter theme="dark" />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import BlumNav from "@/components/BlumNav";
-import BlumFooter from "@/components/BlumFooter";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -49,8 +47,6 @@ export default function V2() {
         @keyframes v2-breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.012);}}
         @keyframes v2-slide{0%{transform:translateY(-100%);}100%{transform:translateY(200%);}}
       `}</style>
-      <BlumNav theme="light" forceTransparent forcedColor="#faf7f2" />
-
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "#2c1e0f" }}>
         {/* BG image */}
@@ -248,7 +244,6 @@ export default function V2() {
         </Reveal>
       </section>
 
-      <BlumFooter theme="dark" />
     </div>
   );
 }
