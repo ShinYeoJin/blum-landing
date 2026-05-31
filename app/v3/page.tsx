@@ -27,10 +27,10 @@ function BoldReveal({ children, delay = 0, className = "" }: { children: React.R
 }
 
 const SYSTEMS = [
-  { code: "AV", name: "AVENTOS", label: "리프트 시스템", headline: "위로 열다", desc: "상부장의 새로운 가능성. 5가지 오픈 방식.", variants: "HK · HL · HF · HS · HKi", col: "md:col-span-5", aspect: "aspect-[3/4]", img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
-  { code: "LB", name: "LEGRABOX", label: "서랍 시스템", headline: "안으로 담다", desc: "슬림 금속 프레임, 최대 70kg 하중 지지.", variants: "pure · free · F · C", col: "md:col-span-7", aspect: "aspect-[4/3]", img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
-  { code: "CT", name: "CLIP top", label: "경첩 시스템", headline: "닫히는 순간", desc: "BLUMOTION 내장. 마지막 수센티미터를 스스로.", variants: "BLUMOTION · INSERTA · 105°", col: "md:col-span-7", aspect: "aspect-[4/3]", img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg` },
-  { code: "TO", name: "TIP-ON", label: "터치 오픈", headline: "터치 한 번", desc: "핸들 없이 열리는 미래형 터치 시스템.", variants: "BLUMOTION · 단일 · 더블", col: "md:col-span-5", aspect: "aspect-[3/4]", img: `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg` },
+  { code: "AV", name: "AVENTOS", label: "리프트 시스템", headline: "위로 열다", desc: "높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려보세요.", variants: "HKi · HF top · HS top · HL top · HK top · HK-S · HK-XS", col: "md:col-span-5", aspect: "aspect-[3/4]", img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
+  { code: "LB", name: "LEGRABOX", label: "박스 시스템", headline: "안으로 담다", desc: "슬림한 서랍면(12.8mm), 최대 하중 40kg 및 70kg 지지.", variants: "pure · free · special edition · individual", col: "md:col-span-7", aspect: "aspect-[4/3]", img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
+  { code: "CT", name: "CLIP top", label: "경첩 시스템", headline: "닫히는 순간", desc: "경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 항상 부드럽게.", variants: "BLUMOTION · CLIP top · MODUL · 105°", col: "md:col-span-7", aspect: "aspect-[4/3]", img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg` },
+  { code: "TO", name: "TIP-ON", label: "모션 기술", headline: "터치 한 번", desc: "핸들 없는 가구를 원터치로 열 수 있는 기계식 열기 시스템.", variants: "TIP-ON BLUMOTION · TIP-ON · SERVO-DRIVE", col: "md:col-span-5", aspect: "aspect-[3/4]", img: `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg` },
 ];
 
 export default function V3() {

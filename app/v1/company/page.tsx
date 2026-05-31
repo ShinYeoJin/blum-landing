@@ -153,11 +153,11 @@ export default function V1Company() {
             </Reveal>
             <Reveal delay={80}>
               <blockquote className="text-2xl font-light leading-snug italic mb-6" style={{ color: "#18181b" }}>
-                "우리는 단순히 피팅을 만드는 것이 아닙니다. 우리는 더 나은 삶을 위한 움직임을 만듭니다."
+                "당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다."
               </blockquote>
-              <p className="text-[9px] tracking-[0.3em] uppercase mb-6" style={{ color: "#a1a1aa" }}>— Philipp Blum, 공동 경영진</p>
+              <p className="text-[9px] tracking-[0.3em] uppercase mb-6" style={{ color: "#a1a1aa" }}>— Blum의 움직이는 아이디어 (Moving Ideas)</p>
               <p className="text-sm leading-7" style={{ color: "#52525b" }}>
-                blum은 1952년 창립 이래 단 한 번도 상장하지 않은 순수 가족 기업입니다. 이는 단기 이익보다 장기적 품질과 혁신에 집중할 수 있는 원동력이 됩니다.
+                Julius Blum GmbH는 Martin Blum과 Philipp Blum이 이끄는 가족 소유 기업입니다. 단기 이익보다 장기적 품질과 혁신에 집중하며, 1952년 창립 이래 세계 최고의 가구 피팅 제조사로 성장했습니다.
               </p>
             </Reveal>
           </div>
@@ -175,7 +175,7 @@ export default function V1Company() {
                 blum은 환경 친화적인 생산 방식, 친환경 물류, 에너지 효율화를 통해 지속가능한 비즈니스를 실현합니다.
               </p>
               <ul className="space-y-3">
-                {["재생에너지 사용 확대", "친환경 포장재 전환", "탄소 발자국 감축 목표", "제품 수명 연장 정책"].map((item) => (
+                {["에너지 및 기후 보호", "순환 경제 및 자원 활용", "환경 친화적 운송", "직원 건강과 안전 최우선"].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm" style={{ color: "#52525b" }}>
                     <span style={{ width: "4px", height: "4px", borderRadius: "50%", backgroundColor: "#18181b", flexShrink: 0, display: "inline-block" }} />
                     {item}

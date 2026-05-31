@@ -62,7 +62,7 @@ const PRODUCTS = [
     id: "aventos",
     name: "AVENTOS",
     category: "리프트 시스템",
-    desc: "상부장을 우아하게 여는 5가지 방식. 접이식·수직·평행 오픈으로 공간의 가능성을 확장합니다. BLUMOTION 소프트클로징 내장.",
+    desc: "높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트 시스템. 부드럽고 조용히 닫히고 가볍게 들어올려집니다.",
     href: "/v1/products/aventos",
     img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
     sub: `${BASE}/images/560/258/4215047/corporate/media/bilder/produkte/klappensysteme/aventos-hki/Blum-AVENTOS-HKi-ME44188536_4:3.jpg`,
@@ -70,8 +70,8 @@ const PRODUCTS = [
   {
     id: "legrabox",
     name: "LEGRABOX",
-    category: "서랍 시스템",
-    desc: "극도로 슬림한 금속 프레임, 최대 70kg 하중 지지. 서랍의 새로운 기준을 제시하는 프리미엄 박스 시스템.",
+    category: "박스 시스템",
+    desc: "가장 까다로운 디자인 요구 사항에 적합한 서랍 시스템. 슬림한 서랍면(12.8mm)으로 최대 하중 40kg 및 70kg을 지지합니다.",
     href: "/v1/products#box",
     img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
     sub: `${BASE}/images/560/258/4209438/corporate/media/bilder/produkte/boxsysteme/MBX0277_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
@@ -80,7 +80,7 @@ const PRODUCTS = [
     id: "cliptop",
     name: "CLIP top BLUMOTION",
     category: "경첩 시스템",
-    desc: "BLUMOTION 소프트클로징이 내장된 경첩. 모든 도어가 마지막 수 센티미터를 스스로 부드럽게 닫습니다.",
+    desc: "경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 도어의 무게에 관계없이 항상 매끄럽게 닫힙니다.",
     href: "/v1/products#hinge",
     img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
     sub: `${BASE}/images/560/258/4214534/corporate/media/bilder/produkte/scharniersysteme/CLP0344_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
@@ -89,7 +89,7 @@ const PRODUCTS = [
     id: "tipon",
     name: "TIP-ON",
     category: "모션 기술",
-    desc: "핸들 없이 살짝 밀면 스스로 열리는 터치 시스템. 핸들프리 디자인으로 미니멀한 가구의 완성.",
+    desc: "도어, 고정식 리프트 또는 풀아웃 시스템 등의 핸들 없는 가구를 원터치로 열 수 있는 기계식 열기 시스템.",
     href: "/v1/products#motion",
     img: `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
     sub: `${BASE}/images/560/258/4207125/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1659_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`,
@@ -97,9 +97,9 @@ const PRODUCTS = [
 ];
 
 const VALUES = [
-  { num: "01", title: "Functional Beauty", body: "기능이 곧 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다. 보이지 않는 곳에서도 타협 없는 품질." },
-  { num: "02", title: "Motion Quality", body: "50,000회 이상의 개폐 테스트. 첫날과 마지막 날의 움직임이 같아야 한다는 원칙. 오스트리아 정밀 제조의 결정체." },
-  { num: "03", title: "Invisible Precision", body: "blum의 존재는 보이지 않습니다. 오직 완벽한 움직임으로만 느껴집니다. 가구가 살아있는 것처럼." },
+  { num: "01", title: "삶의 질", body: "한결 더 쉽게 경험하는 편리함. blum은 편리함을 높이고 삶의 질을 향상시키는 고품질 주방 및 가구용 피팅을 제조합니다." },
+  { num: "02", title: "영감", body: "고객의 질문이 혁신의 원동력입니다. blum은 끊임없이 움직여 더 나은 아이디어를 만들어 갑니다." },
+  { num: "03", title: "신뢰", body: "사회, 환경, 직원에 대한 기업 책임. 자연 자원을 미래 세대를 위해 보존하는 것이 blum의 핵심 가치입니다." },
 ];
 
 /* ─── Page ─── */
@@ -322,7 +322,7 @@ export default function V1() {
           {[
             { target: 2441, suffix: "M€", label: "전 세계 연매출" },
             { target: 120, suffix: "개국+", label: "글로벌 판매 국가" },
-            { target: 50000, suffix: "회+", label: "제품 내구성 테스트" },
+            { target: 34, suffix: "개소", label: "전 세계 자회사·대리점" },
             { target: 9850, suffix: "명", label: "전 세계 임직원" },
           ].map((s) => (
             <div key={s.label}>

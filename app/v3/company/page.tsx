@@ -157,11 +157,11 @@ export default function V3Company() {
               <div className="flex flex-col justify-center h-full py-4">
                 <div style={{ width: "32px", height: "3px", backgroundColor: RED, marginBottom: "24px" }} />
                 <blockquote className="text-2xl font-black uppercase leading-tight mb-6" style={{ color: "#f0f0f0" }}>
-                  "우리는 단순히 피팅을 만드는 것이 아닙니다. 더 나은 삶을 위한 움직임을 만듭니다."
+                  "당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다."
                 </blockquote>
-                <p className="text-[9px] tracking-[0.3em] font-black uppercase mb-6" style={{ color: RED }}>— Philipp Blum, 공동 경영진</p>
+                <p className="text-[9px] tracking-[0.3em] font-black uppercase mb-6" style={{ color: RED }}>— Blum의 움직이는 아이디어 (Moving Ideas)</p>
                 <p className="text-sm leading-7" style={{ color: "rgba(240,240,240,0.4)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-                  blum은 1952년 창립 이래 단 한 번도 상장하지 않은 순수 가족 기업입니다.
+                  Julius Blum GmbH는 Martin Blum과 Philipp Blum이 이끄는 가족 소유 기업입니다. 경제적 효율성과 환경적 책임을 함께 추구합니다.
                 </p>
               </div>
             </BoldReveal>
@@ -180,7 +180,7 @@ export default function V3Company() {
                 blum은 환경 친화적인 생산 방식, 친환경 물류, 에너지 효율화를 통해 지속가능한 비즈니스를 실현합니다.
               </p>
               <ul className="space-y-3">
-                {["재생에너지 사용 확대", "친환경 포장재 전환", "탄소 발자국 감축 목표", "제품 수명 연장 정책"].map((item) => (
+                {["에너지 및 기후 보호", "순환 경제 및 자원 활용", "환경 친화적 운송", "직원 건강과 안전 최우선"].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm" style={{ color: "rgba(240,240,240,0.6)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
                     <span style={{ width: "6px", height: "6px", backgroundColor: RED, flexShrink: 0, display: "inline-block" }} />
                     {item}

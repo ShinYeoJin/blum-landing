@@ -10,7 +10,7 @@ const CATEGORIES = [
     id: "hinge",
     name: "경첩 시스템",
     en: "Hinge Systems",
-    desc: "CLIP top BLUMOTION — 소프트클로징 내장 경첩으로 도어가 마지막 순간 스스로 부드럽게 닫힙니다.",
+    desc: "CLIP top BLUMOTION — 경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 도어 무게에 관계없이 항상 매끄럽게 닫힙니다.",
     href: "/v1/products#hinge",
     imgs: [
       `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
@@ -22,7 +22,7 @@ const CATEGORIES = [
     id: "box",
     name: "박스 시스템",
     en: "Box Systems",
-    desc: "LEGRABOX / MERIVOBOX — 얇고 우아한 금속 프레임 서랍. 주방 하부장을 세련되게 완성하는 프리미엄 솔루션.",
+    desc: "LEGRABOX / MERIVOBOX — 가장 까다로운 디자인 요구 사항에 적합한 서랍 시스템. 슬림한 서랍면(12.8mm), 최대 하중 40kg 및 70kg.",
     href: "/v1/products#box",
     imgs: [
       `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
@@ -34,7 +34,7 @@ const CATEGORIES = [
     id: "lift",
     name: "리프트 시스템",
     en: "Lift Systems",
-    desc: "AVENTOS — 상부장을 부드럽게 들어올리는 리프트 시스템. 5가지 오픈 방식으로 공간을 더 실용적으로.",
+    desc: "AVENTOS — 높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트 시스템. 7가지 제품군 제공.",
     href: "/v1/products/aventos",
     imgs: [
       `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
@@ -46,7 +46,7 @@ const CATEGORIES = [
     id: "runner",
     name: "슬라이딩 러너",
     en: "Runner Systems",
-    desc: "MOVENTO — 완전 인출이 가능한 서랍 러너. 묵직한 하중에서도 부드럽고 안정적인 움직임.",
+    desc: "MOVENTO — 일체형인 듯 매우 가볍게 미끄러지는 듯한 동작, 4차원 프런트 조정. 동적 하중 40kg 및 60kg.",
     href: "/v1/products#runner",
     imgs: [
       `${BASE}/images/560/258/4202352/corporate/media/bilder/produkte/fuehrungssysteme/me25334921_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
@@ -58,7 +58,7 @@ const CATEGORIES = [
     id: "motion",
     name: "모션 기술",
     en: "Motion Technology",
-    desc: "TIP-ON / BLUMOTION — 손잡이 없이 살짝 누르면 열리는 핸들프리 시스템. 미니멀 주방의 완성.",
+    desc: "TIP-ON / BLUMOTION — 핸들 없는 가구를 원터치로 열 수 있는 기계식 열기 시스템. SERVO-DRIVE 전동 시스템도 제공.",
     href: "/v1/products#motion",
     imgs: [
       `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
@@ -70,7 +70,7 @@ const CATEGORIES = [
     id: "pocket",
     name: "포켓 시스템",
     en: "Pocket Systems",
-    desc: "REVEGO — 도어가 캐비닛 안으로 완전히 숨어드는 포켓 시스템. 공간의 경계를 지웁니다.",
+    desc: "REVEGO — 다기능 공간을 만들 수 있는 완전히 새로운 기회. 독일 디자인상·Red Dot·iF Award 2022 수상.",
     href: "/v1/products#pocket",
     imgs: [
       `${BASE}/images/560/258/4210225/corporate/media/bilder/produkte/pocketsysteme-alt/blum_me10479780_4:3.jpg`,

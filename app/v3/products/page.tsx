@@ -11,7 +11,7 @@ const CATEGORIES = [
     id: "hinge",
     name: "경첩 시스템",
     en: "HINGE SYSTEMS",
-    desc: "CLIP top BLUMOTION — 소프트클로징 내장 경첩. 도어가 마지막 순간 스스로 닫힌다.",
+    desc: "CLIP top BLUMOTION — 경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑, 다양한 국제 디자인상 수상.",
     href: "/v3/products#hinge",
     num: "01",
     imgs: [
@@ -24,7 +24,7 @@ const CATEGORIES = [
     id: "box",
     name: "박스 시스템",
     en: "BOX SYSTEMS",
-    desc: "LEGRABOX / MERIVOBOX — 얇고 우아한 금속 프레임 서랍. 프리미엄 주방의 새로운 기준.",
+    desc: "LEGRABOX / MERIVOBOX — 가장 까다로운 디자인 요구 사항에 적합. 슬림한 서랍면(12.8mm), 최대 하중 40kg·70kg.",
     href: "/v3/products#box",
     num: "02",
     imgs: [
@@ -37,7 +37,7 @@ const CATEGORIES = [
     id: "lift",
     name: "리프트 시스템",
     en: "LIFT SYSTEMS",
-    desc: "AVENTOS — 상부장을 위한 혁신적 리프트. 5가지 오픈 방식으로 공간을 지배한다.",
+    desc: "AVENTOS — 높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트. 7가지 제품군.",
     href: "/v3/products/aventos",
     num: "03",
     imgs: [
@@ -50,7 +50,7 @@ const CATEGORIES = [
     id: "runner",
     name: "슬라이딩 러너",
     en: "RUNNER SYSTEMS",
-    desc: "MOVENTO — 완전 인출. 묵직한 하중에서도 부드럽고 정확한 움직임.",
+    desc: "MOVENTO — 일체형인 듯 매우 가볍게 미끄러지는 듯한 동작. 4차원 프런트 조정, 최대 동적 하중 60kg.",
     href: "/v3/products#runner",
     num: "04",
     imgs: [
@@ -63,7 +63,7 @@ const CATEGORIES = [
     id: "motion",
     name: "모션 기술",
     en: "MOTION TECHNOLOGY",
-    desc: "TIP-ON / BLUMOTION — 핸들 없이 터치 한 번. 미니멀 디자인의 극한.",
+    desc: "TIP-ON / BLUMOTION — 핸들 없는 가구를 원터치로 여는 기계식 열기 시스템. SERVO-DRIVE 전동 옵션 제공.",
     href: "/v3/products#motion",
     num: "05",
     imgs: [
@@ -76,7 +76,7 @@ const CATEGORIES = [
     id: "pocket",
     name: "포켓 시스템",
     en: "POCKET SYSTEMS",
-    desc: "REVEGO — 도어가 완전히 사라진다. 공간의 경계를 무너뜨리는 포켓 시스템.",
+    desc: "REVEGO — 다기능 공간을 만들 수 있는 완전히 새로운 기회. 독일 디자인상·Red Dot·iF Award 2022 수상.",
     href: "/v3/products#pocket",
     num: "06",
     imgs: [
