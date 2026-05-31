@@ -65,16 +65,16 @@ export default function V2() {
           <div style={{ color: "#faf7f2" }}>
             <p className="text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Kitchen Fittings · Since 1952</p>
             <h1 style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 300, lineHeight: 1.1, marginBottom: "28px" }}>
-              주방이<br /><em style={{ color: "#d4a574" }}>숨쉬게</em><br />됩니다
+              움직임이<br /><em style={{ color: "#d4a574" }}>삶을</em><br />바꿉니다
             </h1>
             <p className="text-sm leading-8 opacity-60 max-w-xs mb-10">
-              blum의 피팅 시스템이 당신의 주방에 조용한 품격을 더합니다. 열고 닫는 매 순간이 달라집니다.
+              blum의 피팅 시스템은 편리함을 높이고 삶의 질을 향상시킵니다. 열고 닫는 매 순간의 품질이 일상을 바꿉니다.
             </p>
             <div className="flex flex-wrap gap-4 items-center">
-              <Link href="/products" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+              <Link href="/v2/products" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 제품 보기
               </Link>
-              <Link href="/company" style={{ color: "#faf7f2", textDecoration: "none", fontSize: "11px", opacity: 0.5 }}>
+              <Link href="/v2/company" style={{ color: "#faf7f2", textDecoration: "none", fontSize: "11px", opacity: 0.5 }}>
                 브랜드 스토리 →
               </Link>
             </div>
@@ -145,7 +145,7 @@ export default function V2() {
               <p className="text-xs tracking-[0.4em] uppercase mb-3" style={{ color: "#c68642" }}>Product Lines</p>
               <h2 className="text-3xl md:text-4xl font-light" style={{ color: "#2c1e0f" }}>주방을 완성하는<br />blum 시스템</h2>
             </div>
-            <Link href="/products" className="text-xs tracking-wider underline underline-offset-4" style={{ color: "#8a6a4a", textDecoration: "underline" }}>
+            <Link href="/v2/products" className="text-xs tracking-wider underline underline-offset-4" style={{ color: "#8a6a4a", textDecoration: "underline" }}>
               전체 제품 보기 →
             </Link>
           </Reveal>
@@ -234,10 +234,10 @@ export default function V2() {
             쇼룸에서 AVENTOS, LEGRABOX, CLIP top을 직접 체험하세요.<br />전문 컨설턴트가 최적의 솔루션을 제안합니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 32px", borderRadius: "6px", display: "inline-block" }}>
+            <Link href="/v2/contact" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 32px", borderRadius: "6px", display: "inline-block" }}>
               쇼룸 방문 신청
             </Link>
-            <Link href="/products" style={{ border: "1px solid rgba(198,134,66,0.35)", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 32px", borderRadius: "6px", display: "inline-block" }}>
+            <Link href="/v2/products" style={{ border: "1px solid rgba(198,134,66,0.35)", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 32px", borderRadius: "6px", display: "inline-block" }}>
               제품 전체 보기
             </Link>
           </div>

@@ -17,9 +17,9 @@ const MENU = [
       { label: "POCKET SYSTEMS", href: "/v3/products#pocket" },
     ],
   },
-  { label: "SERVICES", href: "/services", children: [] },
-  { label: "COMPANY", href: "/company", children: [] },
-  { label: "CONTACT", href: "/contact", children: [] },
+  { label: "SERVICES", href: "/v3/services", children: [] },
+  { label: "COMPANY", href: "/v3/company", children: [] },
+  { label: "CONTACT", href: "/v3/contact", children: [] },
 ];
 
 const RED = "#c8102e";
@@ -124,7 +124,7 @@ export default function V3Nav() {
             ))}
 
             <Link
-              href="/contact"
+              href="/v3/contact"
               className="ml-4 px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-black transition-opacity hover:opacity-90"
               style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}
             >
@@ -161,7 +161,7 @@ export default function V3Nav() {
             ))}
             <div className="px-6 py-4">
               <Link
-                href="/contact"
+                href="/v3/contact"
                 className="block text-center py-3 text-[10px] tracking-[0.2em] uppercase font-black"
                 style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}
                 onClick={() => setMobileOpen(false)}

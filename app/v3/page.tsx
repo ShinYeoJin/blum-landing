@@ -90,10 +90,10 @@ export default function V3() {
               움직임이 달라지면 삶이 달라집니다. AVENTOS, LEGRABOX, CLIP top — blum의 기술이 가구를 다시 정의합니다.
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
-              <Link href="/products" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+              <Link href="/v3/products" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 시스템 보기
               </Link>
-              <Link href="/contact" style={{ border: "1px solid rgba(240,240,240,0.18)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+              <Link href="/v3/contact" style={{ border: "1px solid rgba(240,240,240,0.18)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 문의하기
               </Link>
             </div>
@@ -161,7 +161,7 @@ export default function V3() {
                 4 SYSTEMS.<br />1 PHILOSOPHY.
               </h2>
             </div>
-            <Link href="/products" style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(240,240,240,0.4)", textDecoration: "underline", textUnderlineOffset: "4px" }}>
+            <Link href="/v3/products" style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(240,240,240,0.4)", textDecoration: "underline", textUnderlineOffset: "4px" }}>
               ALL PRODUCTS →
             </Link>
           </BoldReveal>
@@ -169,7 +169,7 @@ export default function V3() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
             {SYSTEMS.map((s, i) => (
               <BoldReveal key={s.name} delay={i * 80} className={`group cursor-pointer ${s.col}`}>
-                <Link href="/products" style={{ textDecoration: "none" }}>
+                <Link href="/v3/products" style={{ textDecoration: "none" }}>
                   <div className={`relative overflow-hidden ${s.aspect} mb-3`} style={{ backgroundColor: "#1a1a1a" }}>
                     <img src={s.img} alt={s.name} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     <div className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" style={{ backgroundColor: "rgba(200,16,46,0.08)" }} />
@@ -252,10 +252,10 @@ export default function V3() {
             쇼룸에서 AVENTOS와 LEGRABOX를 직접 체험해보세요. 전문 컨설턴트가 최적의 솔루션을 제안합니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/contact" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
+            <Link href="/v3/contact" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
               쇼룸 방문 신청
             </Link>
-            <Link href="/products" style={{ border: "1px solid rgba(240,240,240,0.15)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
+            <Link href="/v3/products" style={{ border: "1px solid rgba(240,240,240,0.15)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
               제품 전체 보기
             </Link>
           </div>

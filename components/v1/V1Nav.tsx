@@ -17,9 +17,9 @@ const MENU = [
       { label: "포켓 시스템", href: "/v1/products#pocket" },
     ],
   },
-  { label: "서비스", href: "/services", children: [] },
-  { label: "회사", href: "/company", children: [] },
-  { label: "연락처", href: "/contact", children: [] },
+  { label: "서비스", href: "/v1/services", children: [] },
+  { label: "회사", href: "/v1/company", children: [] },
+  { label: "연락처", href: "/v1/contact", children: [] },
 ];
 
 export default function V1Nav() {
@@ -144,7 +144,7 @@ export default function V1Nav() {
             ))}
 
             <Link
-              href="/contact"
+              href="/v1/contact"
               className="ml-4 px-5 py-2 text-xs tracking-[0.15em] uppercase border transition-all duration-200 hover:bg-zinc-900 hover:text-white"
               style={{ color: textColor, borderColor, textDecoration: "none" }}
             >

@@ -17,9 +17,9 @@ const MENU = [
       { label: "포켓 시스템", href: "/v2/products#pocket" },
     ],
   },
-  { label: "서비스", href: "/services", children: [] },
-  { label: "회사", href: "/company", children: [] },
-  { label: "연락처", href: "/contact", children: [] },
+  { label: "서비스", href: "/v2/services", children: [] },
+  { label: "회사", href: "/v2/company", children: [] },
+  { label: "연락처", href: "/v2/contact", children: [] },
 ];
 
 const CREAM = "#faf7f2";
@@ -146,7 +146,7 @@ export default function V2Nav() {
             ))}
 
             <Link
-              href="/contact"
+              href="/v2/contact"
               className="ml-3 px-5 py-2 text-sm rounded-full transition-all duration-200 hover:opacity-90"
               style={{ backgroundColor: BROWN, color: CREAM, textDecoration: "none", fontFamily: "'Georgia', serif" }}
             >
@@ -203,7 +203,7 @@ export default function V2Nav() {
             ))}
             <div className="px-6 py-4">
               <Link
-                href="/contact"
+                href="/v2/contact"
                 className="block text-center py-3 text-sm rounded-full"
                 style={{ backgroundColor: BROWN, color: CREAM, textDecoration: "none" }}
                 onClick={() => setMobileOpen(false)}

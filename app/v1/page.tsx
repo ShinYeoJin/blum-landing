@@ -98,10 +98,10 @@ export default function V1() {
             움직임이 달라지면 삶이 달라집니다.<br />blum이 만드는 정밀한 피팅의 세계.
           </p>
           <div className="flex flex-wrap gap-4">
-            <Link href="/products" className="inline-flex items-center gap-2 border text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-white hover:text-zinc-900 transition-all duration-300" style={{ borderColor: "rgba(255,255,255,0.25)", textDecoration: "none" }}>
+            <Link href="/v1/products" className="inline-flex items-center gap-2 border text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-white hover:text-zinc-900 transition-all duration-300" style={{ borderColor: "rgba(255,255,255,0.25)", textDecoration: "none" }}>
               제품 살펴보기
             </Link>
-            <Link href="/contact" className="text-xs tracking-widest uppercase text-zinc-500 hover:text-zinc-300 transition-colors self-center" style={{ textDecoration: "none" }}>
+            <Link href="/v1/contact" className="text-xs tracking-widest uppercase text-zinc-500 hover:text-zinc-300 transition-colors self-center" style={{ textDecoration: "none" }}>
               문의하기 →
             </Link>
           </div>
@@ -180,14 +180,14 @@ export default function V1() {
                 </div>
                 <h3 className="text-2xl font-light mb-2">{p.name}</h3>
                 <p className="text-xs text-zinc-400 leading-relaxed mb-4">{p.desc}</p>
-                <Link href="/products" className="text-xs text-zinc-300 hover:text-zinc-900 transition-colors tracking-widest uppercase" style={{ textDecoration: "none" }}>
+                <Link href="/v1/products" className="text-xs text-zinc-300 hover:text-zinc-900 transition-colors tracking-widest uppercase" style={{ textDecoration: "none" }}>
                   자세히 보기 →
                 </Link>
               </FadeIn>
             ))}
           </div>
           <FadeIn delay={200} className="mt-8 text-center">
-            <Link href="/products" className="inline-block text-xs tracking-widest uppercase px-8 py-4 border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all" style={{ textDecoration: "none" }}>
+            <Link href="/v1/products" className="inline-block text-xs tracking-widest uppercase px-8 py-4 border border-zinc-200 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all" style={{ textDecoration: "none" }}>
               전체 제품 보기
             </Link>
           </FadeIn>
@@ -245,10 +245,10 @@ export default function V1() {
             전문 컨설턴트가 공간에 최적화된 blum 솔루션을 제안해드립니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/contact" className="text-xs tracking-widest uppercase px-8 py-4 bg-white text-zinc-900 hover:bg-zinc-100 transition-colors" style={{ textDecoration: "none" }}>
+            <Link href="/v1/contact" className="text-xs tracking-widest uppercase px-8 py-4 bg-white text-zinc-900 hover:bg-zinc-100 transition-colors" style={{ textDecoration: "none" }}>
               문의 / 방문 신청
             </Link>
-            <Link href="/products" className="text-xs tracking-widest uppercase px-8 py-4 border text-white hover:bg-white/10 transition-colors" style={{ borderColor: "rgba(255,255,255,0.2)", textDecoration: "none" }}>
+            <Link href="/v1/products" className="text-xs tracking-widest uppercase px-8 py-4 border text-white hover:bg-white/10 transition-colors" style={{ borderColor: "rgba(255,255,255,0.2)", textDecoration: "none" }}>
               전체 제품 보기
             </Link>
           </div>
