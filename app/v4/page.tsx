@@ -114,7 +114,7 @@ function WipeBanner() {
   const [active, setActive] = useState(false);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.3 });
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -125,13 +125,14 @@ function WipeBanner() {
       style={{ backgroundColor: "#0A0E14", padding: "80px 2rem", textAlign: "center" }}
     >
       <div className="v4-wipe-cover" />
+      {/* content is always visible; gold wipe plays as decorative entrance */}
       <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
         <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Our Philosophy</p>
         <blockquote
           className="v4-font-serif"
           style={{ fontSize: "clamp(1.5rem,4vw,3rem)", fontWeight: 300, color: CREAM, lineHeight: 1.45, maxWidth: "720px", margin: "0 auto 32px", fontStyle: "italic", letterSpacing: "-0.01em" }}
         >
-          "편리함을 높이고<br />삶의 질을 향상시키는<br />가구 피팅."
+          "가구의 열고 닫음을<br />매력적인 경험으로<br />만들어 드립니다."
         </blockquote>
         <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
       </div>
@@ -234,7 +235,7 @@ export default function V4() {
     return () => cleanups.forEach((fn) => fn());
   }, [loadOut]);
 
-  /* Timeline IntersectionObserver refs */
+  /* Timeline IntersectionObserver refs — run once, threshold 0 so items never stay hidden */
   const tlRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [tlVisible, setTlVisible] = useState<boolean[]>(TIMELINE.map(() => false));
   useEffect(() => {
@@ -243,12 +244,12 @@ export default function V4() {
       if (!el) return;
       const io = new IntersectionObserver(([e]) => {
         if (e.isIntersecting) setTlVisible((prev) => { const n = [...prev]; n[i] = true; return n; });
-      }, { threshold: 0.2 });
+      }, { threshold: 0 });
       io.observe(el);
       observers.push(io);
     });
     return () => observers.forEach((io) => io.disconnect());
-  }, [loadOut]);
+  }, []);
 
   const heroParallax = scrollY * 0.28;
   const heroOpacity  = Math.max(0, 1 - scrollY / 700);
@@ -301,8 +302,9 @@ export default function V4() {
     .v4-wipe-section { position:relative; overflow:hidden; }
     .v4-wipe-cover   { position:absolute;inset:0;background:${GOLD};z-index:20;transform:scaleX(0);pointer-events:none; }
     .v4-wipe-section.v4-wipe-go .v4-wipe-cover   { animation:v4-wipe-in 1s cubic-bezier(0.77,0,0.18,1) both; }
-    .v4-wipe-section.v4-wipe-go .v4-wipe-content { animation:v4-load-up 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
-    .v4-wipe-content { opacity:0; }
+    .v4-wipe-section.v4-wipe-go .v4-wipe-content { animation:v4-load-up 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
+    /* content always readable; animation is decorative enhancement only */
+    .v4-wipe-content { opacity:1; }
 
     .v4-tilt     { cursor:crosshair; }
     .v4-tilt img { transition:transform 0.7s cubic-bezier(0.25,1,0.5,1); }
@@ -582,9 +584,9 @@ export default function V4() {
                   gridTemplateColumns: "1fr 48px 1fr",
                   marginBottom: "64px",
                   alignItems: "center",
-                  opacity: tlVisible[i] ? 1 : 0,
-                  transform: tlVisible[i] ? "none" : i % 2 === 0 ? "translateX(-40px)" : "translateX(40px)",
-                  transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms`,
+                  opacity: tlVisible[i] ? 1 : 0.15,
+                  transform: tlVisible[i] ? "none" : i % 2 === 0 ? "translateX(-32px)" : "translateX(32px)",
+                  transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms`,
                 }}
               >
                 {i % 2 === 0 ? (
