@@ -49,7 +49,7 @@ function R({
 /* ── GSAP 카운터 ── */
 function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const [n, setN] = useState(0);
-  const { ref, on } = useReveal(0.3);
+  const { ref, on } = useReveal(0);
   useEffect(() => {
     if (!on) return;
     const s = performance.now(), dur = 2200;

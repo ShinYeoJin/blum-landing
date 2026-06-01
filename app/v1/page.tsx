@@ -41,7 +41,7 @@ function Reveal({
 /* ─── Animated counter ─── */
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
-  const { ref, inView } = useInView(0.3);
+  const { ref, inView } = useInView(0);
   useEffect(() => {
     if (!inView) return;
     const start = performance.now();

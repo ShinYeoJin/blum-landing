@@ -63,7 +63,7 @@ export default function V2() {
         <div className="absolute inset-0">
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
-            alt="blum kitchen"
+            alt="blum"
             className="w-full h-full object-cover opacity-20"
             style={{ transform: `scale(1.05) translateY(${scrollY * 0.06}px)` }}
           />
@@ -73,7 +73,7 @@ export default function V2() {
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 py-36 w-full grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
           <div style={{ color: "#faf7f2" }}>
-            <p className="v2-hero-badge text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Kitchen Fittings · Since 1952</p>
+            <p className="v2-hero-badge text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Furniture Fittings · Since 1952</p>
             <h1 className="v2-hero-title" style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 300, lineHeight: 1.1, marginBottom: "28px" }}>
               움직임이<br /><em style={{ color: "#d4a574" }}>삶을</em><br />바꿉니다
             </h1>
