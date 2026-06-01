@@ -32,6 +32,16 @@ export default function Home() {
       accent: "bg-[#ff3b00] text-white",
       tag: "Trendy · Bold",
     },
+    {
+      href: "/v4",
+      title: "스토리텔링 / 시네마틱",
+      label: "V4",
+      desc: "blum의 70년 역사와 제품이 스크롤로 펼쳐지는 시네마틱 경험",
+      bg: "bg-[#050505]",
+      text: "text-white",
+      accent: "bg-[#e63329] text-white",
+      tag: "Cinematic · Story",
+    },
   ];
 
   return (

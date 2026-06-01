@@ -52,7 +52,17 @@ export default function V3() {
     <div className="overflow-x-hidden" style={{ backgroundColor: "#0a0a0a", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
       <style>{`
         @keyframes v3-ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+        @keyframes v3-hero-in{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes v3-hero-slide{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
         .v3-ticker{animation:v3-ticker 26s linear infinite;}
+        .v3-hero-badge{animation:v3-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 80ms both;}
+        .v3-hero-title{animation:v3-hero-slide 1s cubic-bezier(0.16,1,0.3,1) 200ms both;}
+        .v3-hero-sub{animation:v3-hero-in 1s cubic-bezier(0.16,1,0.3,1) 400ms both;}
+        .v3-hero-cta{animation:v3-hero-in 1s cubic-bezier(0.16,1,0.3,1) 540ms both;}
+        .v3-product-card{transition:transform 0.4s cubic-bezier(0.25,1,0.5,1),box-shadow 0.4s ease;}
+        .v3-product-card:hover{transform:scale(1.025);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+        .v3-btn{transition:all 0.3s cubic-bezier(0.25,1,0.5,1);}
+        .v3-btn:hover{transform:translateY(-2px);}
       `}</style>
 
       {/* ── Hero ── */}
@@ -77,23 +87,23 @@ export default function V3() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full" style={{ paddingTop: "100px", paddingBottom: "80px" }}>
-          <div className="flex items-center gap-4 mb-8">
+          <div className="v3-hero-badge flex items-center gap-4 mb-8">
             <div style={{ width: "32px", height: "2px", backgroundColor: "#c8102e" }} />
             <span style={{ fontSize: "9px", letterSpacing: "0.45em", color: "#c8102e" }}>BLUM · PREMIUM FURNITURE FITTINGS · SINCE 1952</span>
           </div>
-          <h1 className="leading-none mb-8" style={{ fontSize: "clamp(3.5rem,12vw,11rem)", fontWeight: 900, letterSpacing: "-0.04em", transform: `translateY(${scrollY * -0.06}px)` }}>
+          <h1 className="v3-hero-title leading-none mb-8" style={{ fontSize: "clamp(3.5rem,12vw,11rem)", fontWeight: 900, letterSpacing: "-0.04em", transform: `translateY(${scrollY * -0.06}px)` }}>
             MOVING<br />
             <span style={{ WebkitTextStroke: "2px #c8102e", WebkitTextFillColor: "transparent", color: "#c8102e" }}>IDEAS.</span>
           </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-            <p style={{ fontSize: "14px", lineHeight: "2", color: "rgba(240,240,240,0.4)", maxWidth: "380px" }}>
+            <p className="v3-hero-sub" style={{ fontSize: "14px", lineHeight: "2", color: "rgba(240,240,240,0.4)", maxWidth: "380px" }}>
               움직임이 달라지면 삶이 달라집니다. AVENTOS, LEGRABOX, CLIP top — blum의 기술이 가구를 다시 정의합니다.
             </p>
-            <div className="flex flex-wrap gap-3 md:justify-end">
-              <Link href="/v3/products" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+            <div className="v3-hero-cta flex flex-wrap gap-3 md:justify-end">
+              <Link href="/v3/products" className="v3-btn" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 시스템 보기
               </Link>
-              <Link href="/v3/contact" style={{ border: "1px solid rgba(240,240,240,0.18)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+              <Link href="/v3/contact" className="v3-btn" style={{ border: "1px solid rgba(240,240,240,0.18)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 문의하기
               </Link>
             </div>
@@ -168,7 +178,7 @@ export default function V3() {
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
             {SYSTEMS.map((s, i) => (
-              <BoldReveal key={s.name} delay={i * 80} className={`group cursor-pointer ${s.col}`}>
+              <BoldReveal key={s.name} delay={i * 80} className={`v3-product-card group cursor-pointer ${s.col}`}>
                 <Link href="/v3/products" style={{ textDecoration: "none" }}>
                   <div className={`relative overflow-hidden ${s.aspect} mb-3`} style={{ backgroundColor: "#1a1a1a" }}>
                     <img src={s.img} alt={s.name} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />

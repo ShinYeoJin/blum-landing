@@ -130,11 +130,18 @@ export default function V1() {
         @keyframes v1-ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
         @keyframes v1-scrollbar { 0% { transform: translateY(-100%) } 100% { transform: translateY(300%) } }
         @keyframes v1-blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+        @keyframes v1-hero-in { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:translateY(0) } }
         .v1-ticker { animation: v1-ticker 28s linear infinite; }
         .v1-scrollbar { animation: v1-scrollbar 2.2s cubic-bezier(0.4,0,0.2,1) infinite; }
+        .product-card { transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), box-shadow 0.5s ease; }
+        .product-card:hover { transform: scale(1.03); box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
         .product-card:hover .product-img { transform: scale(1.06); }
         .product-card:hover .product-sub { opacity: 1; transform: translateY(0); }
         .value-row:hover .value-num { color: #18181b; }
+        .v1-hero-badge { animation: v1-hero-in 1s cubic-bezier(0.16,1,0.3,1) 100ms both; }
+        .v1-hero-title { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 260ms both; }
+        .v1-hero-sub { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 430ms both; }
+        .v1-hero-cta { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 560ms both; }
       `}</style>
 
       {/* ══════════════════ HERO ══════════════════ */}
@@ -164,13 +171,13 @@ export default function V1() {
           style={{ opacity: heroOpacity, transform: `translateY(${scrollY * -0.08}px)` }}
         >
           {/* Brand badge */}
-          <div className="flex items-center gap-3 mb-10">
+          <div className="v1-hero-badge flex items-center gap-3 mb-10">
             <div className="w-6 h-px bg-white/30" />
             <span className="text-[9px] tracking-[0.55em] uppercase text-white/40">Premium Furniture Fittings · Austria · Since 1952</span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-white mb-6 leading-none select-none" style={{
+          <h1 className="v1-hero-title text-white mb-6 leading-none select-none" style={{
             fontSize: "clamp(3.5rem, 11vw, 10rem)",
             fontWeight: 200,
             letterSpacing: "-0.03em",
@@ -180,7 +187,7 @@ export default function V1() {
             <span style={{ color: "rgba(161,161,170,0.85)", fontStyle: "italic" }}>ideas.</span>
           </h1>
 
-          <div className="flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
+          <div className="v1-hero-sub flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
             <p className="text-white/50 text-sm leading-8 max-w-xs" style={{ fontWeight: 300 }}>
               움직임이 달라지면 삶이 달라집니다.<br />
               blum이 만드는 정밀한 피팅의 세계.

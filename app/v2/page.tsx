@@ -46,6 +46,15 @@ export default function V2() {
       <style>{`
         @keyframes v2-breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.012);}}
         @keyframes v2-slide{0%{transform:translateY(-100%);}100%{transform:translateY(200%);}}
+        @keyframes v2-hero-in{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+        .v2-hero-badge{animation:v2-hero-in 1s cubic-bezier(0.16,1,0.3,1) 100ms both;}
+        .v2-hero-title{animation:v2-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 250ms both;}
+        .v2-hero-sub{animation:v2-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 420ms both;}
+        .v2-hero-cta{animation:v2-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 550ms both;}
+        .v2-product-card{transition:transform 0.5s cubic-bezier(0.25,1,0.5,1),box-shadow 0.5s ease;}
+        .v2-product-card:hover{transform:scale(1.03);box-shadow:0 24px 60px rgba(44,30,15,0.25);}
+        .v2-btn{transition:all 0.35s cubic-bezier(0.25,1,0.5,1);}
+        .v2-btn:hover{transform:translateY(-2px);}
       `}</style>
       {/* ── Hero ── */}
       <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "#2c1e0f" }}>
@@ -63,15 +72,15 @@ export default function V2() {
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 py-36 w-full grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
           <div style={{ color: "#faf7f2" }}>
-            <p className="text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Kitchen Fittings · Since 1952</p>
-            <h1 style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 300, lineHeight: 1.1, marginBottom: "28px" }}>
+            <p className="v2-hero-badge text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Kitchen Fittings · Since 1952</p>
+            <h1 className="v2-hero-title" style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 300, lineHeight: 1.1, marginBottom: "28px" }}>
               움직임이<br /><em style={{ color: "#d4a574" }}>삶을</em><br />바꿉니다
             </h1>
-            <p className="text-sm leading-8 opacity-60 max-w-xs mb-10">
+            <p className="v2-hero-sub text-sm leading-8 opacity-60 max-w-xs mb-10">
               blum의 피팅 시스템은 편리함을 높이고 삶의 질을 향상시킵니다. 열고 닫는 매 순간의 품질이 일상을 바꿉니다.
             </p>
-            <div className="flex flex-wrap gap-4 items-center">
-              <Link href="/v2/products" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
+            <div className="v2-hero-cta flex flex-wrap gap-4 items-center">
+              <Link href="/v2/products" className="v2-btn" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
                 제품 보기
               </Link>
               <Link href="/v2/company" style={{ color: "#faf7f2", textDecoration: "none", fontSize: "11px", opacity: 0.5 }}>
@@ -152,7 +161,7 @@ export default function V2() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PRODUCTS.map((p, i) => (
-              <Reveal key={p.name} delay={i * 100} className="group cursor-pointer">
+              <Reveal key={p.name} delay={i * 100} className="v2-product-card group cursor-pointer rounded-2xl">
                 <div className="rounded-2xl overflow-hidden mb-4 aspect-[4/5] relative">
                   <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = p.bg; }} />
                   <div className="absolute top-4 left-4">
