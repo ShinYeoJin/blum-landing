@@ -10,6 +10,24 @@ const CARD_SEL: Record<Version, string> = {
   v3: ".v3-product-card",
 };
 
+const TEXT_CFG: Record<Version, { duration: number; ease: string }> = {
+  v1: { duration: 1.3, ease: "power2.out" },
+  v2: { duration: 1.0, ease: "power3.out" },
+  v3: { duration: 0.55, ease: "back.out(1.5)" },
+};
+
+const CURSOR_CFG: Record<Version, { background: string; border: string; borderRadius: string; boxShadow?: string }> = {
+  v1: { background: "#ffffff", border: "2px solid #18181b", borderRadius: "0px" },
+  v2: { background: "#faf7f2", border: "none", borderRadius: "12px", boxShadow: "0 16px 56px rgba(0,0,0,0.18)" },
+  v3: { background: "#0a0a0a", border: "2px solid #c8102e", borderRadius: "0px", boxShadow: "0 0 0 1px #c8102e, 0 16px 40px rgba(200,16,46,0.25)" },
+};
+
+const SEQ_CFG: Record<Version, { duration: number; ease: string; delayPerItem: number }> = {
+  v1: { duration: 0.9, ease: "power2.out", delayPerItem: 0.1 },
+  v2: { duration: 0.75, ease: "power3.out", delayPerItem: 0.09 },
+  v3: { duration: 0.45, ease: "back.out(1.4)", delayPerItem: 0.06 },
+};
+
 export default function BlumGSAP({ version }: { version: Version }) {
   useEffect(() => {
     const kills: Array<() => void> = [];
@@ -20,16 +38,14 @@ export default function BlumGSAP({ version }: { version: Version }) {
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
 
-      /* ── 1. 텍스트 마스크 reveal: section h2 ──────────────────── */
+      const textCfg = TEXT_CFG[version];
       document.querySelectorAll<HTMLElement>("section h2").forEach((el) => {
         if (el.dataset.gsapMask) return;
         el.dataset.gsapMask = "1";
 
-        /* 원본 overflow 저장 후 hidden 처리 */
         const origOverflow = el.style.overflow;
         el.style.overflow = "hidden";
 
-        /* inner wrapper 삽입 */
         const wrap = document.createElement("span");
         wrap.style.cssText = "display:block;will-change:transform;";
         while (el.firstChild) wrap.appendChild(el.firstChild);
@@ -44,15 +60,14 @@ export default function BlumGSAP({ version }: { version: Version }) {
           onEnter: () => {
             gsap.to(wrap, {
               y: "0%",
-              duration: 1.3,
-              ease: "power4.out",
+              duration: textCfg.duration,
+              ease: textCfg.ease,
             });
           },
         });
 
         kills.push(() => {
           st.kill();
-          /* DOM 원상 복구 */
           while (wrap.firstChild) el.insertBefore(wrap.firstChild, wrap);
           wrap.remove();
           el.style.overflow = origOverflow;
@@ -60,14 +75,11 @@ export default function BlumGSAP({ version }: { version: Version }) {
         });
       });
 
-      /* ── 2. 이미지 패럴렉스 (비-히어로, 비-카드 이미지) ──────── */
       document.querySelectorAll<HTMLElement>("section").forEach((sec, i) => {
-        if (i === 0) return; // 히어로 섹션 제외
+        if (i === 0) return;
 
         sec.querySelectorAll<HTMLElement>(".overflow-hidden img").forEach((img) => {
-          /* hover:scale 클래스가 있는 이미지는 충돌 방지를 위해 제외 */
           if (img.className.includes("hover:scale") || img.className.includes("group-hover:scale")) return;
-          /* 작은 섬네일 제외 */
           const parent = img.closest<HTMLElement>(".overflow-hidden");
           if (!parent || parent.offsetHeight < 120) return;
 
@@ -89,20 +101,23 @@ export default function BlumGSAP({ version }: { version: Version }) {
         });
       });
 
-      /* ── 3. 커서 따라다니는 이미지 미리보기 ─────────────────────── */
+      const cursorCfg = CURSOR_CFG[version];
       const cards = document.querySelectorAll<HTMLElement>(CARD_SEL[version]);
       if (cards.length > 0) {
         previewEl = document.createElement("div");
         previewEl.id = "blum-cursor-preview";
-        previewEl.style.cssText = [
+        const cursorStyles = [
           "position:fixed", "pointer-events:none", "z-index:9999",
-          "width:270px", "height:178px",
+          "width:260px", "height:172px",
           "overflow:hidden", "opacity:0",
           "transition:opacity 0.28s ease",
-          "box-shadow:0 16px 56px rgba(0,0,0,0.32)",
           "transform:translateZ(0)",
-          "border-radius:2px",
-        ].join(";");
+          `background:${cursorCfg.background}`,
+          `border:${cursorCfg.border}`,
+          `border-radius:${cursorCfg.borderRadius}`,
+        ];
+        if (cursorCfg.boxShadow) cursorStyles.push(`box-shadow:${cursorCfg.boxShadow}`);
+        previewEl.style.cssText = cursorStyles.join(";");
         const pi = document.createElement("img");
         pi.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;";
         previewEl.appendChild(pi);
@@ -128,7 +143,7 @@ export default function BlumGSAP({ version }: { version: Version }) {
             rafId = requestAnimationFrame(() => {
               if (!previewEl) return;
               previewEl.style.left = me.clientX + 28 + "px";
-              previewEl.style.top = me.clientY - 89 + "px";
+              previewEl.style.top = me.clientY - 86 + "px";
             });
           };
 
@@ -148,13 +163,11 @@ export default function BlumGSAP({ version }: { version: Version }) {
         });
       }
 
-      /* ── 4. 섹션 진입 시 요소 순차 등장 (그리드 아이템) ─────── */
+      const seqCfg = SEQ_CFG[version];
       document.querySelectorAll<HTMLElement>(
         "section .grid > div, section .grid > a",
       ).forEach((grid) => {
-        /* 이미 Reveal로 감싸진 요소(인라인 opacity 0)는 스킵 */
         if ((grid as HTMLElement).style.opacity === "0") return;
-        /* 이미 처리된 요소 스킵 */
         if ((grid as HTMLElement).dataset.gsapSeq) return;
         (grid as HTMLElement).dataset.gsapSeq = "1";
 
@@ -164,9 +177,9 @@ export default function BlumGSAP({ version }: { version: Version }) {
         const t = gsap.from(grid, {
           y: 24,
           opacity: 0,
-          duration: 0.85,
-          delay: idx * 0.08,
-          ease: "power3.out",
+          duration: seqCfg.duration,
+          delay: idx * seqCfg.delayPerItem,
+          ease: seqCfg.ease,
           scrollTrigger: {
             trigger: grid.parentElement!,
             start: "top 82%",
@@ -176,7 +189,6 @@ export default function BlumGSAP({ version }: { version: Version }) {
         kills.push(() => t.kill());
       });
 
-      /* ── 5. 숫자 카운팅 (data-count 속성 기반) ──────────────── */
       document.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
         if (el.dataset.gsapCount) return;
         el.dataset.gsapCount = "1";

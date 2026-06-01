@@ -6,7 +6,6 @@ import BlumGSAP from "@/components/BlumGSAP";
 
 const BASE = "https://www.blum.com";
 
-/* ─── Intersection observer hook ─── */
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -20,7 +19,6 @@ function useInView(threshold = 0.12) {
   return { ref, inView };
 }
 
-/* ─── Fade-up reveal ─── */
 function Reveal({
   children, delay = 0, className = "", y = 40, once = true,
 }: {
@@ -38,7 +36,6 @@ function Reveal({
   );
 }
 
-/* ─── Animated counter ─── */
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
   const { ref, inView } = useInView(0);
@@ -57,7 +54,6 @@ function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-/* ─── Products ─── */
 const PRODUCTS = [
   {
     id: "aventos",
@@ -98,12 +94,26 @@ const PRODUCTS = [
 ];
 
 const VALUES = [
-  { num: "01", title: "삶의 질", body: "한결 더 쉽게 경험하는 편리함. blum은 편리함을 높이고 삶의 질을 향상시키는 고품질 주방 및 가구용 피팅을 제조합니다." },
+  { num: "01", title: "삶의 질", body: "한결 더 쉽게 경험하는 편리함. blum은 편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅을 제조합니다." },
   { num: "02", title: "영감", body: "고객의 질문이 혁신의 원동력입니다. blum은 끊임없이 움직여 더 나은 아이디어를 만들어 갑니다." },
   { num: "03", title: "신뢰", body: "사회, 환경, 직원에 대한 기업 책임. 자연 자원을 미래 세대를 위해 보존하는 것이 blum의 핵심 가치입니다." },
 ];
 
-/* ─── Page ─── */
+const SERVICES = [
+  {
+    title: "계획 / 설계 지원",
+    body: "구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
+    href: "/v1/services",
+    img: `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`,
+  },
+  {
+    title: "E-Services",
+    body: "CAD/CAM 데이터부터 주문 관리까지 디지털로 완결되는 온라인 서비스 포털.",
+    href: "/v1/services",
+    img: `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`,
+  },
+];
+
 export default function V1() {
   const [scrollY, setScrollY] = useState(0);
   const [activeProduct, setActiveProduct] = useState(0);
@@ -116,7 +126,6 @@ export default function V1() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Auto-cycle product showcase */
   useEffect(() => {
     const id = setInterval(() => setActiveProduct(i => (i + 1) % PRODUCTS.length), 3500);
     return () => clearInterval(id);
@@ -135,8 +144,8 @@ export default function V1() {
         .v1-ticker { animation: v1-ticker 28s linear infinite; }
         .v1-scrollbar { animation: v1-scrollbar 2.2s cubic-bezier(0.4,0,0.2,1) infinite; }
         .product-card { transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), box-shadow 0.5s ease; }
-        .product-card:hover { transform: scale(1.03); box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
-        .product-card:hover .product-img { transform: scale(1.06); }
+        .product-card:hover { transform: scale(1.01); box-shadow: 0 24px 60px rgba(0,0,0,0.10); }
+        .product-card:hover .product-img { transform: scale(1.04); }
         .product-card:hover .product-sub { opacity: 1; transform: translateY(0); }
         .value-row:hover .value-num { color: #18181b; }
         .v1-hero-badge { animation: v1-hero-in 1s cubic-bezier(0.16,1,0.3,1) 100ms both; }
@@ -147,7 +156,6 @@ export default function V1() {
 
       {/* ══════════════════ HERO ══════════════════ */}
       <section ref={heroRef} className="relative h-screen min-h-[600px] flex flex-col justify-end overflow-hidden bg-zinc-950">
-        {/* Parallax BG */}
         <div className="absolute inset-0 overflow-hidden">
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
@@ -156,28 +164,23 @@ export default function V1() {
             style={{ transform: `scale(1.12) translateY(${heroParallax}px)`, opacity: 0.38 }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-          {/* Gradient layers */}
           <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #09090b 30%, rgba(9,9,11,0.55) 70%, rgba(9,9,11,0.2) 100%)" }} />
           <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(9,9,11,0.6) 0%, transparent 60%)" }} />
-          {/* Subtle grid overlay */}
           <div className="absolute inset-0 opacity-[0.025]" style={{
             backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
             backgroundSize: "100px 100px"
           }} />
         </div>
 
-        {/* Content */}
         <div
           className="relative z-10 max-w-7xl mx-auto px-8 pb-20 w-full"
           style={{ opacity: heroOpacity, transform: `translateY(${scrollY * -0.08}px)` }}
         >
-          {/* Brand badge */}
           <div className="v1-hero-badge flex items-center gap-3 mb-10">
             <div className="w-6 h-px bg-white/30" />
             <span className="text-[9px] tracking-[0.55em] uppercase text-white/40">Premium Furniture Fittings · Austria · Since 1952</span>
           </div>
 
-          {/* Headline */}
           <h1 className="v1-hero-title text-white mb-6 leading-none select-none" style={{
             fontSize: "clamp(3.5rem, 11vw, 10rem)",
             fontWeight: 200,
@@ -213,7 +216,6 @@ export default function V1() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 right-8 flex flex-col items-center gap-3 z-10">
           <span className="text-[8px] tracking-[0.4em] uppercase text-white/25 rotate-90 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
           <div className="w-px h-14 bg-white/12 relative overflow-hidden">
@@ -221,7 +223,6 @@ export default function V1() {
           </div>
         </div>
 
-        {/* Bottom product ticker preview */}
         <div className="absolute bottom-0 left-0 right-0 z-10 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
           <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
             <div className="flex gap-6">
@@ -257,7 +258,6 @@ export default function V1() {
       {/* ══════════════════ BRAND STORY ══════════════════ */}
       <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-20 items-start">
-          {/* Left */}
           <div className="md:col-span-5">
             <Reveal>
               <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-7">About Blum</p>
@@ -282,7 +282,6 @@ export default function V1() {
             </Reveal>
           </div>
 
-          {/* Right: staggered image grid */}
           <div className="md:col-span-7">
             <div className="grid grid-cols-2 gap-3">
               <Reveal delay={0} className="space-y-3">
@@ -325,7 +324,6 @@ export default function V1() {
           </div>
         </div>
 
-        {/* Stats row */}
         <Reveal delay={100} className="mt-20 pt-14 border-t border-zinc-100 grid grid-cols-2 md:grid-cols-4 gap-10">
           {[
             { target: 2441, suffix: "M€", label: "전 세계 연매출" },
@@ -382,58 +380,85 @@ export default function V1() {
             </Link>
           </Reveal>
 
-          {/* 2×2 product grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-100">
-            {PRODUCTS.map((p, i) => (
-              <Reveal key={p.id} delay={i * 70}>
-                <Link
-                  href={p.href}
-                  className="product-card group block bg-white transition-colors duration-500 hover:bg-zinc-50"
-                  style={{ textDecoration: "none" }}
-                >
-                  {/* Image area */}
-                  <div className="relative overflow-hidden aspect-[4/3] bg-zinc-100">
-                    <img
-                      src={p.img}
-                      alt={p.name}
-                      className="product-img w-full h-full object-cover transition-transform duration-700"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                    {/* Sub image on hover */}
-                    <div
-                      className="product-sub absolute inset-0 transition-all duration-500"
-                      style={{ opacity: 0, transform: "translateY(8px)" }}
-                    >
-                      <img
-                        src={p.sub}
-                        alt={`${p.name} detail`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                    </div>
-                    {/* Index badge */}
-                    <div className="absolute top-5 left-5 text-[9px] tracking-[0.3em] text-white/60">
-                      {String(i + 1).padStart(2, "0")}
-                    </div>
-                    {/* Category badge */}
-                    <div className="absolute top-5 right-5 text-[9px] tracking-[0.25em] uppercase text-white/60 bg-black/20 backdrop-blur-sm px-3 py-1">
-                      {p.category}
-                    </div>
-                  </div>
-                  {/* Text */}
-                  <div className="p-8 md:p-10">
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="text-xl font-light tracking-tight">{p.name}</h3>
-                      <span className="text-zinc-200 group-hover:text-zinc-900 group-hover:translate-x-1 transition-all duration-300 inline-block">→</span>
-                    </div>
-                    <p className="text-xs text-zinc-400 leading-relaxed mb-5" style={{ fontWeight: 300 }}>{p.desc}</p>
-                    <span className="text-[10px] tracking-[0.25em] uppercase text-zinc-300 group-hover:text-zinc-700 transition-colors">
-                      자세히 보기
-                    </span>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
+          <div className="flex flex-col gap-px bg-zinc-100">
+            {PRODUCTS.map((p, i) => {
+              const isEven = i % 2 === 0;
+              return (
+                <Reveal key={p.id} delay={i * 70}>
+                  <Link
+                    href={p.href}
+                    className="product-card group grid grid-cols-1 md:grid-cols-2 bg-white hover:bg-zinc-50 transition-colors duration-500"
+                    style={{ textDecoration: "none", minHeight: "360px" }}
+                  >
+                    {isEven ? (
+                      <>
+                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2 md:order-1">
+                          <span className="text-[9px] tracking-[0.3em] text-zinc-300 mb-3">{String(i + 1).padStart(2, "0")} · {p.category}</span>
+                          <h3 className="text-2xl md:text-3xl font-light tracking-tight mb-4 group-hover:text-zinc-600 transition-colors">{p.name}</h3>
+                          <div className="w-8 h-px bg-zinc-200 mb-5" />
+                          <p className="text-sm text-zinc-400 leading-relaxed mb-7" style={{ fontWeight: 300 }}>{p.desc}</p>
+                          <span className="inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
+                            자세히 보기
+                            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                          </span>
+                        </div>
+                        <div className="relative overflow-hidden bg-zinc-100 order-1 md:order-2" style={{ minHeight: "360px" }}>
+                          <img
+                            src={p.img}
+                            alt={p.name}
+                            className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                          <div
+                            className="product-sub absolute inset-0 transition-all duration-500"
+                            style={{ opacity: 0, transform: "translateY(8px)" }}
+                          >
+                            <img
+                              src={p.sub}
+                              alt={`${p.name} detail`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="relative overflow-hidden bg-zinc-100 order-1" style={{ minHeight: "360px" }}>
+                          <img
+                            src={p.img}
+                            alt={p.name}
+                            className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                          <div
+                            className="product-sub absolute inset-0 transition-all duration-500"
+                            style={{ opacity: 0, transform: "translateY(8px)" }}
+                          >
+                            <img
+                              src={p.sub}
+                              alt={`${p.name} detail`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2">
+                          <span className="text-[9px] tracking-[0.3em] text-zinc-300 mb-3">{String(i + 1).padStart(2, "0")} · {p.category}</span>
+                          <h3 className="text-2xl md:text-3xl font-light tracking-tight mb-4 group-hover:text-zinc-600 transition-colors">{p.name}</h3>
+                          <div className="w-8 h-px bg-zinc-200 mb-5" />
+                          <p className="text-sm text-zinc-400 leading-relaxed mb-7" style={{ fontWeight: 300 }}>{p.desc}</p>
+                          <span className="inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
+                            자세히 보기
+                            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </Link>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -474,42 +499,45 @@ export default function V1() {
 
       {/* ══════════════════ PHILOSOPHY ══════════════════ */}
       <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
-        <Reveal className="mb-16">
-          <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
-          <h2 className="text-3xl md:text-5xl font-extralight" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
-        </Reveal>
-        <div>
-          {VALUES.map((v, i) => (
-            <Reveal key={v.num} delay={i * 80}>
-              <div
-                className="value-row border-t border-zinc-100 group cursor-pointer"
-                onClick={() => setOpenValue(openValue === i ? null : i)}
-              >
-                <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
-                  <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-200 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
-                  <div className="col-span-8 md:col-span-4">
-                    <h3 className="text-xl md:text-2xl font-light group-hover:text-zinc-600 transition-colors">{v.title}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+          <Reveal>
+            <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
+            <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
+            <div className="w-10 h-px bg-zinc-200 mb-8" />
+            <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
+              움직임, 편리함, 그리고 신뢰. blum의 모든 제품은 세 가지 핵심 가치를 바탕으로 설계되고 제조됩니다.
+            </p>
+          </Reveal>
+
+          <div>
+            {VALUES.map((v, i) => (
+              <Reveal key={v.num} delay={i * 80}>
+                <div
+                  className="value-row border-t border-zinc-100 group cursor-pointer"
+                  onClick={() => setOpenValue(openValue === i ? null : i)}
+                >
+                  <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
+                    <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-200 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
+                    <div className="col-span-8 md:col-span-7">
+                      <h3 className="text-xl md:text-2xl font-light group-hover:text-zinc-600 transition-colors">{v.title}</h3>
+                    </div>
+                    <div className="col-span-2 md:col-span-4 text-right">
+                      <span className="text-zinc-200 text-sm group-hover:text-zinc-500 transition-colors inline-block">
+                        {openValue === i ? "−" : "+"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="col-span-2 md:col-span-6 text-right md:text-left">
-                    <p
-                      className="text-sm text-zinc-400 leading-relaxed overflow-hidden transition-all duration-500"
-                      style={{
-                        maxHeight: openValue === i ? "200px" : "0px",
-                        opacity: openValue === i ? 1 : 0,
-                        fontWeight: 300,
-                      }}
-                    >
-                      {v.body}
-                    </p>
-                    <span className="text-zinc-200 text-sm group-hover:text-zinc-500 transition-colors mt-2 inline-block">
-                      {openValue === i ? "−" : "+"}
-                    </span>
+                  <div
+                    className="overflow-hidden transition-all duration-500"
+                    style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}
+                  >
+                    <p className="text-sm text-zinc-400 leading-relaxed pb-8 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
                   </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
-          <div className="border-t border-zinc-100" />
+              </Reveal>
+            ))}
+            <div className="border-t border-zinc-100" />
+          </div>
         </div>
       </section>
 
@@ -517,33 +545,57 @@ export default function V1() {
       <Reveal>
         <section className="py-16 bg-zinc-50 border-y border-zinc-100">
           <div className="max-w-7xl mx-auto px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {[
-                {
-                  title: "계획 / 설계 지원",
-                  body: "구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
-                  href: "/v1/services",
-                },
-                {
-                  title: "E-Services",
-                  body: "CAD/CAM 데이터부터 주문 관리까지 디지털로 완결되는 온라인 서비스 포털.",
-                  href: "/v1/services",
-                },
-                {
-                  title: "조립 / 조정 지원",
-                  body: "ECODRILL, EASYSTICK 등 blum 전용 조립 장치로 정밀한 설치를 지원합니다.",
-                  href: "/v1/services",
-                },
-              ].map((s) => (
-                <Link key={s.title} href={s.href} className="group block" style={{ textDecoration: "none" }}>
-                  <div className="w-8 h-px bg-zinc-300 mb-5 group-hover:w-16 transition-all duration-300" />
-                  <h3 className="text-base font-light text-zinc-900 mb-3 group-hover:text-zinc-600 transition-colors">{s.title}</h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed mb-4" style={{ fontWeight: 300 }}>{s.body}</p>
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-300 group-hover:text-zinc-700 transition-colors">
-                    더 알아보기 →
-                  </span>
-                </Link>
-              ))}
+            <Reveal className="mb-12">
+              <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-3">Services</p>
+              <h2 className="text-2xl md:text-3xl font-extralight" style={{ letterSpacing: "-0.02em" }}>전문 서비스 지원</h2>
+            </Reveal>
+            <div className="flex flex-col gap-px bg-zinc-200">
+              {SERVICES.map((s, i) => {
+                const isEven = i % 2 === 0;
+                return (
+                  <Link key={s.title} href={s.href} className="group grid grid-cols-1 md:grid-cols-2 bg-zinc-50 hover:bg-white transition-colors duration-300" style={{ textDecoration: "none", minHeight: "280px" }}>
+                    {isEven ? (
+                      <>
+                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2 md:order-1">
+                          <div className="w-8 h-px bg-zinc-300 mb-5 group-hover:w-16 transition-all duration-300" />
+                          <h3 className="text-lg font-light text-zinc-900 mb-3 group-hover:text-zinc-600 transition-colors">{s.title}</h3>
+                          <p className="text-xs text-zinc-400 leading-relaxed mb-5" style={{ fontWeight: 300 }}>{s.body}</p>
+                          <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
+                            더 알아보기 →
+                          </span>
+                        </div>
+                        <div className="relative overflow-hidden bg-zinc-100 order-1 md:order-2" style={{ minHeight: "280px" }}>
+                          <img
+                            src={s.img}
+                            alt={s.title}
+                            className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="relative overflow-hidden bg-zinc-100 order-1" style={{ minHeight: "280px" }}>
+                          <img
+                            src={s.img}
+                            alt={s.title}
+                            className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                        </div>
+                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2">
+                          <div className="w-8 h-px bg-zinc-300 mb-5 group-hover:w-16 transition-all duration-300" />
+                          <h3 className="text-lg font-light text-zinc-900 mb-3 group-hover:text-zinc-600 transition-colors">{s.title}</h3>
+                          <p className="text-xs text-zinc-400 leading-relaxed mb-5" style={{ fontWeight: 300 }}>{s.body}</p>
+                          <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
+                            더 알아보기 →
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -551,7 +603,6 @@ export default function V1() {
 
       {/* ══════════════════ CTA ══════════════════ */}
       <section className="relative bg-zinc-950 py-36 md:py-52 overflow-hidden">
-        {/* BG image */}
         <div className="absolute inset-0">
           <img
             src={`${BASE}/images/560/258/4214768/corporate/media/bilder/virtueller-schauraum/blum-virtueller-schauraum_2_4:3.png`}

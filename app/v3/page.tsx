@@ -211,10 +211,10 @@ export default function V3() {
         <div className="max-w-7xl mx-auto px-6">
           <BoldReveal className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { title: "계획 / 설계", href: "/services#plan", img: `${BASE}/images/196/180/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg` },
-              { title: "E-Services", href: "/services#digital", img: `${BASE}/images/196/180/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png` },
-              { title: "조립 지원", href: "/services#assembly", img: `${BASE}/images/196/180/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg` },
-              { title: "마케팅 자료", href: "/services#marketing", img: `${BASE}/images/196/180/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg` },
+              { title: "계획 / 설계", href: "/v3/services", img: `${BASE}/images/196/180/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg` },
+              { title: "E-Services", href: "/v3/services", img: `${BASE}/images/196/180/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png` },
+              { title: "조립 지원", href: "/v3/services", img: `${BASE}/images/196/180/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg` },
+              { title: "마케팅 자료", href: "/v3/services", img: `${BASE}/images/196/180/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg` },
             ].map((svc) => (
               <Link key={svc.title} href={svc.href} className="group block" style={{ textDecoration: "none" }}>
                 <div className="rounded-xl overflow-hidden aspect-[4/3] mb-3 bg-zinc-800">
@@ -238,7 +238,7 @@ export default function V3() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
               {[
                 { title: "FUNCTIONAL BEAUTY", body: "기능이 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다." },
-                { title: "50,000 CYCLES", body: "모든 제품은 5만 회 이상의 개폐 테스트를 통과합니다. 첫날과 마지막 날의 품질이 같습니다." },
+                { title: "100,000 CYCLES", body: "러너 시스템은 100,000회 이상의 개폐 테스트를 통과합니다. 첫날과 마지막 날의 품질이 같습니다." },
                 { title: "INVISIBLE PRECISION", body: "최고의 디자인은 보이지 않습니다. blum은 가구 뒤에서 조용히 완벽함을 만듭니다." },
               ].map((v, i) => (
                 <BoldReveal key={v.title} delay={i * 100}>

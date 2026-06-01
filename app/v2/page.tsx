@@ -29,8 +29,8 @@ function Reveal({ children, delay = 0, className = "", style }: { children: Reac
 }
 
 const PRODUCTS = [
-  { name: "AVENTOS", cat: "리프트 시스템", tag: "BEST", desc: "상부장을 부드럽게 들어올리는 리프트 시스템. 5가지 오픈 방식으로 주방 공간을 더 실용적으로.", img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`, bg: "#c8a882" },
-  { name: "LEGRABOX", cat: "서랍 시스템", tag: "NEW", desc: "얇고 우아한 금속 프레임 서랍. 주방 하부장을 세련되게 완성하는 프리미엄 솔루션.", img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`, bg: "#b8927a" },
+  { name: "AVENTOS", cat: "리프트 시스템", tag: "BEST", desc: "상부장을 부드럽게 들어올리는 리프트 시스템. HKi, HF, HS, HL, HK top 등 다양한 방식으로 캐비닛을 완성합니다.", img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`, bg: "#c8a882" },
+  { name: "LEGRABOX", cat: "박스 시스템", tag: "NEW", desc: "슬림한 서랍면(12.8mm), 최대 하중 40kg·70kg 지지. 가구 디자인과 기능을 동시에 완성하는 프리미엄 박스 시스템.", img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`, bg: "#b8927a" },
   { name: "CLIP top BLUMOTION", cat: "경첩 시스템", tag: "—", desc: "소프트 클로징이 내장된 경첩. 도어가 마지막 순간 스스로 부드럽게 닫힙니다.", img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`, bg: "#d4a574" },
 ];
 
@@ -114,6 +114,26 @@ export default function V2() {
         </div>
       </section>
 
+      {/* ── Full-width feature strip ── */}
+      <section className="relative overflow-hidden w-full" style={{ height: "clamp(260px, 50vw, 500px)" }}>
+        <img
+          src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
+          alt="feature"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(44,30,15,0.88) 0%, rgba(44,30,15,0.55) 50%, rgba(44,30,15,0.0) 100%)" }} />
+        <Reveal className="absolute inset-0 flex items-center" style={{ maxWidth: "50%" }}>
+          <div className="px-10 md:px-20" style={{ color: "#faf7f2" }}>
+            <h2 style={{ fontSize: "clamp(1.5rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.2, marginBottom: "16px" }}>
+              움직임이 만드는 차이
+            </h2>
+            <p className="text-sm leading-7" style={{ color: "rgba(250,247,242,0.65)", maxWidth: "340px" }}>
+              편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅 — Julius Blum GmbH, 1952
+            </p>
+          </div>
+        </Reveal>
+      </section>
+
       {/* ── Story ── */}
       <section className="py-24 md:py-40">
         <div className="max-w-6xl mx-auto px-6 md:px-12">
@@ -153,7 +173,7 @@ export default function V2() {
           <Reveal className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
             <div>
               <p className="text-xs tracking-[0.4em] uppercase mb-3" style={{ color: "#c68642" }}>Product Lines</p>
-              <h2 className="text-3xl md:text-4xl font-light" style={{ color: "#2c1e0f" }}>주방을 완성하는<br />blum 시스템</h2>
+              <h2 className="text-3xl md:text-4xl font-light" style={{ color: "#2c1e0f" }}>공간을 완성하는<br />blum 시스템</h2>
             </div>
             <Link href="/v2/products" className="text-xs tracking-wider underline underline-offset-4" style={{ color: "#8a6a4a", textDecoration: "underline" }}>
               전체 제품 보기 →
@@ -197,6 +217,49 @@ export default function V2() {
         </div>
       </section>
 
+      {/* ── Alternating feature rows ── */}
+      {/* Row A: text left, image right */}
+      <Reveal className="flex flex-col md:flex-row overflow-hidden" style={{ minHeight: "400px" }}>
+        <div className="flex items-center md:w-[40%] px-10 md:px-16 py-14" style={{ backgroundColor: "#faf7f2" }}>
+          <div>
+            <p className="text-xs tracking-[0.35em] uppercase mb-4" style={{ color: "#c68642" }}>Runner System</p>
+            <h3 className="text-2xl md:text-3xl font-light mb-4 leading-snug" style={{ color: "#2c1e0f" }}>MOVENTO 러너 시스템</h3>
+            <p className="text-sm leading-7" style={{ color: "#8a6a4a" }}>
+              감춘 러너 시스템은 까다로운 요구사항을 충족하는 정교한 솔루션입니다. 4방향 조절 가능, 100,000회 개폐 테스트 적용.
+            </p>
+          </div>
+        </div>
+        <div className="md:w-[60%] overflow-hidden" style={{ height: "400px" }}>
+          <img
+            src={`${BASE}/images/560/258/4215095/corporate/media/bilder/produkte/fuehrungssysteme/mov0003_dt_frd_fo_bau_-sall_-apr6i_-v2_4:3.jpg`}
+            alt="MOVENTO"
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#c8b8a2"; }}
+          />
+        </div>
+      </Reveal>
+
+      {/* Row B: image left, text right */}
+      <Reveal className="flex flex-col md:flex-row overflow-hidden" style={{ minHeight: "400px" }}>
+        <div className="md:w-[60%] overflow-hidden order-2 md:order-1" style={{ height: "400px" }}>
+          <img
+            src={`${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`}
+            alt="CLIP top BLUMOTION"
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#c8b8a2"; }}
+          />
+        </div>
+        <div className="flex items-center md:w-[40%] px-10 md:px-16 py-14 order-1 md:order-2" style={{ backgroundColor: "#f0e8d8" }}>
+          <div>
+            <p className="text-xs tracking-[0.35em] uppercase mb-4" style={{ color: "#c68642" }}>Hinge System</p>
+            <h3 className="text-2xl md:text-3xl font-light mb-4 leading-snug" style={{ color: "#2c1e0f" }}>CLIP top BLUMOTION</h3>
+            <p className="text-sm leading-7" style={{ color: "#8a6a4a" }}>
+              댐핑 기능이 경첩 보스에 통합되어 있습니다. 도어의 무게에 관계없이 항상 매끄럽게 닫힙니다.
+            </p>
+          </div>
+        </div>
+      </Reveal>
+
       {/* ── Values ── */}
       <section className="py-24 md:py-36 max-w-6xl mx-auto px-6 md:px-12">
         <Reveal className="text-center mb-16">
@@ -205,8 +268,8 @@ export default function V2() {
         </Reveal>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ backgroundColor: "#ddd0bc" }}>
           {[
-            { emoji: "⚙️", title: "정밀한 기술", body: "50,000회 이상 반복 테스트. 첫날과 마지막 날의 품질이 동일한 피팅을 만듭니다." },
-            { emoji: "🏡", title: "공간을 위한 설계", body: "주방, 침실, 홈 오피스 — 모든 공간에서 최적의 편의성을 제공합니다." },
+            { emoji: "⚙️", title: "정밀한 기술", body: "러너 시스템 기준 100,000회 이상 개폐 테스트. 첫날과 마지막 날의 품질이 동일한 피팅을 만듭니다." },
+            { emoji: "🏡", title: "공간을 위한 설계", body: "가구 제조업체와 협력해 최적의 피팅 솔루션을 설계합니다. 편리함을 높이고 삶의 질을 향상시킵니다." },
             { emoji: "🌿", title: "지속 가능한 생산", body: "오스트리아 공장의 친환경 생산 시스템. 품질과 환경 모두를 생각합니다." },
           ].map((v, i) => (
             <Reveal key={v.title} delay={i * 120} className="p-10 md:p-12 text-center" style={{ backgroundColor: "#faf7f2" }}>
