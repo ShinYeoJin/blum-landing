@@ -159,7 +159,7 @@ export default function V1() {
         <div className="absolute inset-0 overflow-hidden">
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
-            alt="blum kitchen"
+            alt="blum hero"
             className="w-full h-full object-cover"
             style={{ transform: `scale(1.12) translateY(${heroParallax}px)`, opacity: 0.38 }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}

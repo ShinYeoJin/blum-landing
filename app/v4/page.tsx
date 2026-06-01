@@ -3,60 +3,104 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-const BASE = "https://www.blum.com";
-
-/* ── 인라인 스타일 헬퍼 ── */
+/* ── Constants ── */
+const NAVY  = "#0D1117";
+const GOLD  = "#D4AF37";
+const CREAM = "#F5F0E8";
+const GRAY  = "rgba(245,240,232,0.50)";
+const LINE  = "rgba(212,175,55,0.18)";
 type S = React.CSSProperties;
-const C = {
-  navy:  "#0D1117" as string,
-  gold:  "#D4AF37" as string,
-  goldD: "#B8942A" as string,
-  white: "#F5F0E8" as string,
-  gray:  "rgba(245,240,232,0.45)" as string,
-  line:  "rgba(212,175,55,0.18)" as string,
-};
 
-/* ── ScrollReveal Hook ── */
-function useReveal(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
+/* ── Data ── */
+const CHAPTERS = [
+  {
+    label: "BRAND STORY · SINCE 1952",
+    title: "moving ideas.",
+    body: "편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅. Julius Blum GmbH는 오스트리아 포어알베르크에서 시작해 세계 최고의 가구 피팅 제조업체 중 하나로 성장했습니다.",
+    img: "https://www.blum.com/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg",
+  },
+  {
+    label: "INNOVATION",
+    title: "끊임없는 혁신",
+    body: "BLUMOTION, CLIP top, LEGRABOX, TIP-ON — blum은 끊임없이 움직여 더 나은 아이디어를 만들어갑니다. 가구 제조업체의 질문이 혁신의 원동력입니다.",
+    img: "https://www.blum.com/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg",
+  },
+  {
+    label: "GLOBAL LEADERSHIP",
+    title: "글로벌 리더십",
+    body: "€2,441M 매출, 9,850명 임직원, 120개국 수출, 34개 자회사·대리점. 3대째 가족 경영으로 신뢰와 혁신을 이어가고 있습니다.",
+    img: "https://www.blum.com/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg",
+  },
+];
+
+const PRODUCTS = [
+  {
+    name: "AVENTOS",
+    cat: "리프트 시스템",
+    desc: "가구와 완벽하게 하나가 되어 고품질 가구 디자인을 완성. HKi · HF top · HS top · HL top · HK top · HK-S · HK-XS",
+    img: "https://www.blum.com/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg",
+  },
+  {
+    name: "LEGRABOX",
+    cat: "박스 시스템",
+    desc: "슬림한 서랍면(12.8mm), 최대 하중 40kg 및 70kg 지지. pure · free · special edition · individual",
+    img: "https://www.blum.com/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg",
+  },
+  {
+    name: "CLIP top BLUMOTION",
+    cat: "경첩 시스템",
+    desc: "댐핑 기능이 경첩 보스에 통합. 도어의 무게에 관계없이 항상 매끄럽게 닫힙니다.",
+    img: "https://www.blum.com/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg",
+  },
+  {
+    name: "MOVENTO",
+    cat: "러너 시스템",
+    desc: "가볍게 미끄러지는 듯한 동작 및 4차원 프런트 조정. 4가지 모션 기술 호환.",
+    img: "https://www.blum.com/images/560/258/4215095/corporate/media/bilder/produkte/fuehrungssysteme/mov0003_dt_frd_fo_bau_-sall_-apr6i_-v2_4:3.jpg",
+  },
+  {
+    name: "TIP-ON BLUMOTION",
+    cat: "모션 기술",
+    desc: "기계식 열기 및 소프트 닫기. 도어, 리프트 시스템, 풀아웃에 사용 가능.",
+    img: "https://www.blum.com/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg",
+  },
+];
+
+const STATS = [
+  { n: 2441, s: "M€", l: "전 세계 매출액", sub: "2024/25" },
+  { n: 9850, s: "명", l: "전 세계 임직원", sub: "글로벌" },
+  { n: 120,  s: "+",  l: "수출 대상국",     sub: "개국" },
+  { n: 6700, s: "명", l: "포어알베르크 직원", sub: "본사" },
+  { n: 34,   s: "개", l: "자회사·대리점",   sub: "전 세계" },
+  { n: 8,    s: "개", l: "포어알베르크 공장", sub: "본사 포함" },
+];
+
+const TIMELINE = [
+  { y: "1952", t: "창립", b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 정밀 금속 가공 기술로 가구 피팅 산업의 기반을 다짐." },
+  { y: "1990s", t: "CLIP 시스템", b: "CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택." },
+  { y: "2000s", t: "BLUMOTION", b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 선보임." },
+  { y: "2010s", t: "LEGRABOX", b: "슬림 서랍면 12.8mm의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
+  { y: "현재",  t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 34개 자회사·대리점. 3대째 가족 경영." },
+];
+
+/* ── GCounter ── */
+function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const [n, setN] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setOn(true); }, { threshold });
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setOn(true); }, { threshold: 0 });
     io.observe(el);
     return () => io.disconnect();
-  }, [threshold]);
-  return { ref, on };
-}
-
-/* ── Reveal 컴포넌트 ── */
-function R({
-  children, d = 0, y = 40, className = "", style,
-}: { children: React.ReactNode; d?: number; y?: number; className?: string; style?: S }) {
-  const { ref, on } = useReveal(0.1);
-  return (
-    <div ref={ref} className={className} style={{
-      opacity: on ? 1 : 0,
-      transform: on ? "none" : `translateY(${y}px)`,
-      transition: `opacity 1.1s cubic-bezier(0.16,1,0.3,1) ${d}ms, transform 1.1s cubic-bezier(0.16,1,0.3,1) ${d}ms`,
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
-
-/* ── GSAP 카운터 ── */
-function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const [n, setN] = useState(0);
-  const { ref, on } = useReveal(0);
+  }, []);
   useEffect(() => {
     if (!on) return;
     const s = performance.now(), dur = 2200;
     const tick = (now: number) => {
       const p = Math.min((now - s) / dur, 1);
-      const e = 1 - Math.pow(1 - p, 3);
-      setN(Math.round(e * to));
+      const ease = 1 - Math.pow(1 - p, 3);
+      setN(Math.round(ease * to));
       if (p < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -64,84 +108,107 @@ function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>{n.toLocaleString()}{suffix}</span>;
 }
 
-/* ── 데이터 ── */
-const TIMELINE = [
-  { y: "1952", t: "창립", b: "Julius Blum이 오스트리아 포어알베르크 회흐스트에 Julius Blum GmbH를 설립. 정밀 금속 가공 기술로 가구 피팅 산업의 기반을 다짐." },
-  { y: "1970s", t: "피팅 시대의 시작", b: "가구 피팅 전문 기업으로 전환. 경첩과 러너 시스템 개발을 시작하며 가구 제조업체들과 파트너십을 구축." },
-  { y: "1990s", t: "CLIP 시스템 출시", b: "혁신적인 CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택." },
-  { y: "2000s", t: "BLUMOTION 혁신", b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 세상에 선보임." },
-  { y: "2010s", t: "LEGRABOX 탄생", b: "12.8mm 슬림 서랍면의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
-  { y: "현재", t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 혁신을 이어가는 중." },
-];
+/* ── WipeBanner ── */
+function WipeBanner() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.3 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`}
+      style={{ backgroundColor: "#0A0E14", padding: "80px 2rem", textAlign: "center" }}
+    >
+      <div className="v4-wipe-cover" />
+      <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
+        <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Our Philosophy</p>
+        <blockquote
+          className="v4-font-serif"
+          style={{ fontSize: "clamp(1.5rem,4vw,3rem)", fontWeight: 300, color: CREAM, lineHeight: 1.45, maxWidth: "720px", margin: "0 auto 32px", fontStyle: "italic", letterSpacing: "-0.01em" }}
+        >
+          "편리함을 높이고<br />삶의 질을 향상시키는<br />가구 피팅."
+        </blockquote>
+        <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
+      </div>
+    </div>
+  );
+}
 
-const PRODUCTS = [
-  {
-    name: "AVENTOS",
-    cat: "리프트 시스템",
-    desc: "5가지 오픈 방식. 높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트 시스템. 부드럽고 조용히 닫힙니다.",
-    img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
-  },
-  {
-    name: "LEGRABOX",
-    cat: "박스 시스템",
-    desc: "슬림한 서랍면 12.8mm, 최대 하중 70kg. 디자인과 기능을 모두 갖춘 프리미엄 서랍 시스템의 새로운 기준.",
-    img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
-  },
-  {
-    name: "CLIP top BLUMOTION",
-    cat: "경첩 시스템",
-    desc: "경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 도어 무게에 관계없이 항상 매끄럽게 부드럽게 닫힙니다.",
-    img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
-  },
-  {
-    name: "TIP-ON",
-    cat: "모션 기술",
-    desc: "핸들 없는 가구를 원터치로 여는 기계식 열기 시스템. 깔끔한 디자인과 직관적 편의성의 완벽한 조화.",
-    img: `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
-  },
-  {
-    name: "MOVENTO",
-    cat: "러너 시스템",
-    desc: "공중에 뜨는 듯 가벼운 서랍 움직임. BLUMOTION 소프트 클로징 내장. 최대 하중 70kg을 부드럽게 지지.",
-    img: `${BASE}/images/560/258/4215095/corporate/media/bilder/produkte/fuehrungssysteme/mov0003_dt_frd_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
-  },
-];
-
-const STATS = [
-  { n: 2441, s: "M€", l: "전 세계 매출액", sub: "2024/25 회계연도" },
-  { n: 9850, s: "명", l: "전 세계 임직원", sub: "글로벌 패밀리" },
-  { n: 120, s: "+", l: "수출 대상국", sub: "개국" },
-  { n: 6700, s: "명", l: "포어알베르크 직원", sub: "본사 소재지" },
-  { n: 34, s: "개", l: "자회사·대리점", sub: "전 세계 네트워크" },
-  { n: 8, s: "개", l: "포어알베르크 공장", sub: "본사 포함" },
-];
-
-/* ════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════ */
 export default function V4() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeProd, setActiveProd] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+  /* Loading */
+  const [loaded, setLoaded]   = useState(false);
   const [loadOut, setLoadOut] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+
+  /* Scroll */
+  const [scrollY, setScrollY]         = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
 
-  /* 로딩 타이머 */
+  /* Pinned chapters */
+  const chapterWrapRef             = useRef<HTMLDivElement>(null);
+  const [chapterIdx, setChapterIdx] = useState(0);
+
+  /* Horizontal products */
+  const horizWrapRef                   = useRef<HTMLDivElement>(null);
+  const horizTrackRef                  = useRef<HTMLDivElement>(null);
+  const [horizScrollPct, setHorizScrollPct] = useState(0);
+
+  /* Loading timers */
   useEffect(() => {
-    const t1 = setTimeout(() => setLoaded(true), 2400);
-    const t2 = setTimeout(() => setLoadOut(true), 3100);
+    const t1 = setTimeout(() => setLoaded(true),   2400);
+    const t2 = setTimeout(() => setLoadOut(true),  3100);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  /* 스크롤 */
+  /* Global scroll */
   useEffect(() => {
-    const fn = () => { setScrollY(window.scrollY); setNavScrolled(window.scrollY > 60); };
+    const fn = () => {
+      setScrollY(window.scrollY);
+      setNavScrolled(window.scrollY > 60);
+    };
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* 3D 틸트 */
+  /* Pinned chapters scroll tracking */
   useEffect(() => {
-    const cards = document.querySelectorAll<HTMLElement>(".v4-tilt");
+    const onScroll = () => {
+      const el = chapterWrapRef.current;
+      if (!el) return;
+      const rect      = el.getBoundingClientRect();
+      const scrollable = el.offsetHeight - window.innerHeight;
+      const progress  = Math.max(0, Math.min(1, -rect.top / scrollable));
+      setChapterIdx(Math.min(CHAPTERS.length - 1, Math.floor(progress * CHAPTERS.length)));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* Horizontal products scroll tracking */
+  useEffect(() => {
+    const onScroll = () => {
+      const wrap  = horizWrapRef.current;
+      const track = horizTrackRef.current;
+      if (!wrap || !track) return;
+      const rect      = wrap.getBoundingClientRect();
+      const scrollable = wrap.offsetHeight - window.innerHeight;
+      const pct       = Math.max(0, Math.min(1, -rect.top / scrollable));
+      setHorizScrollPct(pct);
+      const maxX = -(track.scrollWidth - window.innerWidth);
+      track.style.transform = `translateX(${pct * maxX}px)`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [loadOut]);
+
+  /* 3D Tilt */
+  useEffect(() => {
+    const cards    = document.querySelectorAll<HTMLElement>(".v4-tilt");
     const cleanups: Array<() => void> = [];
     cards.forEach((card) => {
       const img = card.querySelector<HTMLElement>("img");
@@ -149,12 +216,12 @@ export default function V4() {
       const onMove = (e: MouseEvent) => {
         const r = card.getBoundingClientRect();
         const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        img.style.transform = `perspective(720px) rotateY(${x * 14}deg) rotateX(${-y * 10}deg) scale(1.06)`;
+        const y = (e.clientY - r.top)  / r.height - 0.5;
+        img.style.transform  = `perspective(720px) rotateY(${x * 14}deg) rotateX(${-y * 10}deg) scale(1.06)`;
         img.style.transition = "transform 0.06s ease";
       };
       const onLeave = () => {
-        img.style.transform = "perspective(720px) rotateY(0deg) rotateX(0deg) scale(1)";
+        img.style.transform  = "perspective(720px) rotateY(0deg) rotateX(0deg) scale(1)";
         img.style.transition = "transform 0.7s cubic-bezier(0.25,1,0.5,1)";
       };
       card.addEventListener("mousemove", onMove);
@@ -167,165 +234,170 @@ export default function V4() {
     return () => cleanups.forEach((fn) => fn());
   }, [loadOut]);
 
-  /* 수평 스크롤 동기화 */
-  const goProduct = (idx: number) => {
-    setActiveProd(idx);
-    scrollRef.current?.scrollTo({ left: idx * scrollRef.current.clientWidth, behavior: "smooth" });
-  };
+  /* Timeline IntersectionObserver refs */
+  const tlRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [tlVisible, setTlVisible] = useState<boolean[]>(TIMELINE.map(() => false));
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const fn = () => {
-      const idx = Math.round(el.scrollLeft / el.clientWidth);
-      setActiveProd(idx);
-    };
-    el.addEventListener("scroll", fn, { passive: true });
-    return () => el.removeEventListener("scroll", fn);
+    const observers: IntersectionObserver[] = [];
+    tlRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const io = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) setTlVisible((prev) => { const n = [...prev]; n[i] = true; return n; });
+      }, { threshold: 0.2 });
+      io.observe(el);
+      observers.push(io);
+    });
+    return () => observers.forEach((io) => io.disconnect());
   }, [loadOut]);
 
   const heroParallax = scrollY * 0.28;
-  const heroOpacity = Math.max(0, 1 - scrollY / 700);
+  const heroOpacity  = Math.max(0, 1 - scrollY / 700);
 
-  /* ── CSS in JS ── */
+  /* ── CSS ── */
   const css = `
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');
-    :root { --gold: ${C.gold}; --navy: ${C.navy}; }
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
-    @keyframes v4-load-up   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
-    @keyframes v4-load-char { from{opacity:0;transform:translateY(40px) scaleY(1.15)} to{opacity:1;transform:none} }
-    @keyframes v4-load-out  { to{transform:translateY(-100%);opacity:0} }
-    @keyframes v4-ticker    { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-    @keyframes v4-scrollbar { 0%{transform:translateY(-100%)} 100%{transform:translateY(300%)} }
-    @keyframes v4-wipe-in   { 0%{transform:scaleX(0);transform-origin:left} 50%{transform:scaleX(1);transform-origin:left}
-                               51%{transform:scaleX(1);transform-origin:right} 100%{transform:scaleX(0);transform-origin:right} }
+    @keyframes v4-load-char {
+      from { opacity:0; transform:translateY(40px) scaleY(1.15); }
+      to   { opacity:1; transform:none; }
+    }
+    @keyframes v4-load-out {
+      to { transform:translateY(-100%); opacity:0; }
+    }
+    @keyframes v4-load-up {
+      from { opacity:0; transform:translateY(28px); }
+      to   { opacity:1; transform:none; }
+    }
+    @keyframes v4-ticker {
+      from { transform:translateX(0); }
+      to   { transform:translateX(-50%); }
+    }
+    @keyframes v4-scrollbar {
+      0%   { transform:translateY(-100%); }
+      100% { transform:translateY(300%); }
+    }
+    @keyframes v4-wipe-in {
+      0%  { transform:scaleX(0); transform-origin:left; }
+      50% { transform:scaleX(1); transform-origin:left; }
+      51% { transform:scaleX(1); transform-origin:right; }
+      100%{ transform:scaleX(0); transform-origin:right; }
+    }
+    @keyframes v4-progress {
+      from { width:0%; }
+      to   { width:100%; }
+    }
 
     .v4-font-serif { font-family:'Cormorant Garamond','Georgia',serif; }
     .v4-font-sans  { font-family:'Helvetica Neue',Arial,sans-serif; }
-    .v4-ticker     { animation:v4-ticker 36s linear infinite; }
-    .v4-scrollbar  { animation:v4-scrollbar 2.5s cubic-bezier(0.4,0,0.2,1) infinite; }
 
-    .v4-load-char  { display:inline-block; animation:v4-load-char 0.9s cubic-bezier(0.16,1,0.3,1) both; }
-    .v4-load-sub   { animation:v4-load-up 1s cubic-bezier(0.16,1,0.3,1) 1.4s both; }
-    .v4-load-out   { animation:v4-load-out 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .v4-load-char { display:inline-block; animation:v4-load-char 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4-load-sub  { animation:v4-load-up 1s cubic-bezier(0.16,1,0.3,1) 1.4s both; opacity:0; }
+    .v4-load-out  { animation:v4-load-out 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .v4-progress  { animation:v4-progress 2.2s cubic-bezier(0.4,0,0.2,1) 0.5s forwards; width:0%; }
+
+    .v4-ticker    { animation:v4-ticker 36s linear infinite; }
+    .v4-scrollbar { animation:v4-scrollbar 2.5s cubic-bezier(0.4,0,0.2,1) infinite; }
 
     .v4-wipe-section { position:relative; overflow:hidden; }
-    .v4-wipe-cover   { position:absolute;inset:0;background:${C.gold};z-index:20;transform:scaleX(0);pointer-events:none; }
-    .v4-wipe-section.v4-wipe-go .v4-wipe-cover { animation:v4-wipe-in 1s cubic-bezier(0.77,0,0.18,1) both; }
+    .v4-wipe-cover   { position:absolute;inset:0;background:${GOLD};z-index:20;transform:scaleX(0);pointer-events:none; }
+    .v4-wipe-section.v4-wipe-go .v4-wipe-cover   { animation:v4-wipe-in 1s cubic-bezier(0.77,0,0.18,1) both; }
     .v4-wipe-section.v4-wipe-go .v4-wipe-content { animation:v4-load-up 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
     .v4-wipe-content { opacity:0; }
 
-    .v4-prod-scroll::-webkit-scrollbar { display:none; }
-    .v4-prod-scroll { -ms-overflow-style:none; scrollbar-width:none; }
-
-    .v4-tilt { cursor:none; }
+    .v4-tilt     { cursor:crosshair; }
     .v4-tilt img { transition:transform 0.7s cubic-bezier(0.25,1,0.5,1); }
 
     .v4-btn { transition:all 0.35s cubic-bezier(0.25,1,0.5,1); }
     .v4-btn:hover { transform:translateY(-3px); }
     .v4-nav-link { transition:color 0.2s ease; }
-    .v4-nav-link:hover { color:${C.gold} !important; }
-
-    .v4-timeline-dot { transition:transform 0.3s ease, background 0.3s ease; }
-    .v4-timeline-item:hover .v4-timeline-dot { transform:scale(1.8); background:${C.gold}; }
-
-    /* 수평 스크롤 snap */
-    .v4-prod-scroll { scroll-snap-type:x mandatory; }
-    .v4-prod-item   { scroll-snap-align:start; }
+    .v4-nav-link:hover { color:${GOLD} !important; }
   `;
 
-  /* ────────────────────────────── RENDER ─────────────────────────────── */
+  /* ── RENDER ── */
   return (
-    <div className="v4-font-sans" style={{ backgroundColor: C.navy, color: C.white, overflowX: "hidden" }}>
+    <div className="v4-font-sans" style={{ backgroundColor: NAVY, color: CREAM, overflowX: "hidden" }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
-      {/* ══ LOADING SCREEN ══════════════════════════════════════════════════ */}
+      {/* ══ LOADING SCREEN ══════════════════════════════════════════════ */}
       {!loadOut && (
         <div
           className={loaded ? "v4-load-out" : ""}
           style={{
-            position: "fixed", inset: 0, zIndex: 100,
-            backgroundColor: C.navy,
+            position: "fixed", inset: 0, zIndex: 200,
+            backgroundColor: NAVY,
             display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
             gap: "20px",
           }}
         >
-          {/* Logo letter animation */}
-          <div className="v4-font-serif" style={{ fontSize: "clamp(3.5rem,12vw,7rem)", fontWeight: 300, letterSpacing: "0.18em", color: C.gold }}>
+          <div className="v4-font-serif" style={{ fontSize: "clamp(3.5rem,12vw,7rem)", fontWeight: 300, letterSpacing: "0.18em", color: GOLD }}>
             {"blum".split("").map((ch, i) => (
               <span key={i} className="v4-load-char" style={{ animationDelay: `${i * 120}ms` }}>{ch}</span>
             ))}
           </div>
-          <div className="v4-load-sub" style={{ fontSize: "11px", letterSpacing: "0.55em", textTransform: "uppercase", color: "rgba(245,240,232,0.35)" }}>
+          <div className="v4-load-sub" style={{ fontSize: "10px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${CREAM}55` }}>
             moving ideas · since 1952
           </div>
-          {/* Progress bar */}
-          <div style={{ width: "120px", height: "1px", backgroundColor: "rgba(212,175,55,0.2)", marginTop: "12px", overflow: "hidden" }}>
-            <div className="v4-load-sub" style={{ height: "100%", backgroundColor: C.gold, animation: "v4-load-up 2s linear 0.5s both", transformOrigin: "left" }} />
+          <div style={{ width: "140px", height: "1px", backgroundColor: `${GOLD}22`, marginTop: "8px", overflow: "hidden" }}>
+            <div className="v4-progress" style={{ height: "100%", backgroundColor: GOLD }} />
           </div>
         </div>
       )}
 
-      {/* ══ NAV ═════════════════════════════════════════════════════════════ */}
+      {/* ══ NAV ═════════════════════════════════════════════════════════ */}
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: "64px",
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, height: "64px",
         backgroundColor: navScrolled ? "rgba(13,17,23,0.95)" : "transparent",
         backdropFilter: navScrolled ? "blur(20px)" : "none",
-        borderBottom: navScrolled ? `1px solid ${C.line}` : "none",
+        borderBottom: navScrolled ? `1px solid ${LINE}` : "none",
         transition: "all 0.4s ease",
       }}>
-        <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
-          <Link href="/v4" className="v4-font-serif" style={{ color: C.gold, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Link href="/v4" className="v4-font-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>
             blum
           </Link>
-          <div className="hidden md:flex items-center gap-8">
-            {[["제품","#products"],["서비스","/v4/services"],["회사","/v4/company"],["연락처","/v4/contact"]].map(([label, href]) => (
-              <Link key={label} href={href} className="v4-nav-link" style={{ color: C.gray, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+            {([["제품", "#products"], ["타임라인", "#timeline"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+              <Link key={label} href={href} className="v4-nav-link" style={{ color: GRAY, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
                 {label}
               </Link>
             ))}
-            <Link href="/v4/contact" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "9px 20px" }}>
-              문의하기
-            </Link>
           </div>
         </div>
       </nav>
 
-      {/* ══ HERO ════════════════════════════════════════════════════════════ */}
+      {/* ══ HERO — 100vh fullscreen ══════════════════════════════════════ */}
       <section style={{ position: "relative", height: "100vh", minHeight: "700px", display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
-        {/* BG parallax */}
+        {/* Background image with parallax */}
         <div style={{ position: "absolute", inset: 0 }}>
           <img
-            src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
-            alt="blum"
+            src="https://www.blum.com/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg"
+            alt="blum hero"
             style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.22, transform: `scale(1.1) translateY(${heroParallax}px)` }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${C.navy} 25%, rgba(13,17,23,0.65) 65%, rgba(13,17,23,0.2) 100%)` }} />
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 20%, rgba(13,17,23,0.65) 60%, rgba(13,17,23,0.2) 100%)` }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,17,23,0.7) 0%, transparent 60%)" }} />
         </div>
 
         {/* Content */}
         <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 7rem", width: "100%", opacity: heroOpacity }}>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "2rem" }}>
-            <div style={{ width: "32px", height: "1px", backgroundColor: C.gold, opacity: 0.6 }} />
-            <span style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: C.gray }}>Premium Furniture Fittings · Austria · Since 1952</span>
+            <div style={{ width: "32px", height: "1px", backgroundColor: GOLD, opacity: 0.5 }} />
+            <span style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: GRAY }}>Premium Furniture Fittings · Austria · Since 1952</span>
           </div>
-
           <h1 className="v4-font-serif" style={{ marginBottom: "1.5rem", lineHeight: 0.88, fontWeight: 300, fontSize: "clamp(4.5rem,13vw,11rem)", letterSpacing: "-0.01em" }}>
-            <span style={{ color: C.white, display: "block" }}>moving</span>
-            <span style={{ color: C.gold, fontStyle: "italic", display: "block" }}>ideas.</span>
+            <span style={{ color: CREAM, display: "block" }}>moving</span>
+            <span style={{ color: GOLD, fontStyle: "italic", display: "block" }}>ideas.</span>
           </h1>
-
-          <p style={{ color: C.gray, fontSize: "15px", lineHeight: 2, fontWeight: 300, maxWidth: "340px", marginBottom: "2.5rem" }}>
-            움직임이 달라지면 삶이 달라집니다.<br />blum이 만드는 정밀한 피팅의 세계.
+          <p style={{ color: GRAY, fontSize: "14px", lineHeight: 2, fontWeight: 300, maxWidth: "380px", marginBottom: "2.5rem" }}>
+            편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅
           </p>
-
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <Link href="#products" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-              제품 살펴보기 <span>→</span>
+            <Link href="#products" className="v4-btn" style={{ color: NAVY, backgroundColor: GOLD, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              제품 살펴보기 →
             </Link>
-            <Link href="#timeline" className="v4-btn" style={{ color: C.white, border: `1px solid ${C.line}`, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px" }}>
+            <Link href="#timeline" className="v4-btn" style={{ color: CREAM, border: `1px solid ${LINE}`, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px" }}>
               브랜드 스토리
             </Link>
           </div>
@@ -333,297 +405,254 @@ export default function V4() {
 
         {/* Scroll indicator */}
         <div style={{ position: "absolute", bottom: "2rem", right: "2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", zIndex: 10 }}>
-          <span style={{ fontSize: "8px", letterSpacing: "0.4em", textTransform: "uppercase", color: C.gray, writingMode: "vertical-rl" }}>scroll</span>
-          <div style={{ width: "1px", height: "56px", backgroundColor: `${C.gold}22`, position: "relative", overflow: "hidden" }}>
-            <div className="v4-scrollbar" style={{ width: "100%", height: "45%", backgroundColor: `${C.gold}aa`, position: "absolute", top: 0 }} />
+          <span style={{ fontSize: "8px", letterSpacing: "0.4em", textTransform: "uppercase", color: GRAY, writingMode: "vertical-rl" }}>scroll</span>
+          <div style={{ width: "1px", height: "56px", backgroundColor: `${GOLD}22`, position: "relative", overflow: "hidden" }}>
+            <div className="v4-scrollbar" style={{ width: "100%", height: "45%", backgroundColor: `${GOLD}aa`, position: "absolute", top: 0 }} />
           </div>
         </div>
       </section>
 
-      {/* ══ GOLD TICKER ═════════════════════════════════════════════════════ */}
-      <div style={{ overflow: "hidden", borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: "12px 0", backgroundColor: "rgba(212,175,55,0.04)" }}>
+      {/* ══ GOLD TICKER ═════════════════════════════════════════════════ */}
+      <div style={{ overflow: "hidden", borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}`, padding: "11px 0", backgroundColor: `${GOLD}06` }}>
         <div className="v4-ticker" style={{ display: "flex", whiteSpace: "nowrap" }}>
           {[...Array(4)].map((_, i) => (
-            <span key={i} style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${C.gold}66`, paddingRight: "64px" }}>
+            <span key={i} style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: `${GOLD}55`, paddingRight: "64px" }}>
               CLIP top · AVENTOS · LEGRABOX · TIP-ON · MOVENTO · BLUMOTION · SINCE 1952 · AUSTRIA ·&nbsp;
             </span>
           ))}
         </div>
       </div>
 
-      {/* ══ TIMELINE ════════════════════════════════════════════════════════ */}
-      <section id="timeline" style={{ padding: "120px 0", backgroundColor: "#0A0E14" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <R d={0}>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Brand Story</p>
-            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: C.white, marginBottom: "80px", letterSpacing: "-0.01em" }}>
-              1952년부터<br /><em style={{ color: C.gold }}>현재까지</em>
-            </h2>
-          </R>
-
-          <div style={{ position: "relative" }}>
-            {/* Center line */}
-            <div className="hidden md:block" style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: C.line, transform: "translateX(-50%)" }} />
-
-            {TIMELINE.map((item, i) => (
-              <R key={item.y} d={i * 80} className="v4-timeline-item">
-                {/* Desktop: alternating */}
-                <div className="hidden md:grid" style={{ gridTemplateColumns: "1fr 48px 1fr", gap: "0", marginBottom: "64px", alignItems: "center" }}>
-                  {i % 2 === 0 ? (
-                    <>
-                      <div style={{ textAlign: "right", paddingRight: "40px" }}>
-                        <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? C.gold : `${C.gold}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
-                        <h3 style={{ fontSize: "16px", fontWeight: 400, color: C.white, marginBottom: "8px" }}>{item.t}</h3>
-                        <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "center" }}>
-                        <div className="v4-timeline-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${C.gold}55`, border: `1px solid ${C.gold}66` }} />
-                      </div>
-                      <div />
-                    </>
-                  ) : (
-                    <>
-                      <div />
-                      <div style={{ display: "flex", justifyContent: "center" }}>
-                        <div className="v4-timeline-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${C.gold}55`, border: `1px solid ${C.gold}66` }} />
-                      </div>
-                      <div style={{ paddingLeft: "40px" }}>
-                        <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? C.gold : `${C.gold}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
-                        <h3 style={{ fontSize: "16px", fontWeight: 400, color: C.white, marginBottom: "8px" }}>{item.t}</h3>
-                        <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Mobile */}
-                <div className="md:hidden" style={{ marginBottom: "44px", paddingLeft: "20px", borderLeft: `1px solid ${C.line}` }}>
-                  <span className="v4-font-serif" style={{ fontSize: "2rem", fontWeight: 300, color: `${C.gold}44`, display: "block", marginBottom: "4px" }}>{item.y}</span>
-                  <h3 style={{ fontSize: "15px", color: C.white, marginBottom: "6px" }}>{item.t}</h3>
-                  <p style={{ fontSize: "12px", color: C.gray, lineHeight: 1.8, fontWeight: 300 }}>{item.b}</p>
-                </div>
-              </R>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ PRODUCTS — 수평 스크롤 ═══════════════════════════════════════════ */}
-      <section id="products" style={{ backgroundColor: C.navy, padding: "100px 0 60px" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 40px" }}>
-          <R>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Product World</p>
-            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,5vw,4rem)", fontWeight: 300, color: C.white, letterSpacing: "-0.01em" }}>
-              움직임을 만드는<br /><em style={{ color: C.gold }}>제품들</em>
-            </h2>
-          </R>
-        </div>
-
-        {/* 수평 스크롤 컨테이너 */}
-        <div
-          ref={scrollRef}
-          className="v4-prod-scroll"
-          style={{ display: "flex", overflowX: "scroll", cursor: "grab" }}
-        >
-          {PRODUCTS.map((p, i) => (
-            <div
-              key={p.name}
-              className="v4-prod-item"
-              style={{ minWidth: "min(560px,90vw)", marginRight: "2px", position: "relative", flexShrink: 0 }}
-            >
-              {/* 3D tilt 카드 */}
-              <div className="v4-tilt" style={{ aspectRatio: "3/4", position: "relative", overflow: "hidden", backgroundColor: "#0A0E14" }}>
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.82, display: "block" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
-                />
-                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, rgba(13,17,23,0.92) 0%, rgba(13,17,23,0.3) 50%, transparent 100%)` }} />
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "28px 28px 32px" }}>
-                  <span style={{ fontSize: "9px", letterSpacing: "0.35em", textTransform: "uppercase", color: C.gold, display: "block", marginBottom: "8px" }}>{p.cat}</span>
-                  <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 300, color: C.white, marginBottom: "10px" }}>{p.name}</h3>
-                  <p style={{ fontSize: "12px", color: C.gray, lineHeight: 1.8, fontWeight: 300 }}>{p.desc}</p>
-                </div>
-                <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                  <span style={{ fontSize: "9px", letterSpacing: "0.2em", color: `${C.gold}55` }}>0{i + 1}</span>
-                </div>
-              </div>
+      {/* ══ PINNED CHAPTERS ════════════════════════════════════════════ */}
+      <div ref={chapterWrapRef} style={{ height: "300vh" }}>
+        <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
+          {/* Background images — crossfade */}
+          {CHAPTERS.map((ch, i) => (
+            <div key={i} style={{
+              position: "absolute", inset: 0,
+              opacity: chapterIdx === i ? 1 : 0,
+              transition: "opacity 0.8s ease",
+            }}>
+              <img
+                src={ch.img}
+                alt={ch.label}
+                style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.18 }}
+                onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
+              />
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, ${NAVY} 40%, transparent 100%)` }} />
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 0%, transparent 50%)` }} />
             </div>
           ))}
-          <div style={{ minWidth: "2rem", flexShrink: 0 }} />
-        </div>
 
-        {/* 도트 네비게이션 */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "28px" }}>
-          {PRODUCTS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goProduct(i)}
-              style={{
-                width: activeProd === i ? "28px" : "8px",
-                height: "8px",
-                borderRadius: "4px",
-                backgroundColor: activeProd === i ? C.gold : `${C.gold}33`,
-                border: "none", cursor: "pointer",
-                transition: "all 0.4s cubic-bezier(0.25,1,0.5,1)",
-                padding: 0,
-              }}
-            />
+          {/* Animated chapter text */}
+          {CHAPTERS.map((ch, i) => (
+            <div key={i} style={{
+              position: "absolute",
+              left: "8%",
+              top: "50%",
+              transform: chapterIdx === i
+                ? "translateY(-50%)"
+                : chapterIdx > i
+                  ? "translateY(calc(-50% - 60px))"
+                  : "translateY(calc(-50% + 60px))",
+              opacity: chapterIdx === i ? 1 : 0,
+              transition: "all 0.85s cubic-bezier(0.16,1,0.3,1)",
+              maxWidth: "560px",
+              zIndex: 10,
+            }}>
+              <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "20px" }}>{ch.label}</p>
+              <h2 className="v4-font-serif" style={{ fontSize: "clamp(3rem,7vw,6rem)", fontWeight: 300, color: CREAM, lineHeight: 0.9, marginBottom: "28px", letterSpacing: "-0.01em" }}>
+                {ch.title}
+              </h2>
+              <p style={{ fontSize: "15px", color: GRAY, lineHeight: 1.9, fontWeight: 300 }}>{ch.body}</p>
+            </div>
           ))}
-        </div>
-        <div style={{ textAlign: "center", marginTop: "12px" }}>
-          <span style={{ fontSize: "9px", letterSpacing: "0.3em", color: C.gray, textTransform: "uppercase" }}>← 스와이프하여 탐색 →</span>
-        </div>
-      </section>
 
-      {/* ══ 골드 와이프 배너 ═══════════════════════════════════════════════ */}
-      <WipeBanner />
-
-      {/* ══ STATS ═══════════════════════════════════════════════════════════ */}
-      <section style={{ padding: "100px 0", backgroundColor: "#0A0E14" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <R>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>By The Numbers</p>
-            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "64px", letterSpacing: "-0.01em" }}>
-              숫자로 보는 <em style={{ color: C.gold }}>blum</em>
-            </h2>
-          </R>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1px", backgroundColor: C.line }}>
-            {STATS.map((s, i) => (
-              <R key={s.l} d={i * 70}>
-                <div style={{ padding: "44px 32px", backgroundColor: "#0A0E14" }}>
-                  <div className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: C.gold, lineHeight: 1, marginBottom: "8px" }}>
-                    <GCounter to={s.n} suffix={s.s} />
-                  </div>
-                  <div style={{ fontSize: "13px", color: C.white, marginBottom: "4px" }}>{s.l}</div>
-                  <div style={{ fontSize: "11px", color: C.gray }}>{s.sub}</div>
-                </div>
-              </R>
+          {/* Chapter progress dots */}
+          <div style={{
+            position: "absolute", right: "5%", top: "50%", transform: "translateY(-50%)",
+            display: "flex", flexDirection: "column", gap: "12px", zIndex: 10,
+          }}>
+            {CHAPTERS.map((_, i) => (
+              <div key={i} style={{
+                width: chapterIdx === i ? "24px" : "6px",
+                height: "6px",
+                background: chapterIdx === i ? GOLD : `${GOLD}44`,
+                borderRadius: "3px",
+                transition: "all 0.4s ease",
+              }} />
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ══ SUSTAINABILITY ══════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", padding: "100px 0", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0 }}>
-          <img
-            src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-            alt="sustainability"
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.1 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(13,17,23,0.9)" }} />
+          {/* Chapter counter */}
+          <div style={{ position: "absolute", bottom: "40px", left: "8%", zIndex: 10 }}>
+            <span style={{ fontSize: "9px", letterSpacing: "0.3em", color: `${GOLD}55` }}>
+              {String(chapterIdx + 1).padStart(2, "0")} / {String(CHAPTERS.length).padStart(2, "0")}
+            </span>
+          </div>
         </div>
-        <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <R>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Sustainability</p>
-            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "56px", letterSpacing: "-0.01em" }}>
-              지속가능한 미래를<br /><em style={{ color: C.gold }}>함께 만듭니다</em>
-            </h2>
-          </R>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px,1fr))", gap: "0" }}>
-            {[
-              { t: "에너지 및 기후 보호", b: "재생 에너지 사용 비율을 지속적으로 확대하고 탄소 발자국 최소화를 위해 노력합니다." },
-              { t: "순환 경제", b: "자원 절약형 생산과 재료 재활용을 통해 순환 경제 실현에 기여합니다." },
-              { t: "로컬 생산", b: "오스트리아 포어알베르크에서 생산해 환경 친화적 운송을 실천합니다." },
-              { t: "지속가능한 품질", b: "100,000회 이상 개폐 테스트를 통과한 제품. 내구성이 곧 지속가능성입니다." },
-              { t: "인적자원 관리", b: "9,850명 임직원의 건강과 안전을 최우선으로 하는 공정한 근무 환경." },
-            ].map((s, i) => (
-              <R key={s.t} d={i * 80}>
-                <div style={{ padding: "28px 0", borderBottom: `1px solid ${C.line}` }}>
-                  <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                    <span style={{ color: C.gold, fontSize: "14px", marginTop: "2px", flexShrink: 0 }}>◈</span>
+      </div>
+
+      {/* ══ HORIZONTAL SCROLL PRODUCTS ═════════════════════════════════ */}
+      <section id="products">
+        <div ref={horizWrapRef} style={{ height: `${PRODUCTS.length * 100}vh` }}>
+          <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", backgroundColor: "#0A0E14" }}>
+            {/* Header */}
+            <div style={{ position: "absolute", top: "60px", left: "8%", zIndex: 10 }}>
+              <p style={{ color: GOLD, fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: "8px" }}>PRODUCT WORLD</p>
+              <h2 className="v4-font-serif" style={{ color: CREAM, fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300 }}>제품 세계</h2>
+            </div>
+
+            {/* Horizontal track */}
+            <div
+              ref={horizTrackRef}
+              style={{
+                display: "flex",
+                height: "100%",
+                width: `${PRODUCTS.length * 100}vw`,
+                willChange: "transform",
+              }}
+            >
+              {PRODUCTS.map((p, idx) => (
+                <div
+                  key={p.name}
+                  style={{ width: "100vw", height: "100%", flexShrink: 0, display: "flex", alignItems: "center", padding: "0 8%", position: "relative" }}
+                >
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "center", width: "100%" }}>
+                    {/* Text */}
                     <div>
-                      <h3 style={{ fontSize: "15px", fontWeight: 400, color: C.white, marginBottom: "7px" }}>{s.t}</h3>
-                      <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{s.b}</p>
+                      <p style={{ color: GOLD, fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", marginBottom: "16px" }}>{p.cat}</p>
+                      <h3 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4.5rem)", fontWeight: 300, color: CREAM, marginBottom: "20px", lineHeight: 0.95 }}>{p.name}</h3>
+                      <p style={{ color: `rgba(245,240,232,0.55)`, fontSize: "14px", lineHeight: 1.9 }}>{p.desc}</p>
+                    </div>
+                    {/* Image */}
+                    <div className="v4-tilt" style={{ aspectRatio: "4/3", overflow: "hidden" }}>
+                      <img
+                        src={p.img}
+                        alt={p.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
+                      />
                     </div>
                   </div>
+                  {/* Slide number */}
+                  <div style={{ position: "absolute", bottom: "40px", right: "8%", fontSize: "9px", color: `${GOLD}66`, letterSpacing: "0.3em" }}>
+                    {String(idx + 1).padStart(2, "0")} / {String(PRODUCTS.length).padStart(2, "0")}
+                  </div>
                 </div>
-              </R>
+              ))}
+            </div>
+
+            {/* Progress bar */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "2px", backgroundColor: `${GOLD}22` }}>
+              <div style={{
+                height: "100%",
+                backgroundColor: GOLD,
+                width: `${((horizScrollPct || 0) * 100).toFixed(1)}%`,
+                transition: "width 0.1s linear",
+              }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ GOLD WIPE BANNER ════════════════════════════════════════════ */}
+      <WipeBanner />
+
+      {/* ══ TIMELINE ════════════════════════════════════════════════════ */}
+      <section id="timeline" style={{ padding: "120px 0", backgroundColor: NAVY }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+          <div style={{ marginBottom: "80px" }}>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Brand Story</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: CREAM, letterSpacing: "-0.01em" }}>
+              1952년부터<br /><em style={{ color: GOLD }}>현재까지</em>
+            </h2>
+          </div>
+
+          <div style={{ position: "relative" }}>
+            {/* Center spine */}
+            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: LINE, transform: "translateX(-50%)" }} />
+
+            {TIMELINE.map((item, i) => (
+              <div
+                key={item.y}
+                ref={(el) => { tlRefs.current[i] = el; }}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 48px 1fr",
+                  marginBottom: "64px",
+                  alignItems: "center",
+                  opacity: tlVisible[i] ? 1 : 0,
+                  transform: tlVisible[i] ? "none" : i % 2 === 0 ? "translateX(-40px)" : "translateX(40px)",
+                  transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms`,
+                }}
+              >
+                {i % 2 === 0 ? (
+                  <>
+                    <div style={{ textAlign: "right", paddingRight: "40px" }}>
+                      <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                      <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
+                      <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${GOLD}55`, border: `1px solid ${GOLD}66` }} />
+                    </div>
+                    <div />
+                  </>
+                ) : (
+                  <>
+                    <div />
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${GOLD}55`, border: `1px solid ${GOLD}66` }} />
+                    </div>
+                    <div style={{ paddingLeft: "40px" }}>
+                      <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                      <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
+                      <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
+                    </div>
+                  </>
+                )}
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ CONTACT CTA ═════════════════════════════════════════════════════ */}
-      <section style={{ padding: "100px 0", backgroundColor: C.navy }}>
+      {/* ══ STATS ═══════════════════════════════════════════════════════ */}
+      <section style={{ padding: "100px 0", backgroundColor: "#0A0E14" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-            <R>
-              <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Contact & Showroom</p>
-              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "24px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
-                쇼룸에서<br /><em style={{ color: C.gold }}>직접 경험하세요</em>
-              </h2>
-              <p style={{ fontSize: "14px", color: C.gray, lineHeight: 2, fontWeight: 300, marginBottom: "36px" }}>
-                전문 컨설턴트가 공간에 최적화된<br />blum 솔루션을 제안해드립니다.
-              </p>
-              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <Link href="/v4/contact" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px" }}>
-                  쇼룸 방문 신청
-                </Link>
-                <Link href="/v4/contact" className="v4-btn" style={{ color: C.white, border: `1px solid ${C.line}`, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px" }}>
-                  제품 문의
-                </Link>
+          <div style={{ marginBottom: "60px" }}>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>By The Numbers</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: CREAM, letterSpacing: "-0.01em" }}>
+              숫자로 보는 <em style={{ color: GOLD }}>blum</em>
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1px", backgroundColor: LINE }}>
+            {STATS.map((s) => (
+              <div key={s.l} style={{ padding: "44px 32px", backgroundColor: "#0A0E14" }}>
+                <div className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: GOLD, lineHeight: 1, marginBottom: "8px" }}>
+                  <GCounter to={s.n} suffix={s.s} />
+                </div>
+                <div style={{ fontSize: "13px", color: CREAM, marginBottom: "4px" }}>{s.l}</div>
+                <div style={{ fontSize: "11px", color: GRAY }}>{s.sub}</div>
               </div>
-            </R>
-            <R d={150}>
-              <div style={{ borderLeft: `1px solid ${C.line}`, paddingLeft: "48px" }}>
-                {[
-                  { l: "서울 쇼룸", v: "서울특별시 강남구 테헤란로 431\n저스트코 타워 2층" },
-                  { l: "전화",     v: "02-6925-0800" },
-                  { l: "이메일",   v: "info.korea@blum.com" },
-                  { l: "영업시간", v: "월–금 09:00–18:00" },
-                  { l: "본사",     v: "Julius Blum GmbH\nIndustriestrasse 1 · 6973 Höchst, Austria" },
-                ].map((item) => (
-                  <div key={item.l} style={{ marginBottom: "24px" }}>
-                    <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: `${C.gold}66`, display: "block", marginBottom: "5px" }}>{item.l}</span>
-                    <p style={{ fontSize: "14px", color: C.gray, fontWeight: 300, lineHeight: 1.75, whiteSpace: "pre-line" }}>{item.v}</p>
-                  </div>
-                ))}
-              </div>
-            </R>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ══ FOOTER ══════════════════════════════════════════════════════════ */}
-      <footer style={{ borderTop: `1px solid ${C.line}`, padding: "28px 2rem", backgroundColor: "#080B10" }}>
+      {/* ══ FOOTER ══════════════════════════════════════════════════════ */}
+      <footer style={{ borderTop: `1px solid ${LINE}`, padding: "28px 2rem", backgroundColor: "#080B10" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-          <span className="v4-font-serif" style={{ fontSize: "16px", fontWeight: 300, color: `${C.gold}66`, letterSpacing: "0.2em" }}>blum</span>
-          <span style={{ fontSize: "11px", color: `${C.white}33` }}>© 2025 Blum Korea. Julius Blum GmbH · Höchst, Austria</span>
+          <span className="v4-font-serif" style={{ fontSize: "16px", fontWeight: 300, color: `${GOLD}66`, letterSpacing: "0.2em" }}>blum</span>
+          <span style={{ fontSize: "11px", color: `${CREAM}33` }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
           <div style={{ display: "flex", gap: "20px" }}>
-            {[["V1","/v1"],["V2","/v2"],["V3","/v3"],["V4","/v4"]].map(([l,h]) => (
-              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${C.gold}99` : `${C.white}33`, textDecoration: "none" }}>{l}</Link>
+            {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]] as [string, string][]).map(([l, h]) => (
+              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}99` : `${CREAM}33`, textDecoration: "none" }}>{l}</Link>
             ))}
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* ── 골드 컬러 와이프 배너 (분리 컴포넌트) ── */
-function WipeBanner() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.3 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`} style={{ backgroundColor: "#0A0E14", padding: "80px 2rem", textAlign: "center" }}>
-      <div className="v4-wipe-cover" />
-      <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
-        <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "#D4AF3788", marginBottom: "14px" }}>Our Philosophy</p>
-        <blockquote style={{ fontFamily: "'Cormorant Garamond','Georgia',serif", fontSize: "clamp(1.5rem,4vw,3rem)", fontWeight: 300, color: "#F5F0E8", lineHeight: 1.45, maxWidth: "720px", margin: "0 auto 32px", fontStyle: "italic", letterSpacing: "-0.01em" }}>
-          "편리함을 높이고<br />삶의 질을 향상시키는<br />가구 피팅."
-        </blockquote>
-        <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: "#D4AF3766" }}>Julius Blum GmbH · Since 1952</span>
-      </div>
     </div>
   );
 }

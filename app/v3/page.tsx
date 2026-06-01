@@ -116,7 +116,7 @@ export default function V3() {
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 divide-x divide-white/10">
             {[
               { num: "120+", label: "국가 판매" },
-              { num: "50,000", label: "내구성 테스트" },
+              { num: "100,000회", label: "내구성 테스트" },
               { num: "1952", label: "브랜드 창립" },
             ].map((s) => (
               <div key={s.num} className="py-5 px-4 text-center md:text-left">
