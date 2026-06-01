@@ -66,12 +66,12 @@ function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
 
 /* ── 데이터 ── */
 const TIMELINE = [
-  { y: "1952", t: "창립", b: "Julius Blum이 오스트리아 포어알베르크 회흐스트에 설립. 말굽 못 제조업으로 정밀 금속 가공 기술을 축적." },
-  { y: "1970s", t: "피팅 시대의 시작", b: "가구 피팅 분야로 전환. 경첩과 서랍 레일 개발을 시작하며 주방 가구 시장에 첫 발을 내딛음." },
-  { y: "1990s", t: "CLIP 시스템 출시", b: "혁신적인 CLIP 경첩 출시. 공구 없이 탈착 가능한 원터치 구조로 전 세계 가구 제조업체에 채택." },
+  { y: "1952", t: "창립", b: "Julius Blum이 오스트리아 포어알베르크 회흐스트에 Julius Blum GmbH를 설립. 정밀 금속 가공 기술로 가구 피팅 산업의 기반을 다짐." },
+  { y: "1970s", t: "피팅 시대의 시작", b: "가구 피팅 전문 기업으로 전환. 경첩과 러너 시스템 개발을 시작하며 가구 제조업체들과 파트너십을 구축." },
+  { y: "1990s", t: "CLIP 시스템 출시", b: "혁신적인 CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택." },
   { y: "2000s", t: "BLUMOTION 혁신", b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 세상에 선보임." },
   { y: "2010s", t: "LEGRABOX 탄생", b: "12.8mm 슬림 서랍면의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
-  { y: "현재", t: "글로벌 리더십", b: "2,441백만 유로 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 혁신을 이어가는 중." },
+  { y: "현재", t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 혁신을 이어가는 중." },
 ];
 
 const PRODUCTS = [
@@ -620,7 +620,7 @@ function WipeBanner() {
       <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
         <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "#D4AF3788", marginBottom: "14px" }}>Our Philosophy</p>
         <blockquote style={{ fontFamily: "'Cormorant Garamond','Georgia',serif", fontSize: "clamp(1.5rem,4vw,3rem)", fontWeight: 300, color: "#F5F0E8", lineHeight: 1.45, maxWidth: "720px", margin: "0 auto 32px", fontStyle: "italic", letterSpacing: "-0.01em" }}>
-          "열고 닫는 매 순간이<br />삶의 질을 결정합니다."
+          "편리함을 높이고<br />삶의 질을 향상시키는<br />가구 피팅."
         </blockquote>
         <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: "#D4AF3766" }}>Julius Blum GmbH · Since 1952</span>
       </div>

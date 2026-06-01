@@ -51,7 +51,7 @@ export default function BlumGSAP({ version }: { version: Version }) {
         while (el.firstChild) wrap.appendChild(el.firstChild);
         el.appendChild(wrap);
 
-        gsap.set(wrap, { y: "110%" });
+        gsap.set(wrap, { y: "110%", opacity: 0 });
 
         const st = ScrollTrigger.create({
           trigger: el,
@@ -60,6 +60,7 @@ export default function BlumGSAP({ version }: { version: Version }) {
           onEnter: () => {
             gsap.to(wrap, {
               y: "0%",
+              opacity: 1,
               duration: textCfg.duration,
               ease: textCfg.ease,
             });
@@ -85,7 +86,7 @@ export default function BlumGSAP({ version }: { version: Version }) {
 
           gsap.set(img, { willChange: "transform" });
           const t = gsap.to(img, {
-            y: 55,
+            y: 80,
             ease: "none",
             scrollTrigger: {
               trigger: parent,
@@ -175,7 +176,7 @@ export default function BlumGSAP({ version }: { version: Version }) {
         const idx = siblings.indexOf(grid);
 
         const t = gsap.from(grid, {
-          y: 24,
+          y: 40,
           opacity: 0,
           duration: seqCfg.duration,
           delay: idx * seqCfg.delayPerItem,
@@ -214,6 +215,25 @@ export default function BlumGSAP({ version }: { version: Version }) {
         kills.push(() => st.kill());
       });
 
+      /* ── 6. 구분선 draw 애니메이션 ── */
+      document.querySelectorAll<HTMLElement>("section hr, .gsap-line").forEach((line) => {
+        if (line.dataset.gsapLine) return;
+        line.dataset.gsapLine = "1";
+        gsap.set(line, { scaleX: 0, transformOrigin: "left" });
+        const t = gsap.to(line, {
+          scaleX: 1,
+          duration: 1.2,
+          ease: "power3.inOut",
+          scrollTrigger: {
+            trigger: line,
+            start: "top 88%",
+            once: true,
+          },
+        });
+        kills.push(() => t.kill());
+      });
+
+      await new Promise(r => setTimeout(r, 100));
       ScrollTrigger.refresh();
     };
 

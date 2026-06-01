@@ -233,7 +233,7 @@ export default function V3() {
           <BoldReveal>
             <p style={{ fontSize: "9px", letterSpacing: "0.5em", color: "rgba(255,255,255,0.55)", marginBottom: "22px" }}>OUR MANIFESTO</p>
             <blockquote style={{ fontSize: "clamp(1.5rem,4vw,3.5rem)", fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.15, maxWidth: "900px", marginBottom: "48px" }}>
-              "문을 열고 닫는 순간이<br />삶의 질을 결정합니다.<br />그래서 우리는 타협하지 않습니다."
+              "편리함을 높이고 삶의 질을 향상시킵니다.<br />blum의 moving ideas."
             </blockquote>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
               {[
