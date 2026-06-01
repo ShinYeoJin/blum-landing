@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import BlumGSAP from "@/components/BlumGSAP";
 
 const BASE = "https://www.blum.com";
 
@@ -605,6 +606,7 @@ export default function V1() {
           </div>
         </div>
       </div>
+      <BlumGSAP version="v1" />
     </div>
   );
 }

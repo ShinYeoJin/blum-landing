@@ -5,223 +5,327 @@ import Link from "next/link";
 
 const BASE = "https://www.blum.com";
 
-function useInView(threshold = 0.12) {
+/* ── 인라인 스타일 헬퍼 ── */
+type S = React.CSSProperties;
+const C = {
+  navy:  "#0D1117" as string,
+  gold:  "#D4AF37" as string,
+  goldD: "#B8942A" as string,
+  white: "#F5F0E8" as string,
+  gray:  "rgba(245,240,232,0.45)" as string,
+  line:  "rgba(212,175,55,0.18)" as string,
+};
+
+/* ── ScrollReveal Hook ── */
+function useReveal(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+  const [on, setOn] = useState(false);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
-    obs.observe(el);
-    return () => obs.disconnect();
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setOn(true); }, { threshold });
+    io.observe(el);
+    return () => io.disconnect();
   }, [threshold]);
-  return { ref, inView };
+  return { ref, on };
 }
 
-function Reveal({ children, delay = 0, className = "", y = 50 }: { children: React.ReactNode; delay?: number; className?: string; y?: number }) {
-  const { ref, inView } = useInView(0.1);
+/* ── Reveal 컴포넌트 ── */
+function R({
+  children, d = 0, y = 40, className = "", style,
+}: { children: React.ReactNode; d?: number; y?: number; className?: string; style?: S }) {
+  const { ref, on } = useReveal(0.1);
   return (
     <div ref={ref} className={className} style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "none" : `translateY(${y}px)`,
-      transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+      opacity: on ? 1 : 0,
+      transform: on ? "none" : `translateY(${y}px)`,
+      transition: `opacity 1.1s cubic-bezier(0.16,1,0.3,1) ${d}ms, transform 1.1s cubic-bezier(0.16,1,0.3,1) ${d}ms`,
+      ...style,
     }}>
       {children}
     </div>
   );
 }
 
-function Counter({ target, suffix = "", decimals = 0 }: { target: number; suffix?: string; decimals?: number }) {
-  const [val, setVal] = useState(0);
-  const { ref, inView } = useInView(0.3);
+/* ── GSAP 카운터 ── */
+function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const [n, setN] = useState(0);
+  const { ref, on } = useReveal(0.3);
   useEffect(() => {
-    if (!inView) return;
-    const start = performance.now();
-    const dur = 2000;
+    if (!on) return;
+    const s = performance.now(), dur = 2200;
     const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setVal(parseFloat((eased * target).toFixed(decimals)));
+      const p = Math.min((now - s) / dur, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      setN(Math.round(e * to));
       if (p < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-  }, [inView, target, decimals]);
-  return <span ref={ref}>{decimals > 0 ? val.toFixed(decimals) : val.toLocaleString()}{suffix}</span>;
+  }, [on, to]);
+  return <span ref={ref}>{n.toLocaleString()}{suffix}</span>;
 }
 
+/* ── 데이터 ── */
 const TIMELINE = [
-  { year: "1952", title: "창립", body: "Julius Blum이 오스트리아 포어알베르크 주 회흐스트에 설립. 말굽 못 제조업으로 시작해 정밀 금속 가공 기술을 축적했습니다." },
-  { year: "1970s", title: "피팅으로의 전환", body: "가구 피팅 분야로 전환. 경첩과 서랍 레일 개발을 시작하며 주방 가구 시장에 진입했습니다." },
-  { year: "1990s", title: "CLIP 시스템", body: "혁신적인 CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 설계로 전 세계 가구 제조업체에 채택되었습니다." },
-  { year: "2000s", title: "BLUMOTION", body: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 혁신을 이루었습니다." },
-  { year: "2010s", title: "LEGRABOX", body: "슬림한 서랍면(12.8mm)의 LEGRABOX 출시. 디자인과 기능을 모두 갖춘 서랍 시스템으로 시장을 선도했습니다." },
-  { year: "현재", title: "글로벌 리더", body: "2,441백만 유로 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 혁신을 이어가고 있습니다." },
+  { y: "1952", t: "창립", b: "Julius Blum이 오스트리아 포어알베르크 회흐스트에 설립. 말굽 못 제조업으로 정밀 금속 가공 기술을 축적." },
+  { y: "1970s", t: "피팅 시대의 시작", b: "가구 피팅 분야로 전환. 경첩과 서랍 레일 개발을 시작하며 주방 가구 시장에 첫 발을 내딛음." },
+  { y: "1990s", t: "CLIP 시스템 출시", b: "혁신적인 CLIP 경첩 출시. 공구 없이 탈착 가능한 원터치 구조로 전 세계 가구 제조업체에 채택." },
+  { y: "2000s", t: "BLUMOTION 혁신", b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 세상에 선보임." },
+  { y: "2010s", t: "LEGRABOX 탄생", b: "12.8mm 슬림 서랍면의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
+  { y: "현재", t: "글로벌 리더십", b: "2,441백만 유로 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 혁신을 이어가는 중." },
 ];
 
 const PRODUCTS = [
   {
     name: "AVENTOS",
-    category: "리프트 시스템",
-    desc: "높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트 시스템. 5가지 오픈 방식, 부드럽고 조용한 움직임.",
+    cat: "리프트 시스템",
+    desc: "5가지 오픈 방식. 높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려주는 리프트 시스템. 부드럽고 조용히 닫힙니다.",
     img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
   },
   {
     name: "LEGRABOX",
-    category: "박스 시스템",
-    desc: "슬림한 서랍면(12.8mm)으로 최대 하중 70kg 지지. 디자인과 기능을 모두 갖춘 프리미엄 서랍 시스템.",
+    cat: "박스 시스템",
+    desc: "슬림한 서랍면 12.8mm, 최대 하중 70kg. 디자인과 기능을 모두 갖춘 프리미엄 서랍 시스템의 새로운 기준.",
     img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
   },
   {
     name: "CLIP top BLUMOTION",
-    category: "경첩 시스템",
-    desc: "경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 도어의 무게에 관계없이 항상 매끄럽게 닫힙니다.",
+    cat: "경첩 시스템",
+    desc: "경첩 보스 컵에 통합된 BLUMOTION. 적응형 댐핑으로 도어 무게에 관계없이 항상 매끄럽게 부드럽게 닫힙니다.",
     img: `${BASE}/images/560/258/4214992/corporate/media/bilder/produkte/scharniersysteme/CLP0318_DT_FRD_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
   },
   {
     name: "TIP-ON",
-    category: "모션 기술",
-    desc: "핸들 없는 가구를 원터치로 여는 기계식 열기 시스템. 깔끔한 디자인과 편리한 사용성의 완벽한 조화.",
+    cat: "모션 기술",
+    desc: "핸들 없는 가구를 원터치로 여는 기계식 열기 시스템. 깔끔한 디자인과 직관적 편의성의 완벽한 조화.",
     img: `${BASE}/images/560/258/4215081/corporate/media/bilder/produkte/bewegungstechnologien/TOB0008_AA_FOT_FO_BAU_-SALL_-APR6I_-V1_4:3.jpg`,
+  },
+  {
+    name: "MOVENTO",
+    cat: "러너 시스템",
+    desc: "공중에 뜨는 듯 가벼운 서랍 움직임. BLUMOTION 소프트 클로징 내장. 최대 하중 70kg을 부드럽게 지지.",
+    img: `${BASE}/images/560/258/4215095/corporate/media/bilder/produkte/fuehrungssysteme/mov0003_dt_frd_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
 ];
 
 const STATS = [
-  { val: 2441, suffix: "M€", label: "전 세계 매출액", sub: "2024/25 회계연도", decimals: 0 },
-  { val: 9850, suffix: "명", label: "전 세계 임직원", sub: "글로벌 패밀리", decimals: 0 },
-  { val: 120, suffix: "개국+", label: "수출 대상국", sub: "전 세계 파트너십", decimals: 0 },
-  { val: 70, suffix: "년+", label: "가구 피팅 역사", sub: "1952년 창립", decimals: 0 },
-  { val: 8, suffix: "개", label: "포어알베르크 공장", sub: "Made in Austria", decimals: 0 },
-  { val: 34, suffix: "개소", label: "자회사 및 대리점", sub: "글로벌 네트워크", decimals: 0 },
+  { n: 2441, s: "M€", l: "전 세계 매출액", sub: "2024/25 회계연도" },
+  { n: 9850, s: "명",  l: "전 세계 임직원", sub: "글로벌 패밀리" },
+  { n: 120,  s: "+",   l: "수출 대상국",    sub: "전 세계 파트너십" },
+  { n: 70,   s: "년+", l: "가구 피팅 역사", sub: "1952년 창립" },
+  { n: 50000, s: "회", l: "내구성 테스트",  sub: "모든 제품 기준" },
+  { n: 34,   s: "개",  l: "자회사 및 대리점", sub: "글로벌 네트워크" },
 ];
 
-const SUSTAIN = [
-  { icon: "◈", title: "로컬 생산", body: "오스트리아 포어알베르크 지역에서 생산해 운송 거리를 최소화합니다." },
-  { icon: "◈", title: "재생 에너지", body: "생산 시설에서 재생 가능 에너지 사용을 지속적으로 확대하고 있습니다." },
-  { icon: "◈", title: "내구성 철학", body: "오래 사용할 수 있는 고품질 제품을 만들어 자원 낭비를 줄이는 것이 blum의 핵심 가치입니다." },
-  { icon: "◈", title: "친환경 포장", body: "FSC 인증 포장재를 사용하고 포장재 사용량을 지속적으로 줄이고 있습니다." },
-  { icon: "◈", title: "안전한 근무 환경", body: "임직원의 안전과 복지를 최우선으로 생각하는 공정한 근무 환경을 조성합니다." },
-];
-
+/* ════════════════════════════════════════════════════════ */
 export default function V4() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeProd, setActiveProd] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const [loadOut, setLoadOut] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const [heroReady, setHeroReady] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
 
+  /* 로딩 타이머 */
+  useEffect(() => {
+    const t1 = setTimeout(() => setLoaded(true), 2400);
+    const t2 = setTimeout(() => setLoadOut(true), 3100);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  /* 스크롤 */
   useEffect(() => {
     const fn = () => { setScrollY(window.scrollY); setNavScrolled(window.scrollY > 60); };
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  /* 3D 틸트 */
   useEffect(() => {
-    const t = setTimeout(() => setHeroReady(true), 200);
-    return () => clearTimeout(t);
-  }, []);
+    const cards = document.querySelectorAll<HTMLElement>(".v4-tilt");
+    const cleanups: Array<() => void> = [];
+    cards.forEach((card) => {
+      const img = card.querySelector<HTMLElement>("img");
+      if (!img) return;
+      const onMove = (e: MouseEvent) => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        img.style.transform = `perspective(720px) rotateY(${x * 14}deg) rotateX(${-y * 10}deg) scale(1.06)`;
+        img.style.transition = "transform 0.06s ease";
+      };
+      const onLeave = () => {
+        img.style.transform = "perspective(720px) rotateY(0deg) rotateX(0deg) scale(1)";
+        img.style.transition = "transform 0.7s cubic-bezier(0.25,1,0.5,1)";
+      };
+      card.addEventListener("mousemove", onMove);
+      card.addEventListener("mouseleave", onLeave);
+      cleanups.push(() => {
+        card.removeEventListener("mousemove", onMove);
+        card.removeEventListener("mouseleave", onLeave);
+      });
+    });
+    return () => cleanups.forEach((fn) => fn());
+  }, [loadOut]);
 
-  const heroParallax = scrollY * 0.3;
+  /* 수평 스크롤 동기화 */
+  const goProduct = (idx: number) => {
+    setActiveProd(idx);
+    scrollRef.current?.scrollTo({ left: idx * scrollRef.current.clientWidth, behavior: "smooth" });
+  };
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const fn = () => {
+      const idx = Math.round(el.scrollLeft / el.clientWidth);
+      setActiveProd(idx);
+    };
+    el.addEventListener("scroll", fn, { passive: true });
+    return () => el.removeEventListener("scroll", fn);
+  }, [loadOut]);
+
+  const heroParallax = scrollY * 0.28;
   const heroOpacity = Math.max(0, 1 - scrollY / 700);
 
-  return (
-    <div style={{ backgroundColor: "#050505", color: "#f0f0f0", fontFamily: "'Helvetica Neue', Arial, sans-serif", overflowX: "hidden" }}>
-      <style>{`
-        @keyframes v4-hero-in { from { opacity:0; transform:translateY(40px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes v4-ticker { from { transform:translateX(0) } to { transform:translateX(-50%) } }
-        @keyframes v4-scrollbar { 0%{transform:translateY(-100%)} 100%{transform:translateY(300%)} }
-        .v4-ticker { animation: v4-ticker 32s linear infinite; }
-        .v4-scrollbar { animation: v4-scrollbar 2.4s cubic-bezier(0.4,0,0.2,1) infinite; }
-        .v4-product-card { transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), box-shadow 0.5s ease; cursor: pointer; overflow: hidden; }
-        .v4-product-card:hover { transform: scale(1.03); box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
-        .v4-product-card .v4-card-img { transition: transform 0.7s cubic-bezier(0.25,1,0.5,1); }
-        .v4-product-card:hover .v4-card-img { transform: scale(1.07); }
-        .v4-timeline-dot { transition: transform 0.3s ease, background-color 0.3s ease; }
-        .v4-timeline-item:hover .v4-timeline-dot { transform: scale(1.5); background-color: #e63329; }
-        .v4-btn { transition: all 0.35s cubic-bezier(0.25,1,0.5,1); }
-        .v4-btn:hover { transform: translateY(-2px); }
-        .v4-nav-link { transition: color 0.2s ease; }
-        .v4-sustain-item { transition: transform 0.3s ease; }
-        .v4-sustain-item:hover { transform: translateX(8px); }
-      `}</style>
+  /* ── CSS in JS ── */
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');
+    :root { --gold: ${C.gold}; --navy: ${C.navy}; }
 
-      {/* ══ NAV ══ */}
+    @keyframes v4-load-up   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+    @keyframes v4-load-char { from{opacity:0;transform:translateY(40px) scaleY(1.15)} to{opacity:1;transform:none} }
+    @keyframes v4-load-out  { to{transform:translateY(-100%);opacity:0} }
+    @keyframes v4-ticker    { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    @keyframes v4-scrollbar { 0%{transform:translateY(-100%)} 100%{transform:translateY(300%)} }
+    @keyframes v4-wipe-in   { 0%{transform:scaleX(0);transform-origin:left} 50%{transform:scaleX(1);transform-origin:left}
+                               51%{transform:scaleX(1);transform-origin:right} 100%{transform:scaleX(0);transform-origin:right} }
+
+    .v4-font-serif { font-family:'Cormorant Garamond','Georgia',serif; }
+    .v4-font-sans  { font-family:'Helvetica Neue',Arial,sans-serif; }
+    .v4-ticker     { animation:v4-ticker 36s linear infinite; }
+    .v4-scrollbar  { animation:v4-scrollbar 2.5s cubic-bezier(0.4,0,0.2,1) infinite; }
+
+    .v4-load-char  { display:inline-block; animation:v4-load-char 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4-load-sub   { animation:v4-load-up 1s cubic-bezier(0.16,1,0.3,1) 1.4s both; }
+    .v4-load-out   { animation:v4-load-out 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+    .v4-wipe-section { position:relative; overflow:hidden; }
+    .v4-wipe-cover   { position:absolute;inset:0;background:${C.gold};z-index:20;transform:scaleX(0);pointer-events:none; }
+    .v4-wipe-section.v4-wipe-go .v4-wipe-cover { animation:v4-wipe-in 1s cubic-bezier(0.77,0,0.18,1) both; }
+    .v4-wipe-section.v4-wipe-go .v4-wipe-content { animation:v4-load-up 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+    .v4-wipe-content { opacity:0; }
+
+    .v4-prod-scroll::-webkit-scrollbar { display:none; }
+    .v4-prod-scroll { -ms-overflow-style:none; scrollbar-width:none; }
+
+    .v4-tilt { cursor:none; }
+    .v4-tilt img { transition:transform 0.7s cubic-bezier(0.25,1,0.5,1); }
+
+    .v4-btn { transition:all 0.35s cubic-bezier(0.25,1,0.5,1); }
+    .v4-btn:hover { transform:translateY(-3px); }
+    .v4-nav-link { transition:color 0.2s ease; }
+    .v4-nav-link:hover { color:${C.gold} !important; }
+
+    .v4-timeline-dot { transition:transform 0.3s ease, background 0.3s ease; }
+    .v4-timeline-item:hover .v4-timeline-dot { transform:scale(1.8); background:${C.gold}; }
+
+    /* 수평 스크롤 snap */
+    .v4-prod-scroll { scroll-snap-type:x mandatory; }
+    .v4-prod-item   { scroll-snap-align:start; }
+  `;
+
+  /* ────────────────────────────── RENDER ─────────────────────────────── */
+  return (
+    <div className="v4-font-sans" style={{ backgroundColor: C.navy, color: C.white, overflowX: "hidden" }}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+
+      {/* ══ LOADING SCREEN ══════════════════════════════════════════════════ */}
+      {!loadOut && (
+        <div
+          className={loaded ? "v4-load-out" : ""}
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            backgroundColor: C.navy,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: "20px",
+          }}
+        >
+          {/* Logo letter animation */}
+          <div className="v4-font-serif" style={{ fontSize: "clamp(3.5rem,12vw,7rem)", fontWeight: 300, letterSpacing: "0.18em", color: C.gold }}>
+            {"blum".split("").map((ch, i) => (
+              <span key={i} className="v4-load-char" style={{ animationDelay: `${i * 120}ms` }}>{ch}</span>
+            ))}
+          </div>
+          <div className="v4-load-sub" style={{ fontSize: "11px", letterSpacing: "0.55em", textTransform: "uppercase", color: "rgba(245,240,232,0.35)" }}>
+            moving ideas · since 1952
+          </div>
+          {/* Progress bar */}
+          <div style={{ width: "120px", height: "1px", backgroundColor: "rgba(212,175,55,0.2)", marginTop: "12px", overflow: "hidden" }}>
+            <div className="v4-load-sub" style={{ height: "100%", backgroundColor: C.gold, animation: "v4-load-up 2s linear 0.5s both", transformOrigin: "left" }} />
+          </div>
+        </div>
+      )}
+
+      {/* ══ NAV ═════════════════════════════════════════════════════════════ */}
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: "60px",
-        backgroundColor: navScrolled ? "rgba(5,5,5,0.96)" : "transparent",
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: "64px",
+        backgroundColor: navScrolled ? "rgba(13,17,23,0.95)" : "transparent",
         backdropFilter: navScrolled ? "blur(20px)" : "none",
-        borderBottom: navScrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
+        borderBottom: navScrolled ? `1px solid ${C.line}` : "none",
         transition: "all 0.4s ease",
       }}>
         <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
-          <Link href="/v4" style={{ color: "#fff", textDecoration: "none", fontSize: "18px", fontWeight: 300, letterSpacing: "0.35em", textTransform: "uppercase" }}>
+          <Link href="/v4" className="v4-font-serif" style={{ color: C.gold, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>
             blum
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            {[["제품", "/v4#products"], ["서비스", "/v4/services"], ["회사", "/v4/company"], ["연락처", "/v4/contact"]].map(([label, href]) => (
-              <Link key={label} href={href} className="v4-nav-link" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+            {[["제품","#products"],["서비스","/v4/services"],["회사","/v4/company"],["연락처","/v4/contact"]].map(([label, href]) => (
+              <Link key={label} href={href} className="v4-nav-link" style={{ color: C.gray, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>
                 {label}
               </Link>
             ))}
-            <Link href="/v4/contact" className="v4-btn" style={{ color: "#fff", textDecoration: "none", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "8px 20px", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <Link href="/v4/contact" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "9px 20px" }}>
               문의하기
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ══ HERO ══ */}
-      <section style={{ position: "relative", height: "100vh", minHeight: "700px", display: "flex", flexDirection: "column", justifyContent: "flex-end", overflow: "hidden", backgroundColor: "#050505" }}>
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {/* ══ HERO ════════════════════════════════════════════════════════════ */}
+      <section style={{ position: "relative", height: "100vh", minHeight: "700px", display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
+        {/* BG parallax */}
+        <div style={{ position: "absolute", inset: 0 }}>
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
-            alt="blum kitchen"
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.28, transform: `scale(1.1) translateY(${heroParallax}px)` }}
+            alt="blum"
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.22, transform: `scale(1.1) translateY(${heroParallax}px)` }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #050505 25%, rgba(5,5,5,0.6) 65%, rgba(5,5,5,0.15) 100%)" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(5,5,5,0.7) 0%, transparent 55%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${C.navy} 25%, rgba(13,17,23,0.65) 65%, rgba(13,17,23,0.2) 100%)` }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,17,23,0.7) 0%, transparent 60%)" }} />
         </div>
 
-        <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 6rem", width: "100%", opacity: heroOpacity }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: "12px", marginBottom: "2.5rem",
-            animation: heroReady ? "v4-hero-in 1s cubic-bezier(0.16,1,0.3,1) 0ms both" : "none",
-          }}>
-            <div style={{ width: "28px", height: "1px", backgroundColor: "rgba(255,255,255,0.25)" }} />
-            <span style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
-              Premium Furniture Fittings · Austria · Since 1952
-            </span>
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 7rem", width: "100%", opacity: heroOpacity }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "2rem" }}>
+            <div style={{ width: "32px", height: "1px", backgroundColor: C.gold, opacity: 0.6 }} />
+            <span style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: C.gray }}>Premium Furniture Fittings · Austria · Since 1952</span>
           </div>
 
-          <h1 style={{
-            color: "#fff", marginBottom: "1.5rem", lineHeight: 0.88, userSelect: "none",
-            fontSize: "clamp(4rem, 13vw, 11rem)", fontWeight: 200, letterSpacing: "-0.03em",
-            animation: heroReady ? "v4-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 150ms both" : "none",
-          }}>
-            moving<br />
-            <span style={{ color: "#e63329", fontStyle: "italic" }}>ideas.</span>
+          <h1 className="v4-font-serif" style={{ marginBottom: "1.5rem", lineHeight: 0.88, fontWeight: 300, fontSize: "clamp(4.5rem,13vw,11rem)", letterSpacing: "-0.01em" }}>
+            <span style={{ color: C.white, display: "block" }}>moving</span>
+            <span style={{ color: C.gold, fontStyle: "italic", display: "block" }}>ideas.</span>
           </h1>
 
-          <p style={{
-            color: "rgba(255,255,255,0.45)", fontSize: "14px", lineHeight: 2, maxWidth: "320px", fontWeight: 300, marginBottom: "2.5rem",
-            animation: heroReady ? "v4-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 350ms both" : "none",
-          }}>
-            움직임이 달라지면 삶이 달라집니다.<br />
-            blum이 만드는 정밀한 피팅의 세계.
+          <p style={{ color: C.gray, fontSize: "15px", lineHeight: 2, fontWeight: 300, maxWidth: "340px", marginBottom: "2.5rem" }}>
+            움직임이 달라지면 삶이 달라집니다.<br />blum이 만드는 정밀한 피팅의 세계.
           </p>
 
-          <div style={{
-            display: "flex", flexWrap: "wrap", gap: "1rem",
-            animation: heroReady ? "v4-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 500ms both" : "none",
-          }}>
-            <Link href="#products" className="v4-btn" style={{
-              color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-              padding: "14px 28px", backgroundColor: "#e63329", display: "inline-flex", alignItems: "center", gap: "8px",
-            }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <Link href="#products" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
               제품 살펴보기 <span>→</span>
             </Link>
-            <Link href="/v4/company" className="v4-btn" style={{
-              color: "rgba(255,255,255,0.5)", textDecoration: "none", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-              padding: "14px 28px", border: "1px solid rgba(255,255,255,0.15)", display: "inline-flex", alignItems: "center", gap: "8px",
-            }}>
+            <Link href="#timeline" className="v4-btn" style={{ color: C.white, border: `1px solid ${C.line}`, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 30px" }}>
               브랜드 스토리
             </Link>
           </div>
@@ -229,232 +333,297 @@ export default function V4() {
 
         {/* Scroll indicator */}
         <div style={{ position: "absolute", bottom: "2rem", right: "2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", zIndex: 10 }}>
-          <span style={{ fontSize: "8px", letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", writingMode: "vertical-rl", marginBottom: "4px" }}>scroll</span>
-          <div style={{ width: "1px", height: "56px", backgroundColor: "rgba(255,255,255,0.1)", position: "relative", overflow: "hidden" }}>
-            <div className="v4-scrollbar" style={{ width: "100%", height: "45%", backgroundColor: "rgba(230,51,41,0.7)", position: "absolute", top: 0 }} />
+          <span style={{ fontSize: "8px", letterSpacing: "0.4em", textTransform: "uppercase", color: C.gray, writingMode: "vertical-rl" }}>scroll</span>
+          <div style={{ width: "1px", height: "56px", backgroundColor: `${C.gold}22`, position: "relative", overflow: "hidden" }}>
+            <div className="v4-scrollbar" style={{ width: "100%", height: "45%", backgroundColor: `${C.gold}aa`, position: "absolute", top: 0 }} />
           </div>
         </div>
       </section>
 
-      {/* ══ TICKER ══ */}
-      <div style={{ overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "12px 0", backgroundColor: "#0a0a0a" }}>
+      {/* ══ GOLD TICKER ═════════════════════════════════════════════════════ */}
+      <div style={{ overflow: "hidden", borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, padding: "12px 0", backgroundColor: "rgba(212,175,55,0.04)" }}>
         <div className="v4-ticker" style={{ display: "flex", whiteSpace: "nowrap" }}>
           {[...Array(4)].map((_, i) => (
-            <span key={i} style={{ fontSize: "9px", letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", paddingRight: "64px" }}>
-              CLIP top · AVENTOS · LEGRABOX · TIP-ON · MOVENTO · REVEGO · BLUMOTION · SINCE 1952 ·&nbsp;
+            <span key={i} style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${C.gold}66`, paddingRight: "64px" }}>
+              CLIP top · AVENTOS · LEGRABOX · TIP-ON · MOVENTO · BLUMOTION · SINCE 1952 · AUSTRIA ·&nbsp;
             </span>
           ))}
         </div>
       </div>
 
-      {/* ══ BRAND STORY TIMELINE ══ */}
-      <section style={{ padding: "120px 0", backgroundColor: "#080808" }}>
+      {/* ══ TIMELINE ════════════════════════════════════════════════════════ */}
+      <section id="timeline" style={{ padding: "120px 0", backgroundColor: "#0A0E14" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <Reveal>
-            <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>Brand Story</p>
-            <h2 style={{ fontSize: "clamp(2rem, 5vw, 4.5rem)", fontWeight: 200, letterSpacing: "-0.02em", marginBottom: "80px", color: "#fff" }}>
-              1952년부터<br />
-              <span style={{ color: "#e63329" }}>현재까지</span>
+          <R d={0}>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Brand Story</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: C.white, marginBottom: "80px", letterSpacing: "-0.01em" }}>
+              1952년부터<br /><em style={{ color: C.gold }}>현재까지</em>
             </h2>
-          </Reveal>
+          </R>
 
           <div style={{ position: "relative" }}>
-            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: "rgba(255,255,255,0.06)", transform: "translateX(-50%)" }} className="hidden md:block" />
+            {/* Center line */}
+            <div className="hidden md:block" style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: C.line, transform: "translateX(-50%)" }} />
 
             {TIMELINE.map((item, i) => (
-              <Reveal key={item.year} delay={i * 100} className="v4-timeline-item">
-                <div style={{
-                  display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "center",
-                  marginBottom: "56px", direction: i % 2 === 0 ? "ltr" : "rtl",
-                }} className="hidden md:grid">
-                  <div style={{ textAlign: i % 2 === 0 ? "right" : "left", direction: "ltr" }}>
-                    <span style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 200, letterSpacing: "-0.02em", color: i === TIMELINE.length - 1 ? "#e63329" : "rgba(255,255,255,0.12)", display: "block", marginBottom: "8px" }}>{item.year}</span>
-                    <h3 style={{ fontSize: "18px", fontWeight: 400, marginBottom: "12px", color: "#fff" }}>{item.title}</h3>
-                    <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, fontWeight: 300, maxWidth: "320px", marginLeft: i % 2 === 0 ? "auto" : 0, marginRight: i % 2 === 1 ? "auto" : 0 }}>{item.body}</p>
-                  </div>
-                  <div style={{ position: "relative", direction: "ltr" }}>
-                    <div className="v4-timeline-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.2)", position: "absolute", [i % 2 === 0 ? "left" : "right"]: "-5px", top: "50%", transform: "translateY(-50%)", zIndex: 2, border: "1px solid rgba(255,255,255,0.1)" }} />
-                  </div>
+              <R key={item.y} d={i * 80} className="v4-timeline-item">
+                {/* Desktop: alternating */}
+                <div className="hidden md:grid" style={{ gridTemplateColumns: "1fr 48px 1fr", gap: "0", marginBottom: "64px", alignItems: "center" }}>
+                  {i % 2 === 0 ? (
+                    <>
+                      <div style={{ textAlign: "right", paddingRight: "40px" }}>
+                        <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? C.gold : `${C.gold}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                        <h3 style={{ fontSize: "16px", fontWeight: 400, color: C.white, marginBottom: "8px" }}>{item.t}</h3>
+                        <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div className="v4-timeline-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${C.gold}55`, border: `1px solid ${C.gold}66` }} />
+                      </div>
+                      <div />
+                    </>
+                  ) : (
+                    <>
+                      <div />
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div className="v4-timeline-dot" style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${C.gold}55`, border: `1px solid ${C.gold}66` }} />
+                      </div>
+                      <div style={{ paddingLeft: "40px" }}>
+                        <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? C.gold : `${C.gold}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                        <h3 style={{ fontSize: "16px", fontWeight: 400, color: C.white, marginBottom: "8px" }}>{item.t}</h3>
+                        <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{item.b}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
-                {/* Mobile layout */}
-                <div className="md:hidden" style={{ marginBottom: "48px", paddingLeft: "24px", borderLeft: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span style={{ fontSize: "2rem", fontWeight: 200, color: "rgba(255,255,255,0.15)", display: "block", marginBottom: "6px" }}>{item.year}</span>
-                  <h3 style={{ fontSize: "16px", fontWeight: 400, marginBottom: "8px", color: "#fff" }}>{item.title}</h3>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.8, fontWeight: 300 }}>{item.body}</p>
+
+                {/* Mobile */}
+                <div className="md:hidden" style={{ marginBottom: "44px", paddingLeft: "20px", borderLeft: `1px solid ${C.line}` }}>
+                  <span className="v4-font-serif" style={{ fontSize: "2rem", fontWeight: 300, color: `${C.gold}44`, display: "block", marginBottom: "4px" }}>{item.y}</span>
+                  <h3 style={{ fontSize: "15px", color: C.white, marginBottom: "6px" }}>{item.t}</h3>
+                  <p style={{ fontSize: "12px", color: C.gray, lineHeight: 1.8, fontWeight: 300 }}>{item.b}</p>
                 </div>
-              </Reveal>
+              </R>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ PRODUCTS ══ */}
-      <section id="products" style={{ padding: "120px 0", backgroundColor: "#050505" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <Reveal>
-            <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>Product World</p>
-            <h2 style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontWeight: 200, letterSpacing: "-0.02em", marginBottom: "64px", color: "#fff" }}>
-              주요 제품
+      {/* ══ PRODUCTS — 수평 스크롤 ═══════════════════════════════════════════ */}
+      <section id="products" style={{ backgroundColor: C.navy, padding: "100px 0 60px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 40px" }}>
+          <R>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Product World</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,5vw,4rem)", fontWeight: 300, color: C.white, letterSpacing: "-0.01em" }}>
+              움직임을 만드는<br /><em style={{ color: C.gold }}>제품들</em>
             </h2>
-          </Reveal>
+          </R>
+        </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2px" }}>
-            {PRODUCTS.map((p, i) => (
-              <Reveal key={p.name} delay={i * 80}>
-                <div className="v4-product-card" style={{ position: "relative", aspectRatio: "3/4", backgroundColor: "#111" }}>
-                  <img
-                    src={p.img}
-                    alt={p.name}
-                    className="v4-card-img"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
-                  />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0.2) 50%, transparent 100%)" }} />
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "28px 24px" }}>
-                    <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: "#e63329", display: "block", marginBottom: "8px" }}>{p.category}</span>
-                    <h3 style={{ fontSize: "20px", fontWeight: 400, color: "#fff", marginBottom: "8px" }}>{p.name}</h3>
-                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, fontWeight: 300 }}>{p.desc}</p>
-                  </div>
-                  <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                    <span style={{ fontSize: "9px", letterSpacing: "0.2em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>0{i + 1}</span>
-                  </div>
+        {/* 수평 스크롤 컨테이너 */}
+        <div
+          ref={scrollRef}
+          className="v4-prod-scroll"
+          style={{ display: "flex", overflowX: "scroll", cursor: "grab" }}
+        >
+          {PRODUCTS.map((p, i) => (
+            <div
+              key={p.name}
+              className="v4-prod-item"
+              style={{ minWidth: "min(560px,90vw)", marginRight: "2px", position: "relative", flexShrink: 0 }}
+            >
+              {/* 3D tilt 카드 */}
+              <div className="v4-tilt" style={{ aspectRatio: "3/4", position: "relative", overflow: "hidden", backgroundColor: "#0A0E14" }}>
+                <img
+                  src={p.img}
+                  alt={p.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.82, display: "block" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
+                />
+                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, rgba(13,17,23,0.92) 0%, rgba(13,17,23,0.3) 50%, transparent 100%)` }} />
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "28px 28px 32px" }}>
+                  <span style={{ fontSize: "9px", letterSpacing: "0.35em", textTransform: "uppercase", color: C.gold, display: "block", marginBottom: "8px" }}>{p.cat}</span>
+                  <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 300, color: C.white, marginBottom: "10px" }}>{p.name}</h3>
+                  <p style={{ fontSize: "12px", color: C.gray, lineHeight: 1.8, fontWeight: 300 }}>{p.desc}</p>
                 </div>
-              </Reveal>
-            ))}
-          </div>
+                <div style={{ position: "absolute", top: "16px", right: "16px" }}>
+                  <span style={{ fontSize: "9px", letterSpacing: "0.2em", color: `${C.gold}55` }}>0{i + 1}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div style={{ minWidth: "2rem", flexShrink: 0 }} />
+        </div>
+
+        {/* 도트 네비게이션 */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "28px" }}>
+          {PRODUCTS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goProduct(i)}
+              style={{
+                width: activeProd === i ? "28px" : "8px",
+                height: "8px",
+                borderRadius: "4px",
+                backgroundColor: activeProd === i ? C.gold : `${C.gold}33`,
+                border: "none", cursor: "pointer",
+                transition: "all 0.4s cubic-bezier(0.25,1,0.5,1)",
+                padding: 0,
+              }}
+            />
+          ))}
+        </div>
+        <div style={{ textAlign: "center", marginTop: "12px" }}>
+          <span style={{ fontSize: "9px", letterSpacing: "0.3em", color: C.gray, textTransform: "uppercase" }}>← 스와이프하여 탐색 →</span>
         </div>
       </section>
 
-      {/* ══ NUMBERS ══ */}
-      <section style={{ padding: "120px 0", backgroundColor: "#080808" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <Reveal>
-            <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>By The Numbers</p>
-            <h2 style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontWeight: 200, letterSpacing: "-0.02em", marginBottom: "80px", color: "#fff" }}>
-              숫자로 보는<br />
-              <span style={{ color: "#e63329" }}>blum</span>
-            </h2>
-          </Reveal>
+      {/* ══ 골드 와이프 배너 ═══════════════════════════════════════════════ */}
+      <WipeBanner />
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px", backgroundColor: "rgba(255,255,255,0.04)" }} className="grid-cols-2 md:grid-cols-3">
+      {/* ══ STATS ═══════════════════════════════════════════════════════════ */}
+      <section style={{ padding: "100px 0", backgroundColor: "#0A0E14" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+          <R>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>By The Numbers</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "64px", letterSpacing: "-0.01em" }}>
+              숫자로 보는 <em style={{ color: C.gold }}>blum</em>
+            </h2>
+          </R>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1px", backgroundColor: C.line }}>
             {STATS.map((s, i) => (
-              <Reveal key={s.label} delay={i * 80}>
-                <div style={{ padding: "48px 32px", backgroundColor: "#080808" }}>
-                  <div style={{ fontSize: "clamp(2.5rem, 5vw, 4.5rem)", fontWeight: 200, letterSpacing: "-0.02em", color: "#fff", marginBottom: "8px", lineHeight: 1 }}>
-                    <Counter target={s.val} suffix={s.suffix} decimals={s.decimals} />
+              <R key={s.l} d={i * 70}>
+                <div style={{ padding: "44px 32px", backgroundColor: "#0A0E14" }}>
+                  <div className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: C.gold, lineHeight: 1, marginBottom: "8px" }}>
+                    <GCounter to={s.n} suffix={s.s} />
                   </div>
-                  <div style={{ fontSize: "13px", fontWeight: 400, color: "rgba(255,255,255,0.6)", marginBottom: "4px" }}>{s.label}</div>
-                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.05em" }}>{s.sub}</div>
+                  <div style={{ fontSize: "13px", color: C.white, marginBottom: "4px" }}>{s.l}</div>
+                  <div style={{ fontSize: "11px", color: C.gray }}>{s.sub}</div>
                 </div>
-              </Reveal>
+              </R>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ SUSTAINABILITY ══ */}
-      <section style={{ position: "relative", padding: "120px 0", overflow: "hidden" }}>
+      {/* ══ SUSTAINABILITY ══════════════════════════════════════════════════ */}
+      <section style={{ position: "relative", padding: "100px 0", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0 }}>
           <img
             src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
             alt="sustainability"
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.1 }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(5,5,5,0.88)" }} />
+          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(13,17,23,0.9)" }} />
         </div>
         <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <Reveal>
-            <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>Sustainability</p>
-            <h2 style={{ fontSize: "clamp(2rem, 5vw, 4rem)", fontWeight: 200, letterSpacing: "-0.02em", marginBottom: "64px", color: "#fff" }}>
-              지속가능한 미래를 위한<br />
-              <span style={{ color: "#e63329" }}>blum</span>
+          <R>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Sustainability</p>
+            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "56px", letterSpacing: "-0.01em" }}>
+              지속가능한 미래를<br /><em style={{ color: C.gold }}>함께 만듭니다</em>
             </h2>
-          </Reveal>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "0" }}>
-            {SUSTAIN.map((s, i) => (
-              <Reveal key={s.title} delay={i * 80}>
-                <div className="v4-sustain-item" style={{ padding: "32px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
-                    <span style={{ color: "#e63329", fontSize: "14px", marginTop: "2px", flexShrink: 0 }}>{s.icon}</span>
+          </R>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px,1fr))", gap: "0" }}>
+            {[
+              { t: "로컬 생산", b: "오스트리아 포어알베르크에서 생산해 운송 거리와 탄소 발자국을 최소화합니다." },
+              { t: "재생 에너지", b: "생산 시설에서 재생 가능 에너지 사용 비율을 지속적으로 확대하고 있습니다." },
+              { t: "내구성 철학", b: "50,000회 이상 내구성 테스트를 통과한 제품. 오래 쓸수록 환경을 위한 선택입니다." },
+              { t: "친환경 포장", b: "FSC 인증 포장재 사용, 포장 재료 최소화로 환경 부담을 줄여나갑니다." },
+              { t: "공정한 근무 환경", b: "9,850명 임직원의 안전과 복지를 최우선으로 생각하는 공정한 기업 문화." },
+            ].map((s, i) => (
+              <R key={s.t} d={i * 80}>
+                <div style={{ padding: "28px 0", borderBottom: `1px solid ${C.line}` }}>
+                  <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                    <span style={{ color: C.gold, fontSize: "14px", marginTop: "2px", flexShrink: 0 }}>◈</span>
                     <div>
-                      <h3 style={{ fontSize: "16px", fontWeight: 400, color: "#fff", marginBottom: "8px" }}>{s.title}</h3>
-                      <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, fontWeight: 300 }}>{s.body}</p>
+                      <h3 style={{ fontSize: "15px", fontWeight: 400, color: C.white, marginBottom: "7px" }}>{s.t}</h3>
+                      <p style={{ fontSize: "13px", color: C.gray, lineHeight: 1.85, fontWeight: 300 }}>{s.b}</p>
                     </div>
                   </div>
                 </div>
-              </Reveal>
+              </R>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══ CONTACT / SHOWROOM ══ */}
-      <section style={{ padding: "120px 0", backgroundColor: "#050505" }}>
+      {/* ══ CONTACT CTA ═════════════════════════════════════════════════════ */}
+      <section style={{ padding: "100px 0", backgroundColor: C.navy }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }} className="grid-cols-1 md:grid-cols-2">
-            <Reveal>
-              <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>Contact &amp; Showroom</p>
-              <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 200, letterSpacing: "-0.02em", marginBottom: "40px", color: "#fff", lineHeight: 1.15 }}>
-                쇼룸에서<br />직접 경험하세요
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+            <R>
+              <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${C.gold}88`, marginBottom: "14px" }}>Contact & Showroom</p>
+              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 300, color: C.white, marginBottom: "24px", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+                쇼룸에서<br /><em style={{ color: C.gold }}>직접 경험하세요</em>
               </h2>
-              <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 2, fontWeight: 300, marginBottom: "40px" }}>
-                전문 컨설턴트가 공간에 최적화된 blum 솔루션을 제안해드립니다.
+              <p style={{ fontSize: "14px", color: C.gray, lineHeight: 2, fontWeight: 300, marginBottom: "36px" }}>
+                전문 컨설턴트가 공간에 최적화된<br />blum 솔루션을 제안해드립니다.
               </p>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <Link href="/v4/contact" className="v4-btn" style={{
-                  color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
-                  padding: "14px 28px", backgroundColor: "#e63329",
-                }}>
+                <Link href="/v4/contact" className="v4-btn" style={{ color: C.navy, backgroundColor: C.gold, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px" }}>
                   쇼룸 방문 신청
                 </Link>
-                <Link href="/v4/contact" className="v4-btn" style={{
-                  color: "rgba(255,255,255,0.6)", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
-                  padding: "14px 28px", border: "1px solid rgba(255,255,255,0.15)",
-                }}>
+                <Link href="/v4/contact" className="v4-btn" style={{ color: C.white, border: `1px solid ${C.line}`, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px" }}>
                   제품 문의
                 </Link>
               </div>
-            </Reveal>
-
-            <Reveal delay={150}>
-              <div style={{ borderLeft: "1px solid rgba(255,255,255,0.07)", paddingLeft: "48px" }}>
+            </R>
+            <R d={150}>
+              <div style={{ borderLeft: `1px solid ${C.line}`, paddingLeft: "48px" }}>
                 {[
-                  { label: "서울 쇼룸", value: "서울특별시 강남구 테헤란로 431\n저스트코 타워 2층" },
-                  { label: "전화", value: "02-6925-0800" },
-                  { label: "이메일", value: "info.korea@blum.com" },
-                  { label: "영업시간", value: "월–금 09:00–18:00" },
-                  { label: "본사 (오스트리아)", value: "Julius Blum GmbH\nIndustriestrasse 1 · 6973 Höchst" },
+                  { l: "서울 쇼룸", v: "서울특별시 강남구 테헤란로 431\n저스트코 타워 2층" },
+                  { l: "전화",     v: "02-6925-0800" },
+                  { l: "이메일",   v: "info.korea@blum.com" },
+                  { l: "영업시간", v: "월–금 09:00–18:00" },
+                  { l: "본사",     v: "Julius Blum GmbH\nIndustriestrasse 1 · 6973 Höchst, Austria" },
                 ].map((item) => (
-                  <div key={item.label} style={{ marginBottom: "28px" }}>
-                    <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", display: "block", marginBottom: "6px" }}>{item.label}</span>
-                    <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", fontWeight: 300, lineHeight: 1.7, whiteSpace: "pre-line" }}>{item.value}</p>
+                  <div key={item.l} style={{ marginBottom: "24px" }}>
+                    <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: `${C.gold}66`, display: "block", marginBottom: "5px" }}>{item.l}</span>
+                    <p style={{ fontSize: "14px", color: C.gray, fontWeight: 300, lineHeight: 1.75, whiteSpace: "pre-line" }}>{item.v}</p>
                   </div>
                 ))}
               </div>
-            </Reveal>
+            </R>
           </div>
         </div>
       </section>
 
-      {/* ══ FOOTER ══ */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "32px 0", backgroundColor: "#030303" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>
-              © 2025 Blum Korea. Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria
-            </span>
-            <div style={{ display: "flex", gap: "24px" }}>
-              {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]].map(([l, h]) => (
-                <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? "rgba(230,51,41,0.7)" : "rgba(255,255,255,0.2)", textDecoration: "none" }}>
-                  {l}
-                </Link>
-              ))}
-            </div>
+      {/* ══ FOOTER ══════════════════════════════════════════════════════════ */}
+      <footer style={{ borderTop: `1px solid ${C.line}`, padding: "28px 2rem", backgroundColor: "#080B10" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+          <span className="v4-font-serif" style={{ fontSize: "16px", fontWeight: 300, color: `${C.gold}66`, letterSpacing: "0.2em" }}>blum</span>
+          <span style={{ fontSize: "11px", color: `${C.white}33` }}>© 2025 Blum Korea. Julius Blum GmbH · Höchst, Austria</span>
+          <div style={{ display: "flex", gap: "20px" }}>
+            {[["V1","/v1"],["V2","/v2"],["V3","/v3"],["V4","/v4"]].map(([l,h]) => (
+              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${C.gold}99` : `${C.white}33`, textDecoration: "none" }}>{l}</Link>
+            ))}
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/* ── 골드 컬러 와이프 배너 (분리 컴포넌트) ── */
+function WipeBanner() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0.3 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`} style={{ backgroundColor: "#0A0E14", padding: "80px 2rem", textAlign: "center" }}>
+      <div className="v4-wipe-cover" />
+      <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
+        <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "#D4AF3788", marginBottom: "14px" }}>Our Philosophy</p>
+        <blockquote style={{ fontFamily: "'Cormorant Garamond','Georgia',serif", fontSize: "clamp(1.5rem,4vw,3rem)", fontWeight: 300, color: "#F5F0E8", lineHeight: 1.45, maxWidth: "720px", margin: "0 auto 32px", fontStyle: "italic", letterSpacing: "-0.01em" }}>
+          "열고 닫는 매 순간이<br />삶의 질을 결정합니다."
+        </blockquote>
+        <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: "#D4AF3766" }}>Julius Blum GmbH · Since 1952</span>
+      </div>
     </div>
   );
 }
