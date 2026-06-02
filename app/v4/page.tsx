@@ -262,6 +262,7 @@ export default function V4() {
   /* ── Products – drag carousel ── */
   const CARD_W = 560 + 24; // card width + gap
   const [prodIdx,     setProdIdx]     = useState(0);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const carouselRef                   = useRef<HTMLDivElement>(null);
   const dragStart                     = useRef<{ x: number; scrollLeft: number } | null>(null);
   const touchStart                    = useRef<{ x: number; scrollLeft: number } | null>(null);
@@ -323,7 +324,7 @@ export default function V4() {
         carouselRef.current?.scrollTo({ left: next * (560 + 24), behavior: "smooth" });
         return next;
       });
-    }, 4000);
+    }, 2000);
   }, []);
 
   useEffect(() => {
@@ -422,12 +423,7 @@ export default function V4() {
     }
     .v4-carousel-track::-webkit-scrollbar { display:none; }
     .v4-carousel-track.dragging { cursor:grabbing; }
-    .v4-carousel-card {
-      flex-shrink:0; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1),
-        box-shadow 0.4s ease, opacity 0.4s ease;
-    }
-    .v4-carousel-card:hover { transform:translateY(-10px) !important; }
-    .v4-carousel-card.active-card { box-shadow:0 32px 80px rgba(212,175,55,0.18); }
+    .v4-carousel-card { flex-shrink:0; }
 
     /* Stats card hover */
     .v4-stat-card { transition:background 0.3s ease; }
@@ -749,48 +745,54 @@ export default function V4() {
               dragRaf.current = requestAnimationFrame(momentum);
             }}
           >
-            {PRODUCTS.map((p, i) => (
-              <div
-                key={p.name}
-                className={`v4-carousel-card${prodIdx === i ? " active-card" : ""}`}
-                style={{
-                  width: "560px",
-                  background: "#0D1117",
-                  border: `1px solid ${prodIdx === i ? `${GOLD}55` : LINE}`,
-                  overflow: "hidden",
-                  flexShrink: 0,
-                  opacity: prodIdx === i ? 1 : 0.55,
-                  transform: prodIdx === i ? "translateY(0)" : "translateY(16px)",
-                  cursor: "pointer",
-                }}
-                onClick={() => { if (!isDragging.current) scrollToCard(i); }}
-              >
-                {/* Image */}
-                <div style={{ position: "relative", height: "340px", overflow: "hidden" }}>
-                  {/* Serial number */}
-                  <div style={{
-                    position: "absolute", top: "20px", left: "22px", zIndex: 2,
-                    fontSize: "10px", letterSpacing: "0.45em", textTransform: "uppercase",
-                    color: GOLD, fontFamily: "'Helvetica Neue', Arial, sans-serif",
-                  }}>N°{p.num}</div>
-                  <img src={p.img} alt={p.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
-                      transition: "transform 0.9s cubic-bezier(0.25,1,0.5,1)",
-                      transform: prodIdx === i ? "scale(1.04)" : "scale(1)",
-                    }}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 0%, transparent 55%)` }} />
-                </div>
+            {PRODUCTS.map((p, i) => {
+              const isActive = hoveredCard === i || (hoveredCard === null && prodIdx === i);
+              return (
+                <div
+                  key={p.name}
+                  className={`v4-carousel-card${isActive ? " active-card" : ""}`}
+                  style={{
+                    width: "560px",
+                    background: "#0D1117",
+                    border: `1px solid ${isActive ? `${GOLD}55` : LINE}`,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    opacity: isActive ? 1 : 0.55,
+                    transform: isActive ? "translateY(-10px)" : "translateY(8px)",
+                    boxShadow: isActive ? `0 32px 80px rgba(212,175,55,0.18)` : "none",
+                    cursor: "pointer",
+                    transition: "transform 0.45s cubic-bezier(0.25,1,0.5,1), opacity 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease",
+                  }}
+                  onMouseEnter={() => setHoveredCard(i)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  onClick={() => { if (!isDragging.current) scrollToCard(i); }}
+                >
+                  {/* Image */}
+                  <div style={{ position: "relative", height: "340px", overflow: "hidden" }}>
+                    <div style={{
+                      position: "absolute", top: "20px", left: "22px", zIndex: 2,
+                      fontSize: "10px", letterSpacing: "0.45em", textTransform: "uppercase",
+                      color: GOLD, fontFamily: "'Helvetica Neue', Arial, sans-serif",
+                    }}>N°{p.num}</div>
+                    <img src={p.img} alt={p.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
+                        transition: "transform 0.9s cubic-bezier(0.25,1,0.5,1)",
+                        transform: isActive ? "scale(1.06)" : "scale(1)",
+                      }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 0%, transparent 55%)` }} />
+                  </div>
 
-                {/* Text */}
-                <div style={{ padding: "28px 28px 32px" }}>
-                  <p style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "10px" }}>{p.cat}</p>
-                  <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.8rem,3.5vw,2.6rem)", fontWeight: 300, color: CREAM, lineHeight: 1, marginBottom: "16px", letterSpacing: "-0.01em" }}>{p.name}</h3>
-                  <div style={{ width: "32px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "16px" }} />
-                  <p style={{ color: GRAY, fontSize: "13px", lineHeight: 1.85 }}>{p.desc}</p>
+                  {/* Text */}
+                  <div style={{ padding: "28px 28px 32px" }}>
+                    <p style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "10px" }}>{p.cat}</p>
+                    <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.8rem,3.5vw,2.6rem)", fontWeight: 300, color: CREAM, lineHeight: 1, marginBottom: "16px", letterSpacing: "-0.01em" }}>{p.name}</h3>
+                    <div style={{ width: "32px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "16px" }} />
+                    <p style={{ color: GRAY, fontSize: "13px", lineHeight: 1.85 }}>{p.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Left / right fade edges */}
@@ -800,23 +802,28 @@ export default function V4() {
 
         {/* Dot indicators */}
         <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "8px" }}>
-          {PRODUCTS.map((p, i) => (
-            <button
-              key={p.name}
-              onClick={() => scrollToCard(i)}
-              style={{
-                width: prodIdx === i ? "28px" : "8px",
-                height: "8px",
-                borderRadius: "4px",
-                border: "none",
-                backgroundColor: prodIdx === i ? GOLD : `${GOLD}33`,
-                cursor: "pointer",
-                padding: 0,
-                transition: "all 0.35s cubic-bezier(0.25,1,0.5,1)",
-              }}
-              aria-label={p.name}
-            />
-          ))}
+          {PRODUCTS.map((p, i) => {
+            const dotActive = hoveredCard === i || (hoveredCard === null && prodIdx === i);
+            return (
+              <button
+                key={p.name}
+                onClick={() => scrollToCard(i)}
+                onMouseEnter={() => setHoveredCard(i)}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  width: dotActive ? "28px" : "8px",
+                  height: "8px",
+                  borderRadius: "4px",
+                  border: "none",
+                  backgroundColor: dotActive ? GOLD : `${GOLD}33`,
+                  cursor: "pointer",
+                  padding: 0,
+                  transition: "all 0.35s cubic-bezier(0.25,1,0.5,1)",
+                }}
+                aria-label={p.name}
+              />
+            );
+          })}
         </div>
 
         {/* Drag hint */}
