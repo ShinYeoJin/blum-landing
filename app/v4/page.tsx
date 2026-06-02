@@ -260,13 +260,16 @@ export default function V4() {
   const slideTimer                    = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* ── Products – drag carousel ── */
+  const CARD_W = 560 + 24; // card width + gap
   const [prodIdx,     setProdIdx]     = useState(0);
   const carouselRef                   = useRef<HTMLDivElement>(null);
   const dragStart                     = useRef<{ x: number; scrollLeft: number } | null>(null);
+  const touchStart                    = useRef<{ x: number; scrollLeft: number } | null>(null);
   const isDragging                    = useRef(false);
   const dragVelocity                  = useRef(0);
   const lastDragX                     = useRef(0);
   const dragRaf                       = useRef<number | null>(null);
+  const prodTimer                     = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* Values section — each panel visible state */
   const valRefs                      = useRef<Array<HTMLDivElement | null>>([]);
@@ -310,6 +313,30 @@ export default function V4() {
     setSlideIdx(idx);
     resetSlideTimer();
   };
+
+  /* ── Product carousel: auto-advance + scroll helper ── */
+  const resetProdTimer = useCallback(() => {
+    if (prodTimer.current) clearInterval(prodTimer.current);
+    prodTimer.current = setInterval(() => {
+      setProdIdx(prev => {
+        const next = (prev + 1) % PRODUCTS.length;
+        carouselRef.current?.scrollTo({ left: next * (560 + 24), behavior: "smooth" });
+        return next;
+      });
+    }, 4000);
+  }, []);
+
+  useEffect(() => {
+    resetProdTimer();
+    return () => { if (prodTimer.current) clearInterval(prodTimer.current); };
+  }, [resetProdTimer]);
+
+  const scrollToCard = useCallback((idx: number) => {
+    const clamped = Math.max(0, Math.min(PRODUCTS.length - 1, idx));
+    setProdIdx(clamped);
+    carouselRef.current?.scrollTo({ left: clamped * (560 + 24), behavior: "smooth" });
+    resetProdTimer();
+  }, [resetProdTimer]);
 
   /* Values section observer */
   useEffect(() => {
@@ -645,13 +672,15 @@ export default function V4() {
               padding: "0 calc(50vw - 280px) 48px",
               gap: "24px",
             }}
+            /* ── Mouse drag ── */
             onMouseDown={(e) => {
               const el = carouselRef.current; if (!el) return;
-              isDragging.current = false;
-              dragStart.current  = { x: e.pageX, scrollLeft: el.scrollLeft };
-              lastDragX.current  = e.pageX;
+              isDragging.current   = false;
+              dragStart.current    = { x: e.pageX, scrollLeft: el.scrollLeft };
+              lastDragX.current    = e.pageX;
               dragVelocity.current = 0;
               if (dragRaf.current) cancelAnimationFrame(dragRaf.current);
+              if (prodTimer.current) clearInterval(prodTimer.current); // pause auto
               el.classList.add("dragging");
             }}
             onMouseMove={(e) => {
@@ -666,23 +695,18 @@ export default function V4() {
             onMouseUp={() => {
               const el = carouselRef.current; if (!el) return;
               el.classList.remove("dragging");
-              if (!isDragging.current) { dragStart.current = null; return; }
+              const wasDragging = isDragging.current;
               dragStart.current = null;
-              /* momentum */
+              isDragging.current = false;
+              if (!wasDragging) { resetProdTimer(); return; }
+              /* momentum → snap → resume auto */
               let v = dragVelocity.current * 1.8;
               const momentum = () => {
                 if (!carouselRef.current) return;
                 carouselRef.current.scrollLeft -= v;
                 v *= 0.88;
                 if (Math.abs(v) > 0.5) dragRaf.current = requestAnimationFrame(momentum);
-                else {
-                  /* snap to nearest card */
-                  const cardW = 560 + 24;
-                  const idx   = Math.round(carouselRef.current.scrollLeft / cardW);
-                  const clamped = Math.max(0, Math.min(PRODUCTS.length - 1, idx));
-                  setProdIdx(clamped);
-                  carouselRef.current.scrollTo({ left: clamped * cardW, behavior: "smooth" });
-                }
+                else scrollToCard(Math.round(carouselRef.current.scrollLeft / CARD_W));
               };
               dragRaf.current = requestAnimationFrame(momentum);
             }}
@@ -690,7 +714,39 @@ export default function V4() {
               if (!dragStart.current) return;
               const el = carouselRef.current; if (!el) return;
               el.classList.remove("dragging");
-              dragStart.current = null;
+              dragStart.current  = null;
+              isDragging.current = false;
+              resetProdTimer();
+            }}
+            /* ── Touch events ── */
+            onTouchStart={(e) => {
+              const el = carouselRef.current; if (!el) return;
+              if (prodTimer.current) clearInterval(prodTimer.current);
+              if (dragRaf.current) cancelAnimationFrame(dragRaf.current);
+              touchStart.current   = { x: e.touches[0].pageX, scrollLeft: el.scrollLeft };
+              lastDragX.current    = e.touches[0].pageX;
+              dragVelocity.current = 0;
+            }}
+            onTouchMove={(e) => {
+              if (!touchStart.current) return;
+              const el = carouselRef.current; if (!el) return;
+              const dx = e.touches[0].pageX - touchStart.current.x;
+              dragVelocity.current = e.touches[0].pageX - lastDragX.current;
+              lastDragX.current    = e.touches[0].pageX;
+              el.scrollLeft = touchStart.current.scrollLeft - dx;
+            }}
+            onTouchEnd={() => {
+              if (!touchStart.current || !carouselRef.current) return;
+              touchStart.current = null;
+              let v = dragVelocity.current * 1.6;
+              const el = carouselRef.current;
+              const momentum = () => {
+                el.scrollLeft -= v;
+                v *= 0.88;
+                if (Math.abs(v) > 0.5) dragRaf.current = requestAnimationFrame(momentum);
+                else scrollToCard(Math.round(el.scrollLeft / CARD_W));
+              };
+              dragRaf.current = requestAnimationFrame(momentum);
             }}
           >
             {PRODUCTS.map((p, i) => (
@@ -707,12 +763,7 @@ export default function V4() {
                   transform: prodIdx === i ? "translateY(0)" : "translateY(16px)",
                   cursor: "pointer",
                 }}
-                onClick={() => {
-                  if (isDragging.current) return;
-                  setProdIdx(i);
-                  const el = carouselRef.current; if (!el) return;
-                  el.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
-                }}
+                onClick={() => { if (!isDragging.current) scrollToCard(i); }}
               >
                 {/* Image */}
                 <div style={{ position: "relative", height: "340px", overflow: "hidden" }}>
@@ -752,10 +803,7 @@ export default function V4() {
           {PRODUCTS.map((p, i) => (
             <button
               key={p.name}
-              onClick={() => {
-                setProdIdx(i);
-                carouselRef.current?.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
-              }}
+              onClick={() => scrollToCard(i)}
               style={{
                 width: prodIdx === i ? "28px" : "8px",
                 height: "8px",
