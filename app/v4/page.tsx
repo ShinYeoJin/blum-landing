@@ -302,7 +302,7 @@ export default function V4() {
     if (slideTimer.current) clearInterval(slideTimer.current);
     slideTimer.current = setInterval(() => {
       setSlideIdx(i => (i + 1) % SLIDES.length);
-    }, 5000);
+    }, 2500);
   }, []);
 
   useEffect(() => {
@@ -398,13 +398,13 @@ export default function V4() {
     .v4-nav-link:hover { color:${GOLD} !important; }
 
     /* Slide image cross-fade */
-    .v4-slide-img { position:absolute;inset:0;transition:opacity 0.9s ease; }
+    .v4-slide-img { position:absolute;inset:0;transition:opacity 0.45s ease; }
     .v4-slide-img.active { opacity:1; }
     .v4-slide-img.inactive { opacity:0; }
     .v4-slide-img img { width:100%;height:100%;object-fit:cover; }
 
     /* Slide text panel */
-    .v4-slide-panel { position:absolute;left:8%;top:50%;max-width:600px;transition:all 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .v4-slide-panel { position:absolute;left:8%;top:50%;max-width:600px;transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
     .v4-slide-panel.active { opacity:1;transform:translateY(-50%); }
     .v4-slide-panel.above  { opacity:0;transform:translateY(calc(-50% - 70px)); }
     .v4-slide-panel.below  { opacity:0;transform:translateY(calc(-50% + 70px)); }
@@ -613,6 +613,7 @@ export default function V4() {
             <button
               key={i}
               onClick={() => goToSlide(i)}
+              onMouseEnter={() => goToSlide(i)}
               className={slideIdx === i ? "v4-dot-active" : ""}
               title={sl.label}
               style={{
@@ -763,8 +764,15 @@ export default function V4() {
                     cursor: "pointer",
                     transition: "transform 0.45s cubic-bezier(0.25,1,0.5,1), opacity 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease",
                   }}
-                  onMouseEnter={() => setHoveredCard(i)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  onMouseEnter={() => {
+                    setHoveredCard(i);
+                    if (prodTimer.current) clearInterval(prodTimer.current);
+                    carouselRef.current?.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredCard(null);
+                    resetProdTimer();
+                  }}
                   onClick={() => { if (!isDragging.current) scrollToCard(i); }}
                 >
                   {/* Image */}
@@ -808,8 +816,15 @@ export default function V4() {
               <button
                 key={p.name}
                 onClick={() => scrollToCard(i)}
-                onMouseEnter={() => setHoveredCard(i)}
-                onMouseLeave={() => setHoveredCard(null)}
+                onMouseEnter={() => {
+                  setHoveredCard(i);
+                  if (prodTimer.current) clearInterval(prodTimer.current);
+                  carouselRef.current?.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
+                }}
+                onMouseLeave={() => {
+                  setHoveredCard(null);
+                  resetProdTimer();
+                }}
                 style={{
                   width: dotActive ? "28px" : "8px",
                   height: "8px",
