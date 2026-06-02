@@ -122,7 +122,7 @@ const STATS = [
 ];
 
 const TIMELINE = [
-  { y: "1952",  t: "창립",        b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 정밀 금속 가공 기술로 가구 피팅 산업의 기반을 다짐." },
+  { y: "1952",  t: "창립",        b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 시작해 고품질 가구용 피팅 제조에 전념." },
   { y: "1990s", t: "CLIP 시스템", b: "CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택." },
   { y: "2000s", t: "BLUMOTION",   b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 선보임." },
   { y: "2010s", t: "LEGRABOX",    b: "슬림 서랍면 12.8mm의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
@@ -167,6 +167,23 @@ function FadeIn({ children, delay = 0, y = 32 }: { children: React.ReactNode; de
       transform:  vis ? "none" : `translateY(${y}px)`,
       transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
     }}>{children}</div>
+  );
+}
+
+/* ── MaskReveal — text clip-path wipe ── */
+function MaskReveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref           = useRef<HTMLDivElement>(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); io.disconnect(); } }, { threshold: 0.05 });
+    io.observe(el); return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`${className} v4-mask-reveal${vis ? " v4-mask-go" : ""}`}
+      style={{ animationDelay: vis ? `${delay}ms` : "0ms" }}>
+      {children}
+    </div>
   );
 }
 
@@ -286,6 +303,9 @@ export default function V4() {
     @keyframes v4-dot-pulse { 0%,100%{box-shadow:0 0 0 0 ${GOLD}55} 50%{box-shadow:0 0 0 6px ${GOLD}00} }
     @keyframes v4-word-in   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
     @keyframes v4-img-in    { from{opacity:0;transform:scale(1.04)} to{opacity:0.34;transform:scale(1)} }
+    @keyframes v4-mask-in   { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+    @keyframes v4-line-grow { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+    @keyframes v4-count-up  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
 
     .v4-font-serif { font-family:'Cormorant Garamond','Georgia',serif; }
     .v4-font-sans  { font-family:'Helvetica Neue',Arial,sans-serif; }
@@ -339,6 +359,14 @@ export default function V4() {
     /* Stats card hover */
     .v4-stat-card { transition:background 0.3s ease; }
     .v4-stat-card:hover { background:rgba(212,175,55,0.07) !important; }
+
+    /* Text mask reveal */
+    .v4-mask-reveal { clip-path:inset(0 100% 0 0); }
+    .v4-mask-reveal.v4-mask-go { animation:v4-mask-in 1s cubic-bezier(0.77,0,0.18,1) both; }
+
+    /* Gold line grow */
+    .v4-line-anim { transform:scaleX(0);transform-origin:left; }
+    .v4-line-anim.v4-line-go { animation:v4-line-grow 0.9s cubic-bezier(0.77,0,0.18,1) both; }
 
     @media (max-width:768px) {
       .v4-prod-panel { flex-direction:column !important; }
@@ -547,7 +575,9 @@ export default function V4() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "80px 2rem 48px" }}>
           <FadeIn>
             <p style={{ color: GOLD, fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", marginBottom: "12px" }}>PRODUCT WORLD</p>
-            <h2 className="v4-font-serif" style={{ color: CREAM, fontSize: "clamp(2.5rem,5vw,4.5rem)", fontWeight: 300, lineHeight: 1 }}>제품 세계</h2>
+            <MaskReveal delay={100}>
+              <h2 className="v4-font-serif" style={{ color: CREAM, fontSize: "clamp(2.5rem,5vw,4.5rem)", fontWeight: 300, lineHeight: 1 }}>제품 세계</h2>
+            </MaskReveal>
           </FadeIn>
         </div>
 
@@ -633,9 +663,11 @@ export default function V4() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "1280px", margin: "0 auto", padding: "100px 2rem" }}>
           <FadeIn>
             <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}77`, marginBottom: "12px" }}>BLUM IN NUMBERS</p>
-            <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 300, color: CREAM, marginBottom: "64px" }}>
-              숫자로 보는 <em style={{ color: GOLD }}>blum</em>
-            </h2>
+            <MaskReveal delay={100}>
+              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 300, color: CREAM, marginBottom: "64px" }}>
+                숫자로 보는 <em style={{ color: GOLD }}>blum</em>
+              </h2>
+            </MaskReveal>
           </FadeIn>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", backgroundColor: LINE }}>
@@ -664,9 +696,11 @@ export default function V4() {
           <FadeIn>
             <div style={{ marginBottom: "80px" }}>
               <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Brand Story</p>
-              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: CREAM }}>
-                1952년부터<br /><em style={{ color: GOLD }}>현재까지</em>
-              </h2>
+              <MaskReveal delay={100}>
+                <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: CREAM }}>
+                  1952년부터<br /><em style={{ color: GOLD }}>현재까지</em>
+                </h2>
+              </MaskReveal>
             </div>
           </FadeIn>
           <div style={{ position: "relative" }}>

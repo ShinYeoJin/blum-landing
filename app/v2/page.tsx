@@ -75,10 +75,10 @@ export default function V2() {
           <div style={{ color: "#faf7f2" }}>
             <p className="v2-hero-badge text-xs tracking-[0.4em] uppercase mb-6 opacity-50">Premium Furniture Fittings · Since 1952</p>
             <h1 className="v2-hero-title" style={{ fontSize: "clamp(2.8rem,7vw,5.5rem)", fontWeight: 300, lineHeight: 1.1, marginBottom: "28px" }}>
-              움직임이<br /><em style={{ color: "#d4a574" }}>삶을</em><br />바꿉니다
+              moving<br /><em style={{ color: "#d4a574" }}>ideas.</em>
             </h1>
             <p className="v2-hero-sub text-sm leading-8 opacity-60 max-w-xs mb-10">
-              blum의 피팅 시스템은 편리함을 높이고 삶의 질을 향상시킵니다. 열고 닫는 매 순간의 품질이 일상을 바꿉니다.
+              편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅. Julius Blum GmbH, since 1952.
             </p>
             <div className="v2-hero-cta flex flex-wrap gap-4 items-center">
               <Link href="/v2/products" className="v2-btn" style={{ backgroundColor: "#c68642", color: "#faf7f2", textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
@@ -125,7 +125,7 @@ export default function V2() {
         <Reveal className="absolute inset-0 flex items-center" style={{ maxWidth: "50%" }}>
           <div className="px-10 md:px-20" style={{ color: "#faf7f2" }}>
             <h2 style={{ fontSize: "clamp(1.5rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.2, marginBottom: "16px" }}>
-              움직임이 만드는 차이
+              moving ideas.
             </h2>
             <p className="text-sm leading-7" style={{ color: "rgba(250,247,242,0.65)", maxWidth: "340px" }}>
               편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅 — Julius Blum GmbH, 1952
@@ -155,10 +155,10 @@ export default function V2() {
                 1952년, Julius Blum은 오스트리아 포어알베르크의 작은 마을에서 금속 부품 공장을 시작했습니다. 그의 목표는 단순했습니다 — 더 잘 작동하는 가구를 만드는 것.
               </p>
               <p className="text-sm leading-8 mb-8" style={{ color: "#6b4c30" }}>
-                70년이 지난 지금, blum은 전 세계 120개국의 주방과 가정에서 조용히 일하고 있습니다. 서랍이 부드럽게 닫힐 때, 상부장이 가볍게 열릴 때 — 그 품질의 차이가 삶의 질의 차이입니다.
+                1952년부터 지금까지, blum은 전 세계 120개국의 주방과 가정에서 조용히 일하고 있습니다. 서랍이 부드럽게 닫힐 때, 상부장이 가볍게 열릴 때 — 그 품질의 차이가 삶의 질의 차이입니다.
               </p>
               <div className="flex flex-wrap gap-2">
-                {["오스트리아 제조", "전 세계 120개국", "70년 기술", "9,850명 임직원"].map((tag) => (
+                {["오스트리아 제조", "전 세계 120개국", "Since 1952", "9,850명 임직원"].map((tag) => (
                   <span key={tag} className="text-xs px-4 py-2 rounded-full" style={{ backgroundColor: "#ede0cf", color: "#6b4c30" }}>{tag}</span>
                 ))}
               </div>
@@ -225,7 +225,7 @@ export default function V2() {
             <p className="text-xs tracking-[0.35em] uppercase mb-4" style={{ color: "#c68642" }}>Runner System</p>
             <h3 className="text-2xl md:text-3xl font-light mb-4 leading-snug" style={{ color: "#2c1e0f" }}>MOVENTO 러너 시스템</h3>
             <p className="text-sm leading-7" style={{ color: "#8a6a4a" }}>
-              감춘 러너 시스템은 까다로운 요구사항을 충족하는 정교한 솔루션입니다. 4방향 조절 가능, 100,000회 개폐 테스트 적용.
+              감춘 러너 시스템은 까다로운 요구사항을 충족하는 정교한 솔루션입니다. 4방향 조절 가능, BLUMOTION 소프트 클로징 내장.
             </p>
           </div>
         </div>
@@ -268,9 +268,9 @@ export default function V2() {
         </Reveal>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px" style={{ backgroundColor: "#ddd0bc" }}>
           {[
-            { emoji: "⚙️", title: "정밀한 기술", body: "러너 시스템 기준 100,000회 이상 개폐 테스트. 첫날과 마지막 날의 품질이 동일한 피팅을 만듭니다." },
-            { emoji: "🏡", title: "공간을 위한 설계", body: "가구 제조업체와 협력해 최적의 피팅 솔루션을 설계합니다. 편리함을 높이고 삶의 질을 향상시킵니다." },
-            { emoji: "🌿", title: "지속 가능한 생산", body: "오스트리아 공장의 친환경 생산 시스템. 품질과 환경 모두를 생각합니다." },
+            { emoji: "⚙️", title: "삶의 질", body: "편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅을 제조합니다." },
+            { emoji: "💡", title: "영감", body: "고객의 질문이 혁신의 원동력입니다. blum은 끊임없이 움직여 더 나은 아이디어를 만들어 갑니다." },
+            { emoji: "🌿", title: "신뢰", body: "사회, 환경, 직원에 대한 기업 책임. 자연 자원을 미래 세대를 위해 보존하는 것이 blum의 핵심 가치입니다." },
           ].map((v, i) => (
             <Reveal key={v.title} delay={i * 120} className="p-10 md:p-12 text-center" style={{ backgroundColor: "#faf7f2" }}>
               <div className="text-4xl mb-5">{v.emoji}</div>

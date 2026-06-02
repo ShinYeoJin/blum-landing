@@ -98,7 +98,7 @@ export default function V3() {
           </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
             <p className="v3-hero-sub" style={{ fontSize: "14px", lineHeight: "2", color: "rgba(240,240,240,0.4)", maxWidth: "380px" }}>
-              움직임이 달라지면 삶이 달라집니다. AVENTOS, LEGRABOX, CLIP top — blum의 기술이 가구를 다시 정의합니다.
+              편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅. AVENTOS, LEGRABOX, CLIP top — blum의 기술이 가구를 완성합니다.
             </p>
             <div className="v3-hero-cta flex flex-wrap gap-3 md:justify-end">
               <Link href="/v3/products" className="v3-btn" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "14px 28px", display: "inline-block" }}>
@@ -116,7 +116,7 @@ export default function V3() {
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 divide-x divide-white/10">
             {[
               { num: "120+", label: "국가 판매" },
-              { num: "100,000회", label: "내구성 테스트" },
+              { num: "9,850명", label: "전 세계 임직원" },
               { num: "1952", label: "브랜드 창립" },
             ].map((s) => (
               <div key={s.num} className="py-5 px-4 text-center md:text-left">
@@ -138,7 +138,7 @@ export default function V3() {
                 <span style={{ fontSize: "9px", letterSpacing: "0.4em", color: "#c8102e" }}>ABOUT BLUM</span>
               </div>
               <h2 style={{ fontSize: "clamp(2rem,5vw,4rem)", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "22px" }}>
-                가구의<br />움직임을<br /><span style={{ color: "#c8102e" }}>재발명.</span>
+                가구의<br />움직임을<br /><span style={{ color: "#c8102e" }}>완성합니다.</span>
               </h2>
               <p style={{ fontSize: "13px", lineHeight: "2", color: "rgba(240,240,240,0.45)", maxWidth: "380px" }}>
                 1952년 오스트리아에서 시작된 blum은 전 세계 가구 피팅 산업을 이끌어왔습니다. 2,441백만 유로 매출, 9,850명의 임직원, 120개국 판매망 — 그 중심에 품질과 혁신이 있습니다.
@@ -238,7 +238,7 @@ export default function V3() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
               {[
                 { title: "FUNCTIONAL BEAUTY", body: "기능이 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다." },
-                { title: "100,000 CYCLES", body: "러너 시스템은 100,000회 이상의 개폐 테스트를 통과합니다. 첫날과 마지막 날의 품질이 같습니다." },
+                { title: "GLOBAL LEADERSHIP", body: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 신뢰와 혁신을 이어가고 있습니다." },
                 { title: "INVISIBLE PRECISION", body: "최고의 디자인은 보이지 않습니다. blum은 가구 뒤에서 조용히 완벽함을 만듭니다." },
               ].map((v, i) => (
                 <BoldReveal key={v.title} delay={i * 100}>

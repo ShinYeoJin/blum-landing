@@ -94,7 +94,7 @@ const PRODUCTS = [
 ];
 
 const VALUES = [
-  { num: "01", title: "삶의 질", body: "한결 더 쉽게 경험하는 편리함. blum은 편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅을 제조합니다." },
+  { num: "01", title: "삶의 질", body: "편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅을 제조합니다." },
   { num: "02", title: "영감", body: "고객의 질문이 혁신의 원동력입니다. blum은 끊임없이 움직여 더 나은 아이디어를 만들어 갑니다." },
   { num: "03", title: "신뢰", body: "사회, 환경, 직원에 대한 기업 책임. 자연 자원을 미래 세대를 위해 보존하는 것이 blum의 핵심 가치입니다." },
 ];
@@ -193,8 +193,8 @@ export default function V1() {
 
           <div className="v1-hero-sub flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
             <p className="text-white/50 text-sm leading-8 max-w-xs" style={{ fontWeight: 300 }}>
-              움직임이 달라지면 삶이 달라집니다.<br />
-              blum이 만드는 정밀한 피팅의 세계.
+              편리함을 높이고 삶의 질을 향상시키는<br />
+              고품질 가구용 피팅 — Julius Blum GmbH
             </p>
             <div className="flex flex-wrap gap-5 items-center">
               <Link
@@ -505,7 +505,7 @@ export default function V1() {
             <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
             <div className="w-10 h-px bg-zinc-200 mb-8" />
             <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
-              움직임, 편리함, 그리고 신뢰. blum의 모든 제품은 세 가지 핵심 가치를 바탕으로 설계되고 제조됩니다.
+              삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
             </p>
           </Reveal>
 

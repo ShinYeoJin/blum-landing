@@ -6,18 +6,18 @@ const VERSIONS = [
     num: "V1",
     title: "미니멀 모던",
     subtitle: "Minimal Modern",
-    desc: "극도의 여백 · 좌우 2단 그리드 · 흑백 계열",
-    tag: "클래식 미니멀",
+    desc: "좌우 2단 그리드 교차 배치 · 극도의 여백 · 흑백 + 세리프 · 아코디언 철학 섹션",
+    tag: "2-Column Grid",
     bgColor: "#18181b",
     borderColor: "#3f3f46",
     previewBg: "#111111",
     previewAccent: "#ffffff",
-    bars: [
-      { w: "100%", h: 60, bg: "#222" },
-      { w: "70%", h: 14, bg: "#444", mt: 16 },
-      { w: "50%", h: 10, bg: "#333", mt: 8 },
-      { w: "100%", h: 1, bg: "#444", mt: 20 },
-      { w: "100%", h: 80, bg: "#1a1a1a", mt: 12 },
+    layout: [
+      { type: "full", h: 40, bg: "#222", label: "Hero Full-screen" },
+      { type: "two-col", h: 56, left: "#1a1a1a", right: "#333", label: "2-Col Grid" },
+      { type: "two-col", h: 56, left: "#2a2a2a", right: "#1a1a1a", label: "2-Col Swap" },
+      { type: "full", h: 20, bg: "#181818", label: "Divider Image" },
+      { type: "two-col", h: 40, left: "#222", right: "#1c1c1c", label: "Philosophy" },
     ],
   },
   {
@@ -25,18 +25,18 @@ const VERSIONS = [
     num: "V2",
     title: "따뜻한 자연",
     subtitle: "Warm Natural",
-    desc: "카드형 레이아웃 · 따뜻한 우드톤 · 자연스러운 텍스처",
-    tag: "웜톤 내추럴",
+    desc: "3열 카드 그리드 · 전폭 교차 이미지 행 · 따뜻한 우드톤 · 스토리 좌우 분할",
+    tag: "Card + Full Row",
     bgColor: "#3b2a1a",
     borderColor: "#6b4c2a",
     previewBg: "#faf7f2",
     previewAccent: "#c68642",
-    bars: [
-      { w: "100%", h: 50, bg: "#f0ebe3" },
-      { w: "60%", h: 12, bg: "#d4a574", mt: 14 },
-      { w: "40%", h: 9, bg: "#c68642", mt: 6 },
-      { w: "100%", h: 1, bg: "#e8ddd0", mt: 18 },
-      { w: "100%", h: 75, bg: "#ede8e0", mt: 10 },
+    layout: [
+      { type: "full", h: 40, bg: "#e8d8c4", label: "Hero" },
+      { type: "three-col", h: 52, cols: ["#ddd0bc", "#c8b8a0", "#ddd0bc"], label: "3-Col Cards" },
+      { type: "two-col", h: 44, left: "#f0ebe3", right: "#c8b098", label: "Full-Row Story" },
+      { type: "two-col", h: 44, left: "#c8b098", right: "#f5f0e8", label: "Full-Row Swap" },
+      { type: "three-col", h: 28, cols: ["#e8ddd0", "#e0d8c8", "#e8ddd0"], label: "Values" },
     ],
   },
   {
@@ -44,18 +44,18 @@ const VERSIONS = [
     num: "V3",
     title: "트렌디 볼드",
     subtitle: "Trendy Bold",
-    desc: "비대칭 오버레이 · 강렬한 타이포 · 레드 포인트",
-    tag: "볼드 트렌디",
+    desc: "전폭 배경 + 텍스트 오버레이 · 비대칭 12열 그리드 · 강렬한 레드 포인트",
+    tag: "Asymmetric Overlay",
     bgColor: "#0a0a0a",
     borderColor: "#c8102e",
     previewBg: "#0a0a0a",
     previewAccent: "#c8102e",
-    bars: [
-      { w: "100%", h: 55, bg: "#111" },
-      { w: "80%", h: 16, bg: "#c8102e", mt: 14 },
-      { w: "55%", h: 10, bg: "#444", mt: 8 },
-      { w: "30%", h: 3, bg: "#c8102e", mt: 12 },
-      { w: "100%", h: 70, bg: "#0d0d0d", mt: 10 },
+    layout: [
+      { type: "full", h: 44, bg: "#111", label: "Full-screen Hero Overlay" },
+      { type: "asymm", h: 52, left: "#1a1a1a", right: "#0d0d0d", lw: "38%", label: "Asymm Brand" },
+      { type: "four-col", h: 40, cols: ["#0f0f0f", "#131313", "#0f0f0f", "#131313"], label: "4-Col Products" },
+      { type: "full", h: 24, bg: "#c8102e", label: "Manifesto Red" },
+      { type: "full", h: 18, bg: "#0a0a0a", label: "CTA" },
     ],
   },
   {
@@ -63,18 +63,18 @@ const VERSIONS = [
     num: "V4",
     title: "시네마틱",
     subtitle: "Cinematic",
-    desc: "풀스크린 핀 섹션 · 수평 스크롤 · 딥네이비 + 골드",
-    tag: "시네마틱 럭셔리",
+    desc: "풀스크린 슬라이드쇼 · 클릭 전환 제품 뷰어 · 수직 타임라인 · 네이비 + 골드",
+    tag: "Fullscreen Pinned",
     bgColor: "#0D1117",
     borderColor: "#D4AF37",
     previewBg: "#0D1117",
     previewAccent: "#D4AF37",
-    bars: [
-      { w: "100%", h: 55, bg: "#0a0d12" },
-      { w: "65%", h: 14, bg: "#D4AF37", mt: 14 },
-      { w: "45%", h: 9, bg: "#8a7030", mt: 8 },
-      { w: "20%", h: 2, bg: "#D4AF37", mt: 12 },
-      { w: "100%", h: 72, bg: "#080b0f", mt: 10 },
+    layout: [
+      { type: "full", h: 44, bg: "#090d13", label: "Full-screen Hero" },
+      { type: "full", h: 48, bg: "#0a0e14", label: "Slideshow Brand Story" },
+      { type: "full", h: 48, bg: "#080c11", label: "Fullscreen Product Viewer" },
+      { type: "four-col", h: 28, cols: ["#070b10", "#080c12", "#070b10", "#080c12"], label: "Stats Grid" },
+      { type: "timeline", h: 36, bg: "#0d1117", label: "Vertical Timeline" },
     ],
   },
 ];
@@ -201,22 +201,53 @@ export default function Home() {
                     }}>
                       PREVIEW · {v.num}
                     </div>
-                    {/* 시뮬레이션 레이아웃 바 */}
-                    {v.bars.map((bar, i) => (
-                      <div key={i} style={{
-                        width: bar.w, height: bar.h,
-                        background: bar.bg,
-                        marginTop: bar.mt ?? 0,
-                        borderRadius: 2,
-                      }} />
-                    ))}
-                    {/* 포인트 컬러 닷 */}
-                    <div style={{
-                      display: "flex", gap: 6, marginTop: 16,
-                    }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: v.previewAccent, opacity: 0.8 }} />
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: v.previewAccent, opacity: 0.4 }} />
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: v.previewAccent, opacity: 0.2 }} />
+                    {/* 레이아웃 구조 미리보기 */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {v.layout.map((row: { type: string; h: number; bg?: string; left?: string; right?: string; lw?: string; cols?: string[]; label?: string }, i: number) => (
+                        <div key={i} style={{ position: "relative" }}>
+                          {row.type === "full" && (
+                            <div style={{ width: "100%", height: row.h, background: row.bg, borderRadius: 2 }} />
+                          )}
+                          {row.type === "two-col" && (
+                            <div style={{ display: "flex", height: row.h, gap: 2 }}>
+                              <div style={{ width: "45%", background: row.left, borderRadius: "2px 0 0 2px" }} />
+                              <div style={{ flex: 1, background: row.right, borderRadius: "0 2px 2px 0" }} />
+                            </div>
+                          )}
+                          {row.type === "asymm" && (
+                            <div style={{ display: "flex", height: row.h, gap: 2 }}>
+                              <div style={{ width: row.lw ?? "38%", background: row.left, borderRadius: "2px 0 0 2px" }} />
+                              <div style={{ flex: 1, background: row.right, borderRadius: "0 2px 2px 0" }} />
+                            </div>
+                          )}
+                          {row.type === "three-col" && (
+                            <div style={{ display: "flex", height: row.h, gap: 2 }}>
+                              {(row.cols ?? []).map((c: string, ci: number) => (
+                                <div key={ci} style={{ flex: 1, background: c, borderRadius: ci === 0 ? "2px 0 0 2px" : ci === 2 ? "0 2px 2px 0" : 0 }} />
+                              ))}
+                            </div>
+                          )}
+                          {row.type === "four-col" && (
+                            <div style={{ display: "flex", height: row.h, gap: 2 }}>
+                              {(row.cols ?? []).map((c: string, ci: number) => (
+                                <div key={ci} style={{ flex: 1, background: c, borderRadius: ci === 0 ? "2px 0 0 2px" : ci === 3 ? "0 2px 2px 0" : 0 }} />
+                              ))}
+                            </div>
+                          )}
+                          {row.type === "timeline" && (
+                            <div style={{ display: "flex", height: row.h, alignItems: "center", justifyContent: "center", background: row.bg, borderRadius: 2, position: "relative" }}>
+                              <div style={{ width: 1, height: "100%", background: v.previewAccent, opacity: 0.2, position: "absolute", left: "50%" }} />
+                              {[20, 40, 65, 85].map((pct, di) => (
+                                <div key={di} style={{ position: "absolute", left: `calc(50% - 3px)`, top: `${25 + di * 18}%`, width: 6, height: 6, borderRadius: "50%", background: v.previewAccent, opacity: 0.4 }} />
+                              ))}
+                            </div>
+                          )}
+                          {/* row label */}
+                          <div style={{ position: "absolute", top: "50%", left: 4, transform: "translateY(-50%)", fontSize: 7, color: v.previewAccent, opacity: 0.35, letterSpacing: "0.15em", pointerEvents: "none", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                            {row.label}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
