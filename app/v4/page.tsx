@@ -121,12 +121,40 @@ const STATS = [
   { n: 120,  s: "+",   l: "수출 대상국",   sub: "34개 자회사·대리점" },
 ];
 
-const TIMELINE = [
-  { y: "1952",      t: "창립",        b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 시작해 고품질 가구용 피팅 제조에 전념." },
-  { y: "CLIP",      t: "경첩 시스템", b: "CLIP 경첩 시스템. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택된 혁신적 힌지." },
-  { y: "BLUMOTION", t: "소프트 클로징", b: "통합 댐핑 기술 BLUMOTION. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험." },
-  { y: "LEGRABOX",  t: "박스 시스템", b: "슬림 서랍면 12.8mm의 LEGRABOX. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
-  { y: "현재",      t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 34개 자회사·대리점. 3대째 가족 경영." },
+/* ── Core Values — blum 공식 사이트 확인 문구만 사용 ── */
+const VALUES = [
+  {
+    num:  "01",
+    en:   "Convenience",
+    ko:   "편리함",
+    body: "편리함을 높이고 삶의 질을 향상시키는 고품질 가구용 피팅을 제조합니다.",
+    img:  "https://www.blum.com/images/560/258/4215299/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg",
+    imgSide: "right" as const,
+  },
+  {
+    num:  "02",
+    en:   "Innovation",
+    ko:   "혁신",
+    body: "가구의 열고 닫음을 매력적인 경험으로 만들어 드립니다. blum의 moving ideas.",
+    img:  "https://www.blum.com/images/560/258/4207125/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1659_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg",
+    imgSide: "left" as const,
+  },
+  {
+    num:  "03",
+    en:   "Trust",
+    ko:   "신뢰",
+    body: "blum의 혁신적인 제품은 가구 수명이 오래 지속될 수 있도록 설계됩니다. 좋은 서비스는 좋은 상담으로 시작합니다.",
+    img:  "https://www.blum.com/images/560/258/4188512/corporate/media/bilder/unternehmen/IMG1146_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg",
+    imgSide: "right" as const,
+  },
+  {
+    num:  "04",
+    en:   "Sustainability",
+    ko:   "지속가능성",
+    body: "사회, 환경, 직원에 대한 기업 책임. 자연 자원을 미래 세대를 위해 보존하는 것이 blum의 핵심 가치입니다.",
+    img:  "https://www.blum.com/images/268/202/4214770/corporate/media/bilder/unternehmen/nachhaltigkeit/neu2025/Blum_umweltfreundliche_Transporte_4:3.jpg",
+    imgSide: "left" as const,
+  },
 ];
 
 /* ── GCounter ── */
@@ -234,9 +262,9 @@ export default function V4() {
   /* ── FIX 2: Products – pure React state, click-driven ── */
   const [prodIdx,     setProdIdx]     = useState(0);
 
-  /* Timeline */
-  const tlRefs                       = useRef<Array<HTMLDivElement | null>>([]);
-  const [tlVisible, setTlVisible]    = useState<boolean[]>(TIMELINE.map(() => false));
+  /* Values section — each panel visible state */
+  const valRefs                      = useRef<Array<HTMLDivElement | null>>([]);
+  const [valVisible, setValVisible]  = useState<boolean[]>(VALUES.map(() => false));
 
   /* Loading timers */
   useEffect(() => {
@@ -277,14 +305,14 @@ export default function V4() {
     resetSlideTimer();
   };
 
-  /* Timeline observer */
+  /* Values section observer */
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
-    tlRefs.current.forEach((el, i) => {
+    valRefs.current.forEach((el, i) => {
       if (!el) return;
       const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) setTlVisible(p => { const n = [...p]; n[i] = true; return n; });
-      }, { threshold: 0 });
+        if (e.isIntersecting) setValVisible(p => { const n = [...p]; n[i] = true; return n; });
+      }, { threshold: 0.12 });
       io.observe(el); observers.push(io);
     });
     return () => observers.forEach(io => io.disconnect());
@@ -307,9 +335,13 @@ export default function V4() {
     @keyframes v4-dot-pulse { 0%,100%{box-shadow:0 0 0 0 ${GOLD}55} 50%{box-shadow:0 0 0 6px ${GOLD}00} }
     @keyframes v4-word-in   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
     @keyframes v4-img-in    { from{opacity:0;transform:scale(1.04)} to{opacity:0.34;transform:scale(1)} }
-    @keyframes v4-mask-in   { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
-    @keyframes v4-line-grow { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
-    @keyframes v4-count-up  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+    @keyframes v4-mask-in    { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+    @keyframes v4-line-grow  { from{transform:scaleX(0);transform-origin:left} to{transform:scaleX(1);transform-origin:left} }
+    @keyframes v4-count-up   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+    @keyframes v4-slide-left { from{opacity:0;transform:translateX(-56px)} to{opacity:1;transform:none} }
+    @keyframes v4-slide-right{ from{opacity:0;transform:translateX(56px)}  to{opacity:1;transform:none} }
+    @keyframes v4-text-line  { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:none} }
+    @keyframes v4-num-in     { from{opacity:0;transform:translateY(32px) scaleY(1.1)} to{opacity:1;transform:none} }
 
     .v4-font-serif { font-family:'Cormorant Garamond','Georgia',serif; }
     .v4-font-sans  { font-family:'Helvetica Neue',Arial,sans-serif; }
@@ -364,6 +396,14 @@ export default function V4() {
     .v4-stat-card { transition:background 0.3s ease; }
     .v4-stat-card:hover { background:rgba(212,175,55,0.07) !important; }
 
+    /* Values panel */
+    .v4-val-panel { overflow:hidden; }
+    .v4-val-img-wrap { overflow:hidden; transition:transform 0.6s ease; }
+    .v4-val-panel:hover .v4-val-img { transform:scale(1.06) !important; }
+    .v4-val-img { transition:transform 0.9s cubic-bezier(0.25,1,0.5,1); }
+    .v4-val-text-block { transition:transform 0.5s cubic-bezier(0.25,1,0.5,1); }
+    .v4-val-panel:hover .v4-val-text-block { transform:translateY(-6px); }
+
     /* Text mask reveal */
     .v4-mask-reveal { clip-path:inset(0 100% 0 0); }
     .v4-mask-reveal.v4-mask-go { animation:v4-mask-in 1s cubic-bezier(0.77,0,0.18,1) both; }
@@ -415,7 +455,7 @@ export default function V4() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/v4" className="v4-font-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
           <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
-            {([["제품", "#products"], ["타임라인", "#timeline"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            {([["제품", "#products"], ["가치", "#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
               <Link key={label} href={href} className="v4-nav-link" style={{ color: GRAY, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label}</Link>
             ))}
           </div>
@@ -463,7 +503,7 @@ export default function V4() {
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             {[
               { href: "#products", label: "제품 살펴보기 →", filled: true,  delay: "680ms" },
-              { href: "#timeline", label: "브랜드 스토리",   filled: false, delay: "800ms" },
+              { href: "#values", label: "핵심 가치",   filled: false, delay: "800ms" },
             ].map(({ href, label, filled, delay }) => (
               <Link key={label} href={href} className="v4-btn" style={{
                 color: filled ? NAVY : CREAM,
@@ -694,54 +734,129 @@ export default function V4() {
       {/* ══ PHILOSOPHY ══════════════════════════════════════════════════ */}
       <WipeBanner />
 
-      {/* ══ TIMELINE ════════════════════════════════════════════════════ */}
-      <section id="timeline" style={{ padding: "120px 0", backgroundColor: NAVY }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+      {/* ══ CORE VALUES ═════════════════════════════════════════════════ */}
+      <section id="values" style={{ backgroundColor: NAVY }}>
+        {/* 섹션 헤더 */}
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "100px 2rem 72px" }}>
           <FadeIn>
-            <div style={{ marginBottom: "80px" }}>
-              <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Brand Story</p>
-              <MaskReveal delay={100}>
-                <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: CREAM }}>
-                  1952년부터<br /><em style={{ color: GOLD }}>현재까지</em>
-                </h2>
-              </MaskReveal>
-            </div>
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "14px" }}>Core Values</p>
+            <MaskReveal delay={80}>
+              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", fontWeight: 300, color: CREAM, lineHeight: 1.05 }}>
+                blum이 추구하는<br /><em style={{ color: GOLD }}>네 가지 가치</em>
+              </h2>
+            </MaskReveal>
           </FadeIn>
-          <div style={{ position: "relative" }}>
-            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: LINE, transform: "translateX(-50%)" }} />
-            {TIMELINE.map((item, i) => (
-              <div key={item.y} ref={(el) => { tlRefs.current[i] = el; }}
-                style={{
-                  display: "grid", gridTemplateColumns: "1fr 48px 1fr", marginBottom: "64px", alignItems: "center",
-                  opacity:    tlVisible[i] ? 1 : 0.1,
-                  transform:  tlVisible[i] ? "none" : i % 2 === 0 ? "translateX(-40px)" : "translateX(40px)",
-                  transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms`,
-                }}>
-                {i % 2 === 0 ? (
-                  <>
-                    <div style={{ textAlign: "right", paddingRight: "40px" }}>
-                      <span className="v4-font-serif" style={{ fontSize: /^\d/.test(item.y) ? "clamp(2.5rem,5vw,4rem)" : "clamp(1.1rem,2.5vw,1.8rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}55`, display: "block", lineHeight: 1, marginBottom: "8px", letterSpacing: /^\d/.test(item.y) ? "-0.02em" : "0.12em", textTransform: /^\d/.test(item.y) ? "none" : "uppercase" }}>{item.y}</span>
-                      <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
-                      <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85 }}>{item.b}</p>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "center" }}><div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${GOLD}55`, border: `1px solid ${GOLD}66` }} /></div>
-                    <div />
-                  </>
-                ) : (
-                  <>
-                    <div />
-                    <div style={{ display: "flex", justifyContent: "center" }}><div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${GOLD}55`, border: `1px solid ${GOLD}66` }} /></div>
-                    <div style={{ paddingLeft: "40px" }}>
-                      <span className="v4-font-serif" style={{ fontSize: /^\d/.test(item.y) ? "clamp(2.5rem,5vw,4rem)" : "clamp(1.1rem,2.5vw,1.8rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}55`, display: "block", lineHeight: 1, marginBottom: "8px", letterSpacing: /^\d/.test(item.y) ? "-0.02em" : "0.12em", textTransform: /^\d/.test(item.y) ? "none" : "uppercase" }}>{item.y}</span>
-                      <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
-                      <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85 }}>{item.b}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
+
+        {/* 가치 패널 4개 — 이미지 좌우 교차 */}
+        {VALUES.map((v, i) => {
+          const visible   = valVisible[i];
+          const imgLeft   = v.imgSide === "left";
+          /* 패럴랙스: 짝수는 살짝 위로, 홀수는 살짝 아래로 */
+          const parallax  = (scrollY - 200 * (i + 1)) * 0.04;
+
+          return (
+            <div
+              key={v.num}
+              ref={(el) => { valRefs.current[i] = el; }}
+              className="v4-val-panel"
+              style={{
+                display: "flex",
+                flexDirection: imgLeft ? "row" : "row-reverse",
+                minHeight: "72vh",
+                borderTop: `1px solid ${LINE}`,
+              }}
+            >
+              {/* 이미지 절반 */}
+              <div className="v4-val-img-wrap" style={{
+                flex: "0 0 52%", position: "relative", overflow: "hidden",
+                opacity:    visible ? 1 : 0,
+                transform:  visible ? "none" : imgLeft ? "translateX(-56px)" : "translateX(56px)",
+                transition: "opacity 1s cubic-bezier(0.16,1,0.3,1) 100ms, transform 1s cubic-bezier(0.16,1,0.3,1) 100ms",
+              }}>
+                <img
+                  src={v.img}
+                  alt={v.ko}
+                  className="v4-val-img"
+                  style={{
+                    width: "100%", height: "100%", objectFit: "cover", display: "block",
+                    transform: `scale(1.04) translateY(${parallax}px)`,
+                  }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                {/* 텍스트 쪽 그라디언트 */}
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: imgLeft
+                    ? `linear-gradient(to right, transparent 65%, ${NAVY} 100%)`
+                    : `linear-gradient(to left,  transparent 65%, ${NAVY} 100%)`,
+                }} />
+              </div>
+
+              {/* 텍스트 절반 */}
+              <div style={{
+                flex: 1, display: "flex", alignItems: "center",
+                padding: "60px clamp(28px,5%,72px)",
+                backgroundColor: NAVY,
+              }}>
+                <div className="v4-val-text-block">
+                  {/* 번호 */}
+                  <div
+                    className="v4-font-serif"
+                    style={{
+                      fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
+                      color: `${GOLD}18`, lineHeight: 1, marginBottom: "12px",
+                      userSelect: "none",
+                      opacity:    visible ? 1 : 0,
+                      transform:  visible ? "none" : "translateY(32px) scaleY(1.1)",
+                      transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1) 80ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) 80ms",
+                    }}
+                  >{v.num}</div>
+
+                  {/* 영문 라벨 */}
+                  <p style={{
+                    fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase",
+                    color: `${GOLD}88`, marginBottom: "14px",
+                    opacity:    visible ? 1 : 0,
+                    transform:  visible ? "none" : "translateY(18px)",
+                    transition: "opacity 0.8s ease 200ms, transform 0.8s ease 200ms",
+                  }}>{v.en}</p>
+
+                  {/* 한국어 제목 — 마스크 언베일 */}
+                  <div style={{
+                    clipPath:   visible ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
+                    transition: "clip-path 0.85s cubic-bezier(0.77,0,0.18,1) 280ms",
+                  }}>
+                    <h3 className="v4-font-serif" style={{
+                      fontSize: "clamp(2.2rem,4.5vw,3.8rem)", fontWeight: 300,
+                      color: CREAM, lineHeight: 1.05, marginBottom: "24px",
+                    }}>{v.ko}</h3>
+                  </div>
+
+                  {/* 구분선 */}
+                  <div style={{
+                    width: "40px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "22px",
+                    transform:  visible ? "scaleX(1)" : "scaleX(0)",
+                    transformOrigin: "left",
+                    transition: "transform 0.7s cubic-bezier(0.77,0,0.18,1) 480ms",
+                  }} />
+
+                  {/* 본문 텍스트 — 줄별 순차 등장 */}
+                  {v.body.split(". ").map((sentence, si) => (
+                    <p key={si} style={{
+                      fontSize: "15px", color: GRAY, lineHeight: 1.95, marginBottom: "4px",
+                      opacity:    visible ? 1 : 0,
+                      transform:  visible ? "none" : "translateY(16px)",
+                      transition: `opacity 0.8s ease ${560 + si * 120}ms, transform 0.8s ease ${560 + si * 120}ms`,
+                    }}>
+                      {sentence}{si < v.body.split(". ").length - 1 ? "." : ""}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       {/* ══ FOOTER ══════════════════════════════════════════════════════ */}
