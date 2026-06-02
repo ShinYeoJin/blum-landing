@@ -259,8 +259,14 @@ export default function V4() {
   const [slideIdx,    setSlideIdx]    = useState(0);
   const slideTimer                    = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /* ── FIX 2: Products – pure React state, click-driven ── */
+  /* ── Products – drag carousel ── */
   const [prodIdx,     setProdIdx]     = useState(0);
+  const carouselRef                   = useRef<HTMLDivElement>(null);
+  const dragStart                     = useRef<{ x: number; scrollLeft: number } | null>(null);
+  const isDragging                    = useRef(false);
+  const dragVelocity                  = useRef(0);
+  const lastDragX                     = useRef(0);
+  const dragRaf                       = useRef<number | null>(null);
 
   /* Values section — each panel visible state */
   const valRefs                      = useRef<Array<HTMLDivElement | null>>([]);
@@ -382,15 +388,19 @@ export default function V4() {
     /* Dot */
     .v4-dot-active { animation:v4-dot-pulse 2s ease infinite; }
 
-    /* Product slide */
-    .v4-prod-panel { position:absolute;inset:0;display:flex;transition:opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-    .v4-prod-panel.active { opacity:1;transform:none; }
-    .v4-prod-panel.above  { opacity:0;transform:translateY(-30px); pointer-events:none; }
-    .v4-prod-panel.below  { opacity:0;transform:translateY(30px);  pointer-events:none; }
-
-    /* Product bar */
-    .v4-prod-bar { cursor:pointer;transition:all 0.3s ease; }
-    .v4-prod-bar:hover { background:${GOLD}66 !important; }
+    /* Drag carousel */
+    .v4-carousel-track {
+      display:flex; cursor:grab; user-select:none;
+      -webkit-user-select:none; scrollbar-width:none;
+    }
+    .v4-carousel-track::-webkit-scrollbar { display:none; }
+    .v4-carousel-track.dragging { cursor:grabbing; }
+    .v4-carousel-card {
+      flex-shrink:0; transition:transform 0.4s cubic-bezier(0.25,1,0.5,1),
+        box-shadow 0.4s ease, opacity 0.4s ease;
+    }
+    .v4-carousel-card:hover { transform:translateY(-10px) !important; }
+    .v4-carousel-card.active-card { box-shadow:0 32px 80px rgba(212,175,55,0.18); }
 
     /* Stats card hover */
     .v4-stat-card { transition:background 0.3s ease; }
@@ -611,10 +621,9 @@ export default function V4() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
-          FIX 2 & 3: PRODUCT WORLD — click-based, no scroll wrapper
-          No 500vh sticky = no black gap after section ends
+          PRODUCT WORLD — drag-to-scroll carousel
           ══════════════════════════════════════════════════════════════════ */}
-      <section id="products" style={{ backgroundColor: "#0A0E14" }}>
+      <section id="products" style={{ backgroundColor: "#0A0E14", paddingBottom: "80px" }}>
         {/* Section header */}
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "80px 2rem 48px" }}>
           <FadeIn>
@@ -625,71 +634,148 @@ export default function V4() {
           </FadeIn>
         </div>
 
-        {/* Full-height product viewer (no sticky, no scroll trap) */}
-        <div style={{ position: "relative", height: "85vh", minHeight: "600px", overflow: "hidden" }}>
-          {PRODUCTS.map((p, i) => {
-            const state = prodIdx === i ? "active" : prodIdx > i ? "above" : "below";
-            return (
-              <div key={p.name} className={`v4-prod-panel ${state}`}>
-                {/* Left — text */}
-                <div className="v4-prod-left" style={{
-                  width: "45%", flexShrink: 0, display: "flex", flexDirection: "column",
-                  justifyContent: "center", padding: "0 5% 0 8%", backgroundColor: "#0A0E14", zIndex: 2,
-                }}>
-                  <p style={{ fontSize: "9px", letterSpacing: "0.45em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>
-                    {p.num} — {p.cat}
-                  </p>
-                  <h3 className="v4-font-serif" style={{ fontSize: "clamp(2.8rem,5.5vw,5rem)", fontWeight: 300, color: CREAM, lineHeight: 0.92, marginBottom: "24px", letterSpacing: "-0.02em" }}>
-                    {p.name}
-                  </h3>
-                  <div style={{ width: "40px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "22px" }} />
-                  <p style={{ color: GRAY, fontSize: "14px", lineHeight: 1.95, maxWidth: "340px", marginBottom: "32px" }}>{p.desc}</p>
-                  <div style={{ width: "96px", height: "64px", overflow: "hidden", border: `1px solid ${LINE}` }}>
-                    <img src={p.img2} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.65, display: "block" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  </div>
-                </div>
-
-                {/* Right — image */}
-                <div className="v4-prod-right" style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        {/* Drag carousel */}
+        <div style={{ position: "relative", overflow: "hidden" }}>
+          {/* Track */}
+          <div
+            ref={carouselRef}
+            className="v4-carousel-track"
+            style={{
+              overflowX: "scroll",
+              padding: "0 calc(50vw - 280px) 48px",
+              gap: "24px",
+            }}
+            onMouseDown={(e) => {
+              const el = carouselRef.current; if (!el) return;
+              isDragging.current = false;
+              dragStart.current  = { x: e.pageX, scrollLeft: el.scrollLeft };
+              lastDragX.current  = e.pageX;
+              dragVelocity.current = 0;
+              if (dragRaf.current) cancelAnimationFrame(dragRaf.current);
+              el.classList.add("dragging");
+            }}
+            onMouseMove={(e) => {
+              if (!dragStart.current) return;
+              const el = carouselRef.current; if (!el) return;
+              const dx = e.pageX - dragStart.current.x;
+              if (Math.abs(dx) > 4) isDragging.current = true;
+              dragVelocity.current = e.pageX - lastDragX.current;
+              lastDragX.current    = e.pageX;
+              el.scrollLeft = dragStart.current.scrollLeft - dx;
+            }}
+            onMouseUp={() => {
+              const el = carouselRef.current; if (!el) return;
+              el.classList.remove("dragging");
+              if (!isDragging.current) { dragStart.current = null; return; }
+              dragStart.current = null;
+              /* momentum */
+              let v = dragVelocity.current * 1.8;
+              const momentum = () => {
+                if (!carouselRef.current) return;
+                carouselRef.current.scrollLeft -= v;
+                v *= 0.88;
+                if (Math.abs(v) > 0.5) dragRaf.current = requestAnimationFrame(momentum);
+                else {
+                  /* snap to nearest card */
+                  const cardW = 560 + 24;
+                  const idx   = Math.round(carouselRef.current.scrollLeft / cardW);
+                  const clamped = Math.max(0, Math.min(PRODUCTS.length - 1, idx));
+                  setProdIdx(clamped);
+                  carouselRef.current.scrollTo({ left: clamped * cardW, behavior: "smooth" });
+                }
+              };
+              dragRaf.current = requestAnimationFrame(momentum);
+            }}
+            onMouseLeave={() => {
+              if (!dragStart.current) return;
+              const el = carouselRef.current; if (!el) return;
+              el.classList.remove("dragging");
+              dragStart.current = null;
+            }}
+          >
+            {PRODUCTS.map((p, i) => (
+              <div
+                key={p.name}
+                className={`v4-carousel-card${prodIdx === i ? " active-card" : ""}`}
+                style={{
+                  width: "560px",
+                  background: "#0D1117",
+                  border: `1px solid ${prodIdx === i ? `${GOLD}55` : LINE}`,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                  opacity: prodIdx === i ? 1 : 0.55,
+                  transform: prodIdx === i ? "translateY(0)" : "translateY(16px)",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (isDragging.current) return;
+                  setProdIdx(i);
+                  const el = carouselRef.current; if (!el) return;
+                  el.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
+                }}
+              >
+                {/* Image */}
+                <div style={{ position: "relative", height: "340px", overflow: "hidden" }}>
+                  {/* Serial number */}
+                  <div style={{
+                    position: "absolute", top: "20px", left: "22px", zIndex: 2,
+                    fontSize: "10px", letterSpacing: "0.45em", textTransform: "uppercase",
+                    color: GOLD, fontFamily: "'Helvetica Neue', Arial, sans-serif",
+                  }}>N°{p.num}</div>
                   <img src={p.img} alt={p.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.88, display: "block",
-                      transition: "transform 1.2s cubic-bezier(0.25,1,0.5,1)",
-                      transform: prodIdx === i ? "scale(1.03)" : "scale(1)",
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
+                      transition: "transform 0.9s cubic-bezier(0.25,1,0.5,1)",
+                      transform: prodIdx === i ? "scale(1.04)" : "scale(1)",
                     }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, #0A0E14 0%, transparent 15%)" }} />
+                  <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 0%, transparent 55%)` }} />
+                </div>
+
+                {/* Text */}
+                <div style={{ padding: "28px 28px 32px" }}>
+                  <p style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "10px" }}>{p.cat}</p>
+                  <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.8rem,3.5vw,2.6rem)", fontWeight: 300, color: CREAM, lineHeight: 1, marginBottom: "16px", letterSpacing: "-0.01em" }}>{p.name}</h3>
+                  <div style={{ width: "32px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "16px" }} />
+                  <p style={{ color: GRAY, fontSize: "13px", lineHeight: 1.85 }}>{p.desc}</p>
                 </div>
               </div>
-            );
-          })}
-
-          {/* FIX 2: Bottom bars — onClick → setProdIdx(i), fully working */}
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", zIndex: 10 }}>
-            {PRODUCTS.map((p, i) => (
-              <button
-                key={p.name}
-                className="v4-prod-bar"
-                onClick={() => setProdIdx(i)}
-                style={{
-                  flex: 1, height: "48px", border: "none", cursor: "pointer",
-                  backgroundColor: prodIdx === i ? GOLD : `${GOLD}18`,
-                  borderTop: `2px solid ${prodIdx === i ? GOLD : `${GOLD}33`}`,
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                  transition: "all 0.3s ease",
-                }}
-                aria-label={p.name}
-              >
-                <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: prodIdx === i ? NAVY : `${CREAM}66`, fontWeight: prodIdx === i ? 600 : 400, pointerEvents: "none" }}>
-                  {p.num}
-                </span>
-                <span style={{ fontSize: "10px", letterSpacing: "0.15em", color: prodIdx === i ? NAVY : `${CREAM}44`, pointerEvents: "none" }}>
-                  {p.name}
-                </span>
-              </button>
             ))}
           </div>
+
+          {/* Left / right fade edges */}
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "120px", background: "linear-gradient(to right, #0A0E14, transparent)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "120px", background: "linear-gradient(to left, #0A0E14, transparent)", pointerEvents: "none" }} />
         </div>
+
+        {/* Dot indicators */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "8px" }}>
+          {PRODUCTS.map((p, i) => (
+            <button
+              key={p.name}
+              onClick={() => {
+                setProdIdx(i);
+                carouselRef.current?.scrollTo({ left: i * (560 + 24), behavior: "smooth" });
+              }}
+              style={{
+                width: prodIdx === i ? "28px" : "8px",
+                height: "8px",
+                borderRadius: "4px",
+                border: "none",
+                backgroundColor: prodIdx === i ? GOLD : `${GOLD}33`,
+                cursor: "pointer",
+                padding: 0,
+                transition: "all 0.35s cubic-bezier(0.25,1,0.5,1)",
+              }}
+              aria-label={p.name}
+            />
+          ))}
+        </div>
+
+        {/* Drag hint */}
+        <p style={{ textAlign: "center", fontSize: "10px", letterSpacing: "0.25em", color: `${GOLD}44`, marginTop: "20px", textTransform: "uppercase" }}>
+          drag to explore
+        </p>
+
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
