@@ -20,7 +20,6 @@ function useInView(threshold = 0.12) {
   return { ref, inView };
 }
 
-/* ── Reveal (translateY) ────────────────────────────────────────── */
 function Reveal({ children, delay = 0, className = "", y = 40 }: {
   children: React.ReactNode; delay?: number; className?: string; y?: number;
 }) {
@@ -36,7 +35,6 @@ function Reveal({ children, delay = 0, className = "", y = 40 }: {
   );
 }
 
-/* ── Slide in from left ─────────────────────────────────────────── */
 function SlideLeft({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const { ref, inView } = useInView(0.1);
   return (
@@ -44,12 +42,10 @@ function SlideLeft({ children, delay = 0 }: { children: React.ReactNode; delay?:
       opacity: inView ? 1 : 0,
       transform: inView ? "none" : "translateX(-52px)",
       transition: `opacity 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-      willChange: "transform, opacity",
     }}>{children}</div>
   );
 }
 
-/* ── Expand line left→right ─────────────────────────────────────── */
 function ExpandLine({ delay = 0, className = "" }: { delay?: number; className?: string }) {
   const { ref, inView } = useInView(0.1);
   return (
@@ -61,7 +57,6 @@ function ExpandLine({ delay = 0, className = "" }: { delay?: number; className?:
   );
 }
 
-/* ── Scale in on entry (1.08→1) ─────────────────────────────────── */
 function ScaleIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const { ref, inView } = useInView(0.05);
   return (
@@ -75,7 +70,6 @@ function ScaleIn({ children, delay = 0 }: { children: React.ReactNode; delay?: n
   );
 }
 
-/* ── Counting number ────────────────────────────────────────────── */
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
   const ref     = useRef<HTMLSpanElement>(null);
@@ -101,120 +95,6 @@ function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
     return () => io.disconnect();
   }, [target]);
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   ABOUT BLUM — GSAP ScrollTrigger: image zoom + text reveals
-══════════════════════════════════════════════════════════════════ */
-function V1AboutSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const imgRef     = useRef<HTMLImageElement>(null);
-  const labelRef   = useRef<HTMLParagraphElement>(null);
-  const h2Ref      = useRef<HTMLHeadingElement>(null);
-  const lineRef    = useRef<HTMLDivElement>(null);
-  const body1Ref   = useRef<HTMLParagraphElement>(null);
-  const body2Ref   = useRef<HTMLParagraphElement>(null);
-  const linkRef    = useRef<HTMLAnchorElement>(null);
-
-  /* Prevent BlumGSAP from re-wrapping this h2 */
-  useLayoutEffect(() => {
-    if (h2Ref.current) h2Ref.current.dataset.gsapMask = "1";
-  }, []);
-
-  useEffect(() => {
-    const kills: Array<() => void> = [];
-    const init = async () => {
-      const { gsap } = await import("gsap");
-      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
-      gsap.registerPlugin(ScrollTrigger);
-
-      const section = sectionRef.current;
-      const img     = imgRef.current;
-      if (!section || !img) return;
-
-      /* Image zoom: scale(1) → scale(1.15) while section is in viewport */
-      const zoomTween = gsap.to(img, {
-        scale: 1.15,
-        ease: "none",
-        scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1.5 },
-      });
-
-      /* Set initial hidden state */
-      const textEls = [labelRef.current, h2Ref.current, body1Ref.current, body2Ref.current, linkRef.current];
-      textEls.forEach((el) => { if (el) gsap.set(el, { opacity: 0, y: 44 }); });
-      if (lineRef.current) gsap.set(lineRef.current, { scaleX: 0, transformOrigin: "left" });
-
-      /* Reveal on entry */
-      const E = 0.9;
-      const revealST = ScrollTrigger.create({
-        trigger: section,
-        start: "top 58%",
-        once: true,
-        onEnter: () => {
-          if (labelRef.current)  gsap.to(labelRef.current,  { opacity: 1, y: 0, duration: E,   ease: "power2.out", delay: 0 });
-          if (h2Ref.current)     gsap.to(h2Ref.current,     { opacity: 1, y: 0, duration: 1.1, ease: "power2.out", delay: 0.15 });
-          if (lineRef.current)   gsap.to(lineRef.current,   { scaleX: 1,        duration: 0.7, ease: "power3.inOut", delay: 0.4 });
-          if (body1Ref.current)  gsap.to(body1Ref.current,  { opacity: 1, y: 0, duration: E,   ease: "power2.out", delay: 0.5 });
-          if (body2Ref.current)  gsap.to(body2Ref.current,  { opacity: 1, y: 0, duration: E,   ease: "power2.out", delay: 0.65 });
-          if (linkRef.current)   gsap.to(linkRef.current,   { opacity: 1, y: 0, duration: E,   ease: "power2.out", delay: 0.8 });
-        },
-      });
-
-      kills.push(() => { zoomTween.kill(); revealST.kill(); });
-      await new Promise<void>((r) => setTimeout(r, 80));
-      ScrollTrigger.refresh();
-    };
-    init();
-    return () => kills.forEach((fn) => fn());
-  }, []);
-
-  return (
-    <section
-      ref={sectionRef}
-      className="grid grid-cols-1 md:grid-cols-2"
-      style={{ minHeight: "100vh", backgroundColor: "#ffffff" }}
-    >
-      {/* Left — text */}
-      <div className="flex flex-col justify-center px-10 md:px-16 xl:px-24 py-24 md:py-32">
-        <p ref={labelRef} className="text-[9px] tracking-[0.55em] uppercase text-zinc-300 mb-8">About Blum</p>
-        <h2
-          ref={h2Ref}
-          className="text-3xl md:text-5xl font-extralight leading-[1.1] text-zinc-900 mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
-          가구의 움직임을<br />재정의합니다
-        </h2>
-        <div ref={lineRef} className="w-10 h-px bg-zinc-200 mb-8" />
-        <p ref={body1Ref} className="text-sm text-zinc-400 leading-8 mb-4" style={{ fontWeight: 300 }}>
-          1952년 오스트리아 포어알베르크에서 시작된 blum은 현재 전 세계 120개국에서 사용되는 프리미엄 가구 피팅 제조사입니다.
-        </p>
-        <p ref={body2Ref} className="text-sm text-zinc-400 leading-8 mb-12" style={{ fontWeight: 300 }}>
-          힌지, 서랍, 리프트 시스템을 통해 매일 수백만 명의 일상을 더 편리하고 아름답게 만들고 있습니다.
-        </p>
-        <Link
-          ref={linkRef}
-          href="/v1/company"
-          className="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-zinc-500 hover:text-zinc-900 transition-colors group"
-          style={{ textDecoration: "none" }}
-        >
-          브랜드 스토리
-          <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-        </Link>
-      </div>
-
-      {/* Right — zoom image */}
-      <div className="relative overflow-hidden" style={{ minHeight: "60vh" }}>
-        <img
-          ref={imgRef}
-          src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
-          alt="blum factory"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ willChange: "transform" }}
-          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#f4f4f5"; }}
-        />
-      </div>
-    </section>
-  );
 }
 
 /* ── Data ───────────────────────────────────────────────────────── */
@@ -276,18 +156,157 @@ const SERVICES = [
 
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V1() {
-  const [scrollY, setScrollY]     = useState(0);
   const [openValue, setOpenValue] = useState<number | null>(null);
-  const heroRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const fn = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
+  /* ── Hero refs ──────────────────────────────────────────────── */
+  const heroRef      = useRef<HTMLElement>(null);
+  const heroTextRef  = useRef<HTMLDivElement>(null);
+  const heroScrollRef = useRef<HTMLDivElement>(null);
+
+  /* ── About refs ─────────────────────────────────────────────── */
+  const aboutRef      = useRef<HTMLElement>(null);
+  const aboutImgRef   = useRef<HTMLImageElement>(null);
+  const aboutOverRef  = useRef<HTMLDivElement>(null);
+  const aboutLblRef   = useRef<HTMLParagraphElement>(null);
+  const aboutH2Ref    = useRef<HTMLHeadingElement>(null);
+  const aboutLineRef  = useRef<HTMLDivElement>(null);
+  const aboutB1Ref    = useRef<HTMLParagraphElement>(null);
+  const aboutB2Ref    = useRef<HTMLParagraphElement>(null);
+  const aboutLinkRef  = useRef<HTMLAnchorElement>(null);
+
+  /* ── Pre-hide: runs before first paint so no flash ─────────── */
+  useLayoutEffect(() => {
+    /* Prevent BlumGSAP from re-wrapping about h2 */
+    if (aboutH2Ref.current) aboutH2Ref.current.dataset.gsapMask = "1";
+
+    /* Pre-hide product cards so BlumGSAP grid-stagger skips them
+       (BlumGSAP checks el.style.opacity === "0" and returns early) */
+    document.querySelectorAll<HTMLElement>("#products .product-card").forEach((el) => {
+      el.style.opacity   = "0";
+      el.style.transform = "translateY(100px)";
+      el.style.transition = "none";
+    });
   }, []);
 
-  const heroParallax = scrollY * 0.35;
-  const heroOpacity  = Math.max(0, 1 - scrollY / 600);
+  /* ── Main GSAP setup ────────────────────────────────────────── */
+  useEffect(() => {
+    const kills: Array<() => void> = [];
+
+    const init = async () => {
+      const { gsap }         = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
+
+      /* ════════════════════════════════════════════════════════
+         1. HERO PIN — text floats up; next section covers hero
+         ════════════════════════════════════════════════════════ */
+      const hero      = heroRef.current;
+      const heroText  = heroTextRef.current;
+      const heroScroll = heroScrollRef.current;
+
+      if (hero && heroText) {
+        /* Pin the hero section for an extra 80vh of scroll */
+        const heroPinST = ScrollTrigger.create({
+          trigger: hero,
+          pin: true,
+          start: "top top",
+          end: "+=80%",
+          pinSpacing: true,
+          anticipatePin: 1,
+        });
+
+        /* During the pin, text + scroll indicator float upward and fade */
+        const heroTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "+=80%",
+            scrub: 1.2,
+          },
+        });
+        heroTl.to(heroText, { y: -160, opacity: 0, ease: "none" }, 0);
+        if (heroScroll) heroTl.to(heroScroll, { y: -80, opacity: 0, ease: "none" }, 0);
+
+        kills.push(() => { heroPinST.kill(); heroTl.kill(); });
+      }
+
+      /* ════════════════════════════════════════════════════════
+         2. ABOUT — image zoom 1→1.2, text reveals sequentially
+         ════════════════════════════════════════════════════════ */
+      const about    = aboutRef.current;
+      const aboutImg = aboutImgRef.current;
+
+      if (about && aboutImg) {
+        /* Set all text elements to hidden initial state */
+        const textEls = [aboutLblRef.current, aboutH2Ref.current, aboutB1Ref.current, aboutB2Ref.current, aboutLinkRef.current];
+        textEls.forEach((el) => { if (el) gsap.set(el, { opacity: 0, y: 50 }); });
+        if (aboutLineRef.current) gsap.set(aboutLineRef.current, { scaleX: 0, transformOrigin: "left" });
+        if (aboutOverRef.current) gsap.set(aboutOverRef.current, { opacity: 0.2 });
+
+        /* Single timeline drives everything — scrubbed by scroll */
+        const aboutTl = gsap.timeline();
+
+        /* Image zooms throughout the pinned range */
+        aboutTl.to(aboutImg, { scale: 1.2, ease: "none", duration: 1 }, 0);
+
+        /* Overlay darkens as image zooms */
+        if (aboutOverRef.current)
+          aboutTl.to(aboutOverRef.current, { opacity: 0.68, ease: "none", duration: 0.7 }, 0);
+
+        /* Text reveals — staggered positions within the timeline */
+        if (aboutLblRef.current)  aboutTl.to(aboutLblRef.current,  { opacity: 1, y: 0, duration: 0.22 }, 0.18);
+        if (aboutH2Ref.current)   aboutTl.to(aboutH2Ref.current,   { opacity: 1, y: 0, duration: 0.26 }, 0.28);
+        if (aboutLineRef.current) aboutTl.to(aboutLineRef.current,  { scaleX: 1,        duration: 0.22 }, 0.42);
+        if (aboutB1Ref.current)   aboutTl.to(aboutB1Ref.current,   { opacity: 1, y: 0, duration: 0.22 }, 0.50);
+        if (aboutB2Ref.current)   aboutTl.to(aboutB2Ref.current,   { opacity: 1, y: 0, duration: 0.22 }, 0.60);
+        if (aboutLinkRef.current) aboutTl.to(aboutLinkRef.current,  { opacity: 1, y: 0, duration: 0.20 }, 0.70);
+
+        /* Pin + scrub the timeline */
+        ScrollTrigger.create({
+          trigger: about,
+          pin: true,
+          start: "top top",
+          end: "+=120%",
+          scrub: 1.5,
+          animation: aboutTl,
+          anticipatePin: 1,
+          pinSpacing: true,
+        });
+
+        kills.push(() => aboutTl.kill());
+      }
+
+      /* ════════════════════════════════════════════════════════
+         3. PRODUCTS — cards stagger up 100px → 0
+         ════════════════════════════════════════════════════════ */
+      const cards = document.querySelectorAll<HTMLElement>("#products .product-card");
+      if (cards.length > 0) {
+        /* Cards already hidden via useLayoutEffect; clear the inline transition
+           we set so GSAP can take over cleanly */
+        cards.forEach((c) => { c.style.transition = ""; });
+
+        const cardsTween = gsap.to(cards, {
+          y: 0,
+          opacity: 1,
+          duration: 0.9,
+          ease: "power2.out",
+          stagger: 0.15,
+          scrollTrigger: {
+            trigger: "#products",
+            start: "top 68%",
+            once: true,
+          },
+        });
+        kills.push(() => cardsTween.kill());
+      }
+
+      await new Promise<void>((r) => setTimeout(r, 100));
+      ScrollTrigger.refresh();
+    };
+
+    init();
+    return () => kills.forEach((fn) => fn());
+  }, []);
 
   return (
     <div className="bg-white text-zinc-900 overflow-x-hidden" style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
@@ -302,8 +321,9 @@ export default function V1() {
         .v1-bounce-txt { animation: v1-bounce 1.8s ease-in-out infinite; display:inline-block; }
         .v1-word { display:inline-block; animation: v1-word-in 0.9s cubic-bezier(0.16,1,0.3,1) both; }
 
-        .product-card { transition: transform 0.55s cubic-bezier(0.25,1,0.5,1), box-shadow 0.55s ease; }
-        .product-card:hover { transform: translateY(-8px); box-shadow: 0 28px 64px rgba(0,0,0,0.12); }
+        /* Product card transitions (GSAP overrides opacity/transform on entry) */
+        .product-card { transition: box-shadow 0.55s ease; }
+        .product-card:hover { box-shadow: 0 28px 64px rgba(0,0,0,0.12); }
         .product-card:hover .product-img { transform: scale(1.06); }
         .product-card .card-text { transition: transform 0.5s cubic-bezier(0.25,1,0.5,1); }
         .product-card:hover .card-text { transform: translateY(-4px); }
@@ -311,25 +331,27 @@ export default function V1() {
         .value-row:hover .value-num { color: #18181b; }
       `}</style>
 
-      {/* ══════════════════ HERO ══════════════════ */}
-      <section ref={heroRef} className="relative h-screen min-h-[600px] flex items-end overflow-hidden bg-zinc-950">
+      {/* ══ HERO — pinned; text floats up while next section covers ══ */}
+      <section
+        ref={heroRef}
+        className="relative flex items-end overflow-hidden bg-zinc-950"
+        style={{ height: "100vh", minHeight: 600 }}
+      >
+        {/* Background image — no JS parallax needed (section is pinned) */}
         <div className="absolute inset-0 overflow-hidden">
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
             alt="blum hero"
             className="w-full h-full object-cover"
-            style={{ transform: `scale(1.12) translateY(${heroParallax}px)`, opacity: 0.42 }}
+            style={{ opacity: 0.42 }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
           <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #09090b 32%, rgba(9,9,11,0.55) 65%, rgba(9,9,11,0.15) 100%)" }} />
           <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(9,9,11,0.65) 0%, transparent 55%)" }} />
         </div>
 
-        {/* Bottom-left: "moving / ideas." only */}
-        <div
-          className="relative z-10 max-w-7xl mx-auto px-8 pb-20 w-full"
-          style={{ opacity: heroOpacity, transform: `translateY(${scrollY * -0.08}px)` }}
-        >
+        {/* "moving / ideas." — GSAP floats this up as you scroll */}
+        <div ref={heroTextRef} className="relative z-10 max-w-7xl mx-auto px-8 pb-20 w-full">
           <h1 className="text-white leading-none select-none" style={{
             fontSize: "clamp(3.5rem, 11vw, 10rem)",
             fontWeight: 200,
@@ -346,8 +368,8 @@ export default function V1() {
           </h1>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 right-8 flex flex-col items-center gap-3 z-10">
+        {/* Scroll indicator — also floats up with the text */}
+        <div ref={heroScrollRef} className="absolute bottom-8 right-8 flex flex-col items-center gap-3 z-10">
           <span className="v1-bounce-txt text-[8px] tracking-[0.4em] uppercase text-white/25 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
           <div className="w-px h-14 relative overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
             <div className="w-full bg-white/50 absolute top-0 v1-scrollbar" style={{ height: "45%" }} />
@@ -355,7 +377,7 @@ export default function V1() {
         </div>
       </section>
 
-      {/* ══════════════════ MARQUEE ══════════════════ */}
+      {/* ══ MARQUEE ══ */}
       <div className="overflow-hidden border-b border-zinc-100 py-4 bg-white">
         <div className="v1-ticker flex whitespace-nowrap">
           {[...Array(4)].map((_, i) => (
@@ -366,10 +388,61 @@ export default function V1() {
         </div>
       </div>
 
-      {/* ══════════════════ ABOUT BLUM (GSAP) ══════════════════ */}
-      <V1AboutSection />
+      {/* ══ ABOUT BLUM — pinned; bg zooms 1→1.2; text reveals on scroll ══ */}
+      <section
+        ref={aboutRef}
+        className="relative overflow-hidden"
+        style={{ height: "100vh" }}
+      >
+        {/* Full-screen background image — GSAP animates scale */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* hover:scale-100 tricks BlumGSAP into skipping parallax on this image */}
+          <img
+            ref={aboutImgRef}
+            src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
+            alt="blum factory"
+            className="w-full h-full object-cover hover:scale-100"
+            style={{ willChange: "transform" }}
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
+          />
+          {/* Dark overlay — GSAP animates opacity 0.2 → 0.68 */}
+          <div ref={aboutOverRef} className="absolute inset-0" style={{ backgroundColor: "#000000" }} />
+        </div>
 
-      {/* ══════════════════ STATS ══════════════════ */}
+        {/* Text overlay — all elements hidden; GSAP reveals sequentially */}
+        <div className="absolute inset-0 flex items-center">
+          <div className="max-w-7xl mx-auto px-8 w-full">
+            <p ref={aboutLblRef} className="text-[9px] tracking-[0.55em] uppercase mb-8" style={{ color: "rgba(255,255,255,0.4)" }}>
+              About Blum
+            </p>
+            <h2
+              ref={aboutH2Ref}
+              className="font-extralight leading-[1.1] mb-6"
+              style={{ fontSize: "clamp(2.2rem,5vw,4.5rem)", letterSpacing: "-0.02em", color: "#ffffff" }}
+            >
+              가구의 움직임을<br />재정의합니다
+            </h2>
+            <div ref={aboutLineRef} className="w-10 h-px mb-8" style={{ backgroundColor: "rgba(255,255,255,0.25)" }} />
+            <p ref={aboutB1Ref} className="text-sm leading-8 mb-4 max-w-md" style={{ color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
+              1952년 오스트리아 포어알베르크에서 시작된 blum은 현재 전 세계 120개국에서 사용되는 프리미엄 가구 피팅 제조사입니다.
+            </p>
+            <p ref={aboutB2Ref} className="text-sm leading-8 mb-12 max-w-md" style={{ color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
+              힌지, 서랍, 리프트 시스템을 통해 매일 수백만 명의 일상을 더 편리하고 아름답게 만들고 있습니다.
+            </p>
+            <Link
+              ref={aboutLinkRef}
+              href="/v1/company"
+              className="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase transition-colors group"
+              style={{ color: "rgba(255,255,255,0.5)", textDecoration: "none" }}
+            >
+              브랜드 스토리
+              <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ STATS ══ */}
       <section className="py-16 md:py-20 border-b border-zinc-100">
         <Reveal className="max-w-7xl mx-auto px-8 grid grid-cols-2 md:grid-cols-4 gap-10">
           {[
@@ -388,7 +461,7 @@ export default function V1() {
         </Reveal>
       </section>
 
-      {/* ══════════════════ DIVIDER IMAGE ══════════════════ */}
+      {/* ══ DIVIDER IMAGE ══ */}
       <ScaleIn>
         <div className="relative w-full" style={{ height: "clamp(280px, 45vw, 600px)" }}>
           <img
@@ -409,13 +482,14 @@ export default function V1() {
         </div>
       </ScaleIn>
 
-      {/* ══════════════════ PRODUCTS — asymmetric grid ══════════════════ */}
+      {/* ══ PRODUCTS — left sticky header + right asymmetric grid ══ */}
+      {/* Outer layout uses flexbox so BlumGSAP's ".grid > div" selector won't interfere */}
       <section id="products" className="py-28 md:py-40 bg-white">
         <div className="max-w-7xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 items-start">
+          <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-start">
 
-            {/* Left — sticky header */}
-            <div className="md:col-span-4">
+            {/* Left — sticky section header */}
+            <div className="md:w-80 shrink-0">
               <div className="md:sticky" style={{ top: "88px" }}>
                 <SlideLeft>
                   <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
@@ -440,65 +514,81 @@ export default function V1() {
               </div>
             </div>
 
-            {/* Right — asymmetric card grid */}
-            <div className="md:col-span-8">
+            {/* Right — asymmetric grid; GSAP handles entry animations */}
+            <div className="flex-1 min-w-0">
               <div className="grid grid-cols-2 gap-3">
 
                 {/* AVENTOS — full width */}
-                <Reveal delay={0} y={80} className="col-span-2">
-                  <Link href={PRODUCTS[0].href} className="product-card group block overflow-hidden bg-zinc-50" style={{ textDecoration: "none" }}>
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/7" }}>
-                      <img
-                        src={PRODUCTS[0].img} alt={PRODUCTS[0].name}
-                        className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                    </div>
-                    <div className="card-text p-6">
-                      <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[0].category}</span>
-                      <h3 className="text-xl font-light text-zinc-900 mb-2">{PRODUCTS[0].name}</h3>
-                      <p className="text-xs text-zinc-400 leading-relaxed max-w-md">{PRODUCTS[0].desc}</p>
-                    </div>
-                  </Link>
-                </Reveal>
+                <Link
+                  href={PRODUCTS[0].href}
+                  className="product-card col-span-2 group block overflow-hidden bg-zinc-50"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/7" }}>
+                    <img src={PRODUCTS[0].img} alt={PRODUCTS[0].name}
+                      className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                  <div className="card-text p-6">
+                    <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[0].category}</span>
+                    <h3 className="text-xl font-light text-zinc-900 mb-2">{PRODUCTS[0].name}</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed max-w-md">{PRODUCTS[0].desc}</p>
+                  </div>
+                </Link>
 
-                {/* LEGRABOX + CLIP top — side by side */}
-                {[PRODUCTS[1], PRODUCTS[2]].map((p, i) => (
-                  <Reveal key={p.id} delay={150 + i * 150} y={80} className="col-span-1">
-                    <Link href={p.href} className="product-card group block overflow-hidden bg-zinc-50" style={{ textDecoration: "none" }}>
-                      <div className="relative overflow-hidden" style={{ aspectRatio: "4/5" }}>
-                        <img
-                          src={p.img} alt={p.name}
-                          className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      </div>
-                      <div className="card-text p-6">
-                        <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{p.category}</span>
-                        <h3 className="text-lg font-light text-zinc-900 mb-2">{p.name}</h3>
-                        <p className="text-xs text-zinc-400 leading-relaxed">{p.desc}</p>
-                      </div>
-                    </Link>
-                  </Reveal>
-                ))}
+                {/* LEGRABOX — left half */}
+                <Link
+                  href={PRODUCTS[1].href}
+                  className="product-card col-span-1 group block overflow-hidden bg-zinc-50"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "4/5" }}>
+                    <img src={PRODUCTS[1].img} alt={PRODUCTS[1].name}
+                      className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                  <div className="card-text p-6">
+                    <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[1].category}</span>
+                    <h3 className="text-lg font-light text-zinc-900 mb-2">{PRODUCTS[1].name}</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">{PRODUCTS[1].desc}</p>
+                  </div>
+                </Link>
+
+                {/* CLIP top — right half */}
+                <Link
+                  href={PRODUCTS[2].href}
+                  className="product-card col-span-1 group block overflow-hidden bg-zinc-50"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "4/5" }}>
+                    <img src={PRODUCTS[2].img} alt={PRODUCTS[2].name}
+                      className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                  <div className="card-text p-6">
+                    <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[2].category}</span>
+                    <h3 className="text-lg font-light text-zinc-900 mb-2">{PRODUCTS[2].name}</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">{PRODUCTS[2].desc}</p>
+                  </div>
+                </Link>
 
                 {/* TIP-ON — full width */}
-                <Reveal delay={450} y={80} className="col-span-2">
-                  <Link href={PRODUCTS[3].href} className="product-card group block overflow-hidden bg-zinc-50" style={{ textDecoration: "none" }}>
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/7" }}>
-                      <img
-                        src={PRODUCTS[3].img} alt={PRODUCTS[3].name}
-                        className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                    </div>
-                    <div className="card-text p-6">
-                      <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[3].category}</span>
-                      <h3 className="text-xl font-light text-zinc-900 mb-2">{PRODUCTS[3].name}</h3>
-                      <p className="text-xs text-zinc-400 leading-relaxed max-w-md">{PRODUCTS[3].desc}</p>
-                    </div>
-                  </Link>
-                </Reveal>
+                <Link
+                  href={PRODUCTS[3].href}
+                  className="product-card col-span-2 group block overflow-hidden bg-zinc-50"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/7" }}>
+                    <img src={PRODUCTS[3].img} alt={PRODUCTS[3].name}
+                      className="product-img w-full h-full object-cover absolute inset-0 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                  <div className="card-text p-6">
+                    <span className="block text-[9px] tracking-[0.3em] uppercase text-zinc-300 mb-2">{PRODUCTS[3].category}</span>
+                    <h3 className="text-xl font-light text-zinc-900 mb-2">{PRODUCTS[3].name}</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed max-w-md">{PRODUCTS[3].desc}</p>
+                  </div>
+                </Link>
 
               </div>
             </div>
@@ -506,7 +596,7 @@ export default function V1() {
         </div>
       </section>
 
-      {/* ══════════════════ FULL-BLEED FEATURE ══════════════════ */}
+      {/* ══ FULL-BLEED FEATURE ══ */}
       <ScaleIn>
         <div className="relative overflow-hidden" style={{ height: "clamp(400px, 55vw, 720px)" }}>
           <img
@@ -540,7 +630,7 @@ export default function V1() {
         </div>
       </ScaleIn>
 
-      {/* ══════════════════ PHILOSOPHY ══════════════════ */}
+      {/* ══ PHILOSOPHY ══ */}
       <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
           <div>
@@ -588,7 +678,7 @@ export default function V1() {
         </div>
       </section>
 
-      {/* ══════════════════ SERVICES STRIP ══════════════════ */}
+      {/* ══ SERVICES STRIP ══ */}
       <section className="py-16 bg-zinc-50 border-y border-zinc-100">
         <div className="max-w-7xl mx-auto px-8">
           <SlideLeft>
@@ -634,7 +724,7 @@ export default function V1() {
         </div>
       </section>
 
-      {/* ══════════════════ CTA ══════════════════ */}
+      {/* ══ CTA ══ */}
       <section className="relative bg-zinc-950 py-36 md:py-52 overflow-hidden">
         <div className="absolute inset-0">
           <img
@@ -645,7 +735,6 @@ export default function V1() {
           />
           <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(9,9,11,0.5) 0%, rgba(9,9,11,0.95) 80%)" }} />
         </div>
-
         <Reveal className="relative z-10 max-w-3xl mx-auto px-8 text-center">
           <p className="text-[9px] tracking-[0.5em] uppercase text-zinc-500 mb-8">Contact &amp; Showroom</p>
           <h2 className="font-extralight text-white mb-8 leading-tight" style={{ fontSize: "clamp(2.5rem, 7vw, 6rem)", letterSpacing: "-0.03em" }}>
@@ -655,25 +744,17 @@ export default function V1() {
             전문 컨설턴트가 공간에 최적화된<br />blum 솔루션을 제안해드립니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/v1/contact"
-              className="text-[11px] tracking-[0.25em] uppercase px-9 py-4 bg-white text-zinc-900 hover:bg-zinc-100 transition-colors"
-              style={{ textDecoration: "none" }}
-            >
+            <Link href="/v1/contact" className="text-[11px] tracking-[0.25em] uppercase px-9 py-4 bg-white text-zinc-900 hover:bg-zinc-100 transition-colors" style={{ textDecoration: "none" }}>
               문의 / 방문 신청
             </Link>
-            <Link
-              href="/v1/products"
-              className="text-[11px] tracking-[0.25em] uppercase px-9 py-4 border text-white hover:bg-white/10 transition-colors"
-              style={{ borderColor: "rgba(255,255,255,0.18)", textDecoration: "none" }}
-            >
+            <Link href="/v1/products" className="text-[11px] tracking-[0.25em] uppercase px-9 py-4 border text-white hover:bg-white/10 transition-colors" style={{ borderColor: "rgba(255,255,255,0.18)", textDecoration: "none" }}>
               전체 제품 보기
             </Link>
           </div>
         </Reveal>
       </section>
 
-      {/* ══════════════════ FOOTER STRIP ══════════════════ */}
+      {/* ══ FOOTER STRIP ══ */}
       <div className="border-t border-zinc-100 bg-white py-8">
         <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-zinc-400 tracking-wider" style={{ fontWeight: 300 }}>
@@ -681,9 +762,7 @@ export default function V1() {
           </p>
           <div className="flex gap-8">
             {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]].map(([l, h]) => (
-              <Link key={l} href={h}
-                className="text-[9px] tracking-[0.3em] uppercase text-zinc-300 hover:text-zinc-700 transition-colors"
-                style={{ textDecoration: "none" }}>
+              <Link key={l} href={h} className="text-[9px] tracking-[0.3em] uppercase text-zinc-300 hover:text-zinc-700 transition-colors" style={{ textDecoration: "none" }}>
                 {l}
               </Link>
             ))}
