@@ -147,11 +147,11 @@ function ServicePanel({ s, i, sectionStyle, animKey, isActive, direction }: Pane
         <div style={textStyle}>
           <div style={{ width: "100%" }}>
 
-            {/* Ghost number */}
+            {/* Number */}
             <div style={{
               fontFamily: "'Cormorant Garamond', Georgia, serif",
               fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
-              color: `${GOLD}18`, lineHeight: 1, marginBottom: "4px",
+              color: GOLD, lineHeight: 1, marginBottom: "4px",
               opacity:    showNum ? 1 : 0,
               transform:  showNum ? "none" : "translateY(16px)",
               transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
@@ -215,19 +215,58 @@ type CtaProps = {
   isActive: boolean;
 };
 
+/* Split the headline into individual characters for stagger */
+const CTA_LINE1 = "더 자세한 서비스 안내가";
+const CTA_LINE2 = "필요하신가요?";
+
 function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
-  const [showText, setShowText] = useState(false);
-  const [showBtn,  setShowBtn]  = useState(false);
+  const [showLine,  setShowLine]  = useState(false); // gold bar expands
+  const [showLabel, setShowLabel] = useState(false); // "Get in Touch" label
+  const [charCount, setCharCount] = useState(0);     // chars revealed so far
+  const [showBtn,   setShowBtn]   = useState(false); // button
+  const [hovered,   setHovered]   = useState(false); // CTA hover state
+
+  const totalChars = CTA_LINE1.length + CTA_LINE2.length;
 
   useEffect(() => {
-    setShowText(false);
+    setShowLine(false);
+    setShowLabel(false);
+    setCharCount(0);
     setShowBtn(false);
+
     if (!isActive) return;
-    const t1 = setTimeout(() => setShowText(true), 80);
-    const t2 = setTimeout(() => setShowBtn(true),  320);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    timers.push(setTimeout(() => setShowLine(true),  80));
+    timers.push(setTimeout(() => setShowLabel(true), 200));
+
+    // stagger each character: start at 320ms, 40ms apart
+    for (let c = 0; c < totalChars; c++) {
+      timers.push(setTimeout(() => setCharCount(c + 1), 320 + c * 40));
+    }
+
+    timers.push(setTimeout(() => setShowBtn(true), 320 + totalChars * 40 + 120));
+
+    return () => timers.forEach(clearTimeout);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animKey]);
+
+  /* Render a line of text with per-character reveal */
+  const renderChars = (text: string, offset: number) =>
+    text.split("").map((ch, j) => {
+      const idx   = offset + j;
+      const shown = charCount > idx;
+      return (
+        <span key={idx} style={{
+          display: "inline-block",
+          opacity:   shown ? 1 : 0,
+          transform: shown ? "none" : "translateY(28px)",
+          transition: shown ? `opacity 0.45s ${EASE}, transform 0.45s ${EASE}` : "none",
+          whiteSpace: ch === " " ? "pre" : "normal",
+        }}>{ch}</span>
+      );
+    });
 
   return (
     <div style={sectionStyle(SERVICES.length + 1)}>
@@ -236,37 +275,78 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
         backgroundColor: "#070B10",
         display: "flex", flexDirection: "column",
         justifyContent: "center", alignItems: "center",
-        borderTop: `1px solid ${LINE}`,
         padding: "0 2rem", boxSizing: "border-box",
         textAlign: "center",
       }}>
+
+        {/* Gold gradient line — expands left → right */}
         <div style={{
-          opacity:    showText ? 1 : 0,
-          transform:  showText ? "none" : "translateY(40px)",
-          transition: `opacity 0.75s ${EASE}, transform 0.75s ${EASE}`,
-        }}>
-          <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}66`, marginBottom: "20px" }}>
-            Get in Touch
-          </p>
+          width: showLine ? "180px" : "0px", height: "1px",
+          background: `linear-gradient(to right, ${GOLD}, ${GOLD}44)`,
+          marginBottom: "32px",
+          transition: showLine ? `width 0.7s ${EASE}` : "none",
+        }} />
+
+        {/* "Get in Touch" label */}
+        <p style={{
+          fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
+          color: `${GOLD}77`, marginBottom: "28px",
+          opacity:   showLabel ? 1 : 0,
+          transform: showLabel ? "none" : "translateY(16px)",
+          transition: `opacity 0.5s ${EASE}, transform 0.5s ${EASE}`,
+        }}>Get in Touch</p>
+
+        {/* Clickable headline with hover effect */}
+        <Link
+          href="/v4/contact"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={{
+            textDecoration: "none", cursor: "pointer",
+            display: "block", marginBottom: "40px",
+          }}
+        >
+          {/* Normal text — fades out on hover */}
           <h2 style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
             fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
-            color: CREAM, marginBottom: "36px", lineHeight: 1.3,
+            color: hovered ? GOLD : CREAM, lineHeight: 1.4,
+            transition: `color 0.3s ease, opacity 0.3s ease`,
+            opacity: hovered ? 0 : 1,
+            position: "relative",
+            margin: 0,
           }}>
-            더 자세한 서비스 안내가<br />필요하신가요?
+            <span style={{ display: "block" }}>{renderChars(CTA_LINE1, 0)}</span>
+            <span style={{ display: "block" }}>{renderChars(CTA_LINE2, CTA_LINE1.length)}</span>
           </h2>
-        </div>
 
+          {/* "문의하기 →" overlay — fades in on hover */}
+          <div style={{
+            position: "absolute",
+            left: "50%", transform: "translateX(-50%)",
+            marginTop: "-2.2em",
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
+            color: GOLD, letterSpacing: "0.05em",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            whiteSpace: "nowrap", pointerEvents: "none",
+          }}>
+            문의하기 →
+          </div>
+        </Link>
+
+        {/* Button */}
         <div style={{
-          opacity:    showBtn ? 1 : 0,
-          transform:  showBtn ? "none" : "translateY(30px)",
-          transition: `opacity 0.65s ${EASE}, transform 0.65s ${EASE}`,
+          opacity:   showBtn ? 1 : 0,
+          transform: showBtn ? "none" : "translateY(24px)",
+          transition: `opacity 0.55s ${EASE}, transform 0.55s ${EASE}`,
           marginBottom: "64px",
         }}>
           <Link href="/v4/contact" style={{
             color: NAVY, textDecoration: "none",
             fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-            padding: "16px 40px", backgroundColor: GOLD, display: "inline-block",
+            padding: "14px 36px", backgroundColor: GOLD, display: "inline-block",
             transition: "all 0.35s cubic-bezier(0.25,1,0.5,1)",
           }}>문의하기</Link>
         </div>
