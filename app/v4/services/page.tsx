@@ -115,7 +115,7 @@ export default function V4Services() {
     transitionRef.current = true;
     idxRef.current = next;
     setSectionIdx(next);
-    setTimeout(() => { transitionRef.current = false; }, 880);
+    setTimeout(() => { transitionRef.current = false; }, 660);
   }, []);
 
   /* Wheel */
@@ -165,14 +165,19 @@ export default function V4Services() {
     .v4s-dot:hover { opacity: 1 !important; transform: scale(1.3); }
   `;
 
-  /* Helper: CSS transform for each section */
-  const sectionStyle = (idx: number): React.CSSProperties => ({
-    position:   "absolute",
-    inset:      0,
-    transform:  `translateY(${(idx - sectionIdx) * 100}%)`,
-    transition: animate ? "transform 0.8s ease-in-out" : "none",
-    willChange: "transform",
-  });
+  /* Helper: CSS for each section — each section is independently fixed.
+     Before current → -100vh (above), current → 0, after → +100vh (below). */
+  const sectionStyle = (idx: number): React.CSSProperties => {
+    const offset = idx - sectionIdx;
+    return {
+      position:   "fixed",
+      top:        0, left: 0, right: 0, bottom: 0,
+      transform:  `translateY(${offset * 100}vh)`,
+      transition: animate ? "transform 0.6s cubic-bezier(0.76,0,0.24,1)" : "none",
+      willChange: "transform",
+      zIndex:     idx === sectionIdx ? 10 : 5,
+    };
+  };
 
   /* Dot indicators (show during service panels) */
   const showDots = sectionIdx >= 1 && sectionIdx <= SERVICES.length;
@@ -209,8 +214,8 @@ export default function V4Services() {
         </div>
       </nav>
 
-      {/* ══ FULLPAGE CONTAINER ══════════════════════════════════════ */}
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
+      {/* ══ FULLPAGE SECTIONS — each is position:fixed independently ══ */}
+      <div>
 
         {/* ── Section 0: Hero ───────────────────────────────────── */}
         <div style={sectionStyle(0)}>
@@ -396,7 +401,7 @@ export default function V4Services() {
               transitionRef.current = true;
               idxRef.current = target;
               setSectionIdx(target);
-              setTimeout(() => { transitionRef.current = false; }, 880);
+              setTimeout(() => { transitionRef.current = false; }, 660);
             }}
             style={{
               width: "6px", height: "6px",
