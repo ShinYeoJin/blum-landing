@@ -18,35 +18,35 @@ const SERVICES = [
     name: "계획 / 설계 지원",
     desc: "가구 기획 단계부터 blum이 함께합니다. 구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
     items: ["구역 플래너", "캐비닛 구성 시뮬레이터", "제품 구성 프로그램", "도면 데이터 제공"],
-    img: `${BASE}/images/560/258/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
+    img: `${BASE}/images/560/258/4215872/corporate/media/bilder/services/img2487_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
   },
   {
     num:  "02",
     name: "E-Services",
     desc: "언제 어디서나 온라인으로 blum의 모든 서비스를 이용하세요. CAD/CAM 데이터부터 주문 관리까지 디지털로 완결됩니다.",
     items: ["CAD/CAM 데이터 서비스", "제품 DB", "온라인 주문 인터페이스", "EASY ASSEMBLY 앱"],
-    img: `${BASE}/images/560/258/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
+    img: `${BASE}/images/560/258/4215632/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
   },
   {
     num:  "03",
     name: "조립 / 조정 지원",
     desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 전문 조립 장치로 작업을 단순화합니다.",
     items: ["ECODRILL 드릴링 기기", "EASYSTICK 스탬핑 도구", "MINIPRESS top", "조립 장치 선택기"],
-    img: `${BASE}/images/560/258/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
+    img: `${BASE}/images/560/258/4214417/corporate/media/bilder/services/vab0526_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
   {
     num:  "04",
     name: "마케팅 / 판매 지원",
     desc: "blum 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 고해상도 이미지, 영상, 기술 문서 등 판매에 필요한 모든 자료를 제공합니다.",
     items: ["마케팅 멀티미디어 자료실", "제품 이미지 / 영상", "기술 문서", "판매 지원 자료"],
-    img: `${BASE}/images/560/258/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
+    img: `${BASE}/images/560/258/4212635/corporate/media/bilder/services/Blum_ME5340169_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`,
   },
   {
     num:  "05",
     name: "교육 / 트레이닝",
     desc: "blum 제품의 정확한 설치와 조정을 위한 전문 교육 프로그램. 온라인 튜토리얼과 EASY ASSEMBLY 앱을 통해 언제 어디서나 학습이 가능합니다.",
     items: ["제품 설치 및 조정 교육", "온라인 튜토리얼", "EASY ASSEMBLY 앱 가이드", "파트너 트레이닝 프로그램"],
-    img: `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`,
+    img: `${BASE}/images/560/258/4207516/corporate/media/bilder/services/vab0527_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
 ];
 
@@ -115,18 +115,20 @@ export default function V4Services() {
     transitionRef.current = true;
     idxRef.current = next;
     setSectionIdx(next);
-    setTimeout(() => { transitionRef.current = false; }, 660);
+    setTimeout(() => { transitionRef.current = false; }, 820);
   }, []);
 
-  /* Wheel */
+  /* Wheel — passive:false to preventDefault, transitionRef blocks re-entry */
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (Math.abs(e.deltaY) < 5) return;
+      e.stopPropagation();
+      if (transitionRef.current) return;
+      if (Math.abs(e.deltaY) < 10) return;
       go(e.deltaY > 0 ? 1 : -1);
     };
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
+    window.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () => window.removeEventListener("wheel", onWheel, { capture: true });
   }, [go]);
 
   /* Touch */
@@ -161,8 +163,6 @@ export default function V4Services() {
     .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
 
-    .v4s-dot { transition: all 0.3s ease; }
-    .v4s-dot:hover { opacity: 1 !important; transform: scale(1.3); }
   `;
 
   /* Helper: CSS for each section — each section is independently fixed.
@@ -178,9 +178,6 @@ export default function V4Services() {
       zIndex:     idx === sectionIdx ? 10 : 5,
     };
   };
-
-  /* Dot indicators (show during service panels) */
-  const showDots = sectionIdx >= 1 && sectionIdx <= SERVICES.length;
 
   return (
     <div style={{ backgroundColor: NAVY, color: CREAM, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
@@ -381,38 +378,6 @@ export default function V4Services() {
         </div>
       </div>
 
-      {/* ══ Dot indicators (service sections only) ══════════════════ */}
-      <div style={{
-        position: "fixed", right: "28px", top: "50%", transform: "translateY(-50%)",
-        zIndex: 300, display: "flex", flexDirection: "column", gap: "10px",
-        opacity: showDots ? 1 : 0,
-        transition: "opacity 0.4s ease",
-        pointerEvents: showDots ? "auto" : "none",
-      }}>
-        {SERVICES.map((_, i) => (
-          <button
-            key={i}
-            className="v4s-dot"
-            onClick={() => {
-              if (transitionRef.current || !heroReadyRef.current) return;
-              const target = i + 1;
-              const diff   = target - idxRef.current;
-              if (diff === 0) return;
-              transitionRef.current = true;
-              idxRef.current = target;
-              setSectionIdx(target);
-              setTimeout(() => { transitionRef.current = false; }, 660);
-            }}
-            style={{
-              width: "6px", height: "6px",
-              borderRadius: "50%",
-              backgroundColor: GOLD,
-              border: "none", cursor: "pointer", padding: 0,
-              opacity: sectionIdx === i + 1 ? 1 : 0.25,
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
