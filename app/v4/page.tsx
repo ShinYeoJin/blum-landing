@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /* ── Constants ── */
 const NAVY  = "#0D1117";
@@ -219,27 +221,98 @@ function MaskReveal({ children, delay = 0, className = "" }: { children: React.R
   );
 }
 
-/* ── WipeBanner ── */
+/* ── WipeBanner
+   첫 진입: gold wipe 애니메이션
+   재방문(sessionStorage "v4wipe"=1): GSAP ScrollTrigger 단어 흩어짐/모임
+── */
+const WIPE_WORDS = ["“가구의", "열고", "닫음을", "매력적인", "경험으로", "만들어", "드립니다.”"];
+/* 단어별 고정 scatter 방향·거리 (SSR 안전) */
+const SCATTER_X  = [-380, 260, -200, 420, -300, 230, -160];
+
 function WipeBanner() {
-  const ref           = useRef<HTMLDivElement>(null);
+  gsap.registerPlugin(ScrollTrigger);
+
+  const ref      = useRef<HTMLDivElement>(null);
+  const wordRefs = useRef<HTMLSpanElement[]>([]);
   const [active, setActive] = useState(false);
+
+  /* 첫 방문 여부: 렌더 전에 읽고, 미방문이면 즉시 마킹 */
+  const [isFirst] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const seen = sessionStorage.getItem("v4wipe") === "1";
+    if (!seen) sessionStorage.setItem("v4wipe", "1");
+    return !seen;
+  });
+
+  /* 첫 방문: gold wipe — IntersectionObserver */
   useEffect(() => {
+    if (!isFirst) return;
     const el = ref.current; if (!el) return;
     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0 });
     io.observe(el); return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`}
-      style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center" }}>
-      <div className="v4-wipe-cover" />
-      <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
-        <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
-        <blockquote className="v4-font-serif"
-          style={{ fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300, color: CREAM, lineHeight: 1.55, maxWidth: "760px", margin: "0 auto 36px", fontStyle: "italic" }}>
-          "가구의 열고 닫음을<br />매력적인 경험으로<br />만들어 드립니다."
-        </blockquote>
-        <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
+  }, [isFirst]);
+
+  /* 재방문: GSAP scatter — 스크롤 내릴수록 단어가 흩어짐, 올리면 모임 */
+  useLayoutEffect(() => {
+    if (isFirst) return;
+    const words = wordRefs.current.filter(Boolean);
+    if (!words.length || !ref.current) return;
+    const ctx = gsap.context(() => {
+      words.forEach((word, i) => {
+        gsap.fromTo(word,
+          { x: 0, opacity: 1 },
+          {
+            x: SCATTER_X[i] ?? (i % 2 === 0 ? 300 : -300),
+            opacity: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ref.current,
+              start: "top 65%",
+              end:   "bottom 20%",
+              scrub: 1.2,
+            },
+          }
+        );
+      });
+    }, ref);
+    return () => ctx.revert();
+  }, [isFirst]);
+
+  const innerStyle: React.CSSProperties = {
+    fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300, color: CREAM,
+    lineHeight: 1.55, margin: "0 auto 36px", fontStyle: "italic",
+    maxWidth: "760px",
+  };
+
+  if (isFirst) {
+    return (
+      <div ref={ref} className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`}
+        style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center" }}>
+        <div className="v4-wipe-cover" />
+        <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
+          <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
+          <blockquote className="v4-font-serif" style={innerStyle}>
+            "가구의 열고 닫음을<br />매력적인 경험으로<br />만들어 드립니다."
+          </blockquote>
+          <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
+        </div>
       </div>
+    );
+  }
+
+  /* 재방문: 단어 개별 span — GSAP가 각각 scatter */
+  return (
+    <div ref={ref} style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center", overflow: "hidden" }}>
+      <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
+      <blockquote className="v4-font-serif" style={{ ...innerStyle, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.28em" }}>
+        {WIPE_WORDS.map((word, i) => (
+          <span key={i} ref={(el) => { if (el) wordRefs.current[i] = el; }}
+            style={{ display: "inline-block", willChange: "transform" }}>
+            {word}
+          </span>
+        ))}
+      </blockquote>
+      <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
     </div>
   );
 }

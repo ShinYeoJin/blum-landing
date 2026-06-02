@@ -128,7 +128,7 @@ export default function V4Services() {
       ScrollTrigger.create({
         trigger:  container,
         start:    "top top",
-        end:      `+=${count * 100}vh`,
+        end:      `+=${(count - 1) * 100}vh`,  /* (count-1) 전환 × 100vh */
         pin:      true,
         scrub:    0.6,
         onUpdate: (self) => {
@@ -210,8 +210,14 @@ export default function V4Services() {
         </div>
       </nav>
 
-      {/* ══ HERO ═══════════════════════════════════════════════════ */}
-      <section style={{ padding: "140px 2rem 80px", maxWidth: "1280px", margin: "0 auto" }}>
+      {/* ══ HERO — showServices 전까지 100vh 전체 점유 ════════════ */}
+      <section style={{
+        padding: "140px 2rem 80px",
+        maxWidth: "1280px",
+        margin: "0 auto",
+        minHeight: showServices ? "auto" : "calc(100vh - 64px)",
+        transition: "min-height 0.6s ease",
+      }}>
         <p style={{
           fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
           color: `${GOLD}88`, marginBottom: "24px",
@@ -341,13 +347,11 @@ export default function V4Services() {
             })}
           </div>
 
-          {/* 스크롤 여백 — 핀 구간 이후 페이지가 계속 이어지게 */}
-          <div style={{ height: `${(SERVICES.length - 1) * 100}vh` }} />
         </>
       )}
 
-      {/* ══ CTA ════════════════════════════════════════════════════ */}
-      <section style={{
+      {/* ══ CTA — Hero 애니메이션 완료 후에만 표시 ════════════════ */}
+      {showServices && <section style={{
         padding: "120px 2rem",
         textAlign: "center",
         backgroundColor: "#070B10",
@@ -371,7 +375,7 @@ export default function V4Services() {
             padding: "16px 40px", backgroundColor: GOLD,
           }}>문의하기</Link>
         </FadeUp>
-      </section>
+      </section>}
 
       {/* ══ FOOTER ═════════════════════════════════════════════════ */}
       <footer style={{ borderTop: `1px solid ${LINE}`, padding: "28px 2rem", backgroundColor: NAVY }}>
