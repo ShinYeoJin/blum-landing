@@ -75,6 +75,7 @@ export default function V4Company() {
 
   return (
     <div style={{ backgroundColor: "#050505", color: "#f0f0f0", fontFamily: "'Helvetica Neue', Arial, sans-serif", minHeight: "100vh" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');`}</style>
       {/* Nav */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: "60px",
@@ -84,13 +85,14 @@ export default function V4Company() {
         transition: "all 0.4s ease",
       }}>
         <div className="max-w-7xl mx-auto px-8 h-full flex items-center justify-between">
-          <Link href="/v4" style={{ color: "#fff", textDecoration: "none", fontSize: "18px", fontWeight: 300, letterSpacing: "0.35em", textTransform: "uppercase" }}>blum</Link>
+          <Link href="/v4" style={{ color: "#D4AF37", textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em", fontFamily: "'Cormorant Garamond', Georgia, serif" }}>blum</Link>
           <div className="hidden md:flex items-center gap-8">
-            {[["제품", "/v4#products"], ["서비스", "/v4/services"], ["회사", "/v4/company"], ["연락처", "/v4/contact"]].map(([label, href]) => (
+            {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string,string][]).map(([label, href]) => (
               <Link key={label} href={href} style={{
-                color: label === "회사" ? "#fff" : "rgba(255,255,255,0.45)",
-                textDecoration: label === "회사" ? "underline" : "none",
-                textUnderlineOffset: "4px", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
+                color: "rgba(245,240,232,0.55)",
+                textDecoration: "none",
+                fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
+                transition: "color 0.2s ease",
               }}>{label}</Link>
             ))}
           </div>
