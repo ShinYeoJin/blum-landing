@@ -320,7 +320,7 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
             <span style={{ display: "block" }}>{renderChars(CTA_LINE2, CTA_LINE1.length)}</span>
           </h2>
 
-          {/* "문의하기 →" overlay — fades in on hover */}
+          {/* "문의하기" overlay — fades in on hover */}
           <div style={{
             position: "absolute",
             left: "50%", transform: "translateX(-50%)",
@@ -332,24 +332,9 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
             transition: "opacity 0.3s ease",
             whiteSpace: "nowrap", pointerEvents: "none",
           }}>
-            문의하기 →
+            문의하기
           </div>
         </Link>
-
-        {/* Button */}
-        <div style={{
-          opacity:   showBtn ? 1 : 0,
-          transform: showBtn ? "none" : "translateY(24px)",
-          transition: `opacity 0.55s ${EASE}, transform 0.55s ${EASE}`,
-          marginBottom: "64px",
-        }}>
-          <Link href="/v4/contact" style={{
-            color: NAVY, textDecoration: "none",
-            fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-            padding: "14px 36px", backgroundColor: GOLD, display: "inline-block",
-            transition: "all 0.35s cubic-bezier(0.25,1,0.5,1)",
-          }}>문의하기</Link>
-        </div>
 
         {/* Footer */}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: `1px solid ${LINE}`, padding: "24px 2rem" }}>
