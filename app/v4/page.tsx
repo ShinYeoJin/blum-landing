@@ -222,40 +222,17 @@ function MaskReveal({ children, delay = 0, className = "" }: { children: React.R
 }
 
 /* ── WipeBanner
-   첫 진입: gold wipe 애니메이션 (1회)
-   재방문: 3문장 GSAP ScrollTrigger — 진입 시 모임, 이탈 시 흩어짐
+   항상 3문장 GSAP ScrollTrigger — 진입 시 모임, 이탈 시 흩어짐
 ── */
 function WipeBanner() {
   gsap.registerPlugin(ScrollTrigger);
 
-  const ref       = useRef<HTMLDivElement>(null);
-  const line1Ref  = useRef<HTMLDivElement>(null);
-  const line2Ref  = useRef<HTMLDivElement>(null);
-  const line3Ref  = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
+  const ref      = useRef<HTMLDivElement>(null);
+  const line1Ref = useRef<HTMLDivElement>(null);
+  const line2Ref = useRef<HTMLDivElement>(null);
+  const line3Ref = useRef<HTMLDivElement>(null);
 
-  const [isFirst] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    const seen = sessionStorage.getItem("v4wipe") === "1";
-    if (!seen) sessionStorage.setItem("v4wipe", "1");
-    return !seen;
-  });
-
-  /* 첫 방문: gold wipe */
-  useEffect(() => {
-    if (!isFirst) return;
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setActive(true); }, { threshold: 0 });
-    io.observe(el); return () => io.disconnect();
-  }, [isFirst]);
-
-  /* 재방문: 3문장 gather → hold → scatter
-     타임라인 0.0~0.35 : 각 문장이 양 옆에서 모여듦 (진입 시 가시)
-     타임라인 0.35~0.65: 모인 상태 유지 (중앙 통과 시 완전히 읽힘)
-     타임라인 0.65~1.0 : 반대 방향으로 흩어짐 (이탈 시)
-  */
   useLayoutEffect(() => {
-    if (isFirst) return;
     const l1 = line1Ref.current;
     const l2 = line2Ref.current;
     const l3 = line3Ref.current;
@@ -265,8 +242,8 @@ function WipeBanner() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: ref.current,
-          start:   "top bottom",   // 섹션 하단이 뷰포트 진입 시작
-          end:     "bottom top",   // 섹션 상단이 뷰포트 이탈 완료
+          start:   "top bottom",
+          end:     "bottom top",
           scrub:   1.4,
         },
       });
@@ -284,7 +261,7 @@ function WipeBanner() {
     }, ref);
 
     return () => ctx.revert();
-  }, [isFirst]);
+  }, []);
 
   const lineStyle: React.CSSProperties = {
     display: "block", willChange: "transform",
@@ -292,24 +269,6 @@ function WipeBanner() {
     color: CREAM, fontStyle: "italic", lineHeight: 1.55,
   };
 
-  if (isFirst) {
-    return (
-      <div ref={ref} className={`v4-wipe-section${active ? " v4-wipe-go" : ""}`}
-        style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center" }}>
-        <div className="v4-wipe-cover" />
-        <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
-          <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
-          <blockquote className="v4-font-serif"
-            style={{ fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300, color: CREAM, lineHeight: 1.55, maxWidth: "760px", margin: "0 auto 36px", fontStyle: "italic" }}>
-            "가구의 열고 닫음을<br />매력적인 경험으로<br />만들어 드립니다."
-          </blockquote>
-          <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
-        </div>
-      </div>
-    );
-  }
-
-  /* 재방문: 3문장 개별 div — GSAP timeline이 gather/scatter */
   return (
     <div ref={ref} style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center", overflow: "hidden" }}>
       <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "28px" }}>Our Philosophy</p>
