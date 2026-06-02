@@ -238,7 +238,7 @@ export default function V3() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
               {[
                 { title: "FUNCTIONAL BEAUTY", body: "기능이 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다." },
-                { title: "GLOBAL LEADERSHIP", body: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 3대째 가족 경영으로 신뢰와 혁신을 이어가고 있습니다." },
+                { title: "100,000 CYCLES", body: "러너 시스템 기준 100,000회 개폐 테스트. 첫날과 마지막 날, 동일한 품질을 보장합니다." },
                 { title: "INVISIBLE PRECISION", body: "최고의 디자인은 보이지 않습니다. blum은 가구 뒤에서 조용히 완벽함을 만듭니다." },
               ].map((v, i) => (
                 <BoldReveal key={v.title} delay={i * 100}>
