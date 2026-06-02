@@ -122,11 +122,11 @@ const STATS = [
 ];
 
 const TIMELINE = [
-  { y: "1952",  t: "창립",        b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 시작해 고품질 가구용 피팅 제조에 전념." },
-  { y: "1990s", t: "CLIP 시스템", b: "CLIP 경첩 시스템 출시. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택." },
-  { y: "2000s", t: "BLUMOTION",   b: "통합 댐핑 기술 BLUMOTION 개발. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험을 선보임." },
-  { y: "2010s", t: "LEGRABOX",    b: "슬림 서랍면 12.8mm의 LEGRABOX 출시. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
-  { y: "현재",  t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 34개 자회사·대리점. 3대째 가족 경영." },
+  { y: "1952",      t: "창립",        b: "Julius Blum GmbH 설립. 오스트리아 포어알베르크 회흐스트에서 시작해 고품질 가구용 피팅 제조에 전념." },
+  { y: "CLIP",      t: "경첩 시스템", b: "CLIP 경첩 시스템. 공구 없이 탈착 가능한 구조로 전 세계 가구 제조업체에 채택된 혁신적 힌지." },
+  { y: "BLUMOTION", t: "소프트 클로징", b: "통합 댐핑 기술 BLUMOTION. 도어와 서랍이 마지막 순간 스스로 부드럽게 닫히는 경험." },
+  { y: "LEGRABOX",  t: "박스 시스템", b: "슬림 서랍면 12.8mm의 LEGRABOX. 최대 70kg 하중 지지, 디자인과 기능의 완벽한 조화." },
+  { y: "현재",      t: "글로벌 리더십", b: "€2,441M 매출, 9,850명 임직원, 120개국 수출. 34개 자회사·대리점. 3대째 가족 경영." },
 ];
 
 /* ── GCounter ── */
@@ -720,7 +720,7 @@ export default function V4() {
                 {i % 2 === 0 ? (
                   <>
                     <div style={{ textAlign: "right", paddingRight: "40px" }}>
-                      <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                      <span className="v4-font-serif" style={{ fontSize: /^\d/.test(item.y) ? "clamp(2.5rem,5vw,4rem)" : "clamp(1.1rem,2.5vw,1.8rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}55`, display: "block", lineHeight: 1, marginBottom: "8px", letterSpacing: /^\d/.test(item.y) ? "-0.02em" : "0.12em", textTransform: /^\d/.test(item.y) ? "none" : "uppercase" }}>{item.y}</span>
                       <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
                       <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85 }}>{item.b}</p>
                     </div>
@@ -732,7 +732,7 @@ export default function V4() {
                     <div />
                     <div style={{ display: "flex", justifyContent: "center" }}><div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: `${GOLD}55`, border: `1px solid ${GOLD}66` }} /></div>
                     <div style={{ paddingLeft: "40px" }}>
-                      <span className="v4-font-serif" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}22`, display: "block", lineHeight: 1, marginBottom: "8px" }}>{item.y}</span>
+                      <span className="v4-font-serif" style={{ fontSize: /^\d/.test(item.y) ? "clamp(2.5rem,5vw,4rem)" : "clamp(1.1rem,2.5vw,1.8rem)", fontWeight: 300, color: i === TIMELINE.length - 1 ? GOLD : `${GOLD}55`, display: "block", lineHeight: 1, marginBottom: "8px", letterSpacing: /^\d/.test(item.y) ? "-0.02em" : "0.12em", textTransform: /^\d/.test(item.y) ? "none" : "uppercase" }}>{item.y}</span>
                       <h3 style={{ fontSize: "16px", fontWeight: 400, color: CREAM, marginBottom: "8px" }}>{item.t}</h3>
                       <p style={{ fontSize: "13px", color: GRAY, lineHeight: 1.85 }}>{item.b}</p>
                     </div>
