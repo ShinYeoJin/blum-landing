@@ -58,7 +58,7 @@ const SLIDES = [
   {
     label: "INNOVATION · BLUMOTION",
     title: "끊임없는 혁신",
-    body:  "BLUMOTION, CLIP top, LEGRABOX, TIP-ON — blum은 끊임없이 움직여 더 나은 아이디어를 만들어갑니다. 가구 제조업체의 질문이 혁신의 원동력입니다.",
+    body:  "BLUMOTION, CLIP top, LEGRABOX, TIP-ON — 가구의 열고 닫음을 매력적인 경험으로 만들어 드립니다. blum의 moving ideas.",
     img:   IMG.slide2,
   },
   {
