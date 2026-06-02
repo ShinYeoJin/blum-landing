@@ -222,21 +222,18 @@ function MaskReveal({ children, delay = 0, className = "" }: { children: React.R
 }
 
 /* ── WipeBanner
-   첫 진입: gold wipe 애니메이션
-   재방문(sessionStorage "v4wipe"=1): GSAP ScrollTrigger 단어 흩어짐/모임
+   첫 진입: gold wipe 애니메이션 (1회)
+   재방문: 3문장 GSAP ScrollTrigger — 진입 시 모임, 이탈 시 흩어짐
 ── */
-const WIPE_WORDS = ["“가구의", "열고", "닫음을", "매력적인", "경험으로", "만들어", "드립니다.”"];
-/* 단어별 고정 scatter 방향·거리 (SSR 안전) */
-const SCATTER_X  = [-380, 260, -200, 420, -300, 230, -160];
-
 function WipeBanner() {
   gsap.registerPlugin(ScrollTrigger);
 
-  const ref      = useRef<HTMLDivElement>(null);
-  const wordRefs = useRef<HTMLSpanElement[]>([]);
+  const ref       = useRef<HTMLDivElement>(null);
+  const line1Ref  = useRef<HTMLDivElement>(null);
+  const line2Ref  = useRef<HTMLDivElement>(null);
+  const line3Ref  = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(false);
 
-  /* 첫 방문 여부: 렌더 전에 읽고, 미방문이면 즉시 마킹 */
   const [isFirst] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     const seen = sessionStorage.getItem("v4wipe") === "1";
@@ -244,7 +241,7 @@ function WipeBanner() {
     return !seen;
   });
 
-  /* 첫 방문: gold wipe — IntersectionObserver */
+  /* 첫 방문: gold wipe */
   useEffect(() => {
     if (!isFirst) return;
     const el = ref.current; if (!el) return;
@@ -252,36 +249,47 @@ function WipeBanner() {
     io.observe(el); return () => io.disconnect();
   }, [isFirst]);
 
-  /* 재방문: GSAP scatter — 스크롤 내릴수록 단어가 흩어짐, 올리면 모임 */
+  /* 재방문: 3문장 gather → hold → scatter
+     타임라인 0.0~0.35 : 각 문장이 양 옆에서 모여듦 (진입 시 가시)
+     타임라인 0.35~0.65: 모인 상태 유지 (중앙 통과 시 완전히 읽힘)
+     타임라인 0.65~1.0 : 반대 방향으로 흩어짐 (이탈 시)
+  */
   useLayoutEffect(() => {
     if (isFirst) return;
-    const words = wordRefs.current.filter(Boolean);
-    if (!words.length || !ref.current) return;
+    const l1 = line1Ref.current;
+    const l2 = line2Ref.current;
+    const l3 = line3Ref.current;
+    if (!l1 || !l2 || !l3 || !ref.current) return;
+
     const ctx = gsap.context(() => {
-      words.forEach((word, i) => {
-        gsap.fromTo(word,
-          { x: 0, opacity: 1 },
-          {
-            x: SCATTER_X[i] ?? (i % 2 === 0 ? 300 : -300),
-            opacity: 0,
-            ease: "none",
-            scrollTrigger: {
-              trigger: ref.current,
-              start: "top 65%",
-              end:   "bottom 20%",
-              scrub: 1.2,
-            },
-          }
-        );
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: ref.current,
+          start:   "top bottom",   // 섹션 하단이 뷰포트 진입 시작
+          end:     "bottom top",   // 섹션 상단이 뷰포트 이탈 완료
+          scrub:   1.4,
+        },
       });
+
+      /* ① 진입: 흩어진 상태 → 모임 (0~0.35) */
+      tl.fromTo(l1, { x: -320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0)
+        .fromTo(l2, { x:  320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0.03)
+        .fromTo(l3, { x: -320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0.06)
+        /* ② hold: 중앙 유지 (0.35~0.65) */
+        .to([l1, l2, l3], { x: 0, opacity: 1, duration: 0.3 }, 0.35)
+        /* ③ 이탈: 반대 방향으로 흩어짐 (0.65~1.0) */
+        .to(l1, { x:  320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.65)
+        .to(l2, { x: -320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.68)
+        .to(l3, { x:  320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.71);
     }, ref);
+
     return () => ctx.revert();
   }, [isFirst]);
 
-  const innerStyle: React.CSSProperties = {
-    fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300, color: CREAM,
-    lineHeight: 1.55, margin: "0 auto 36px", fontStyle: "italic",
-    maxWidth: "760px",
+  const lineStyle: React.CSSProperties = {
+    display: "block", willChange: "transform",
+    fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300,
+    color: CREAM, fontStyle: "italic", lineHeight: 1.55,
   };
 
   if (isFirst) {
@@ -291,7 +299,8 @@ function WipeBanner() {
         <div className="v4-wipe-cover" />
         <div className="v4-wipe-content" style={{ position: "relative", zIndex: 1 }}>
           <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
-          <blockquote className="v4-font-serif" style={innerStyle}>
+          <blockquote className="v4-font-serif"
+            style={{ fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300, color: CREAM, lineHeight: 1.55, maxWidth: "760px", margin: "0 auto 36px", fontStyle: "italic" }}>
             "가구의 열고 닫음을<br />매력적인 경험으로<br />만들어 드립니다."
           </blockquote>
           <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
@@ -300,18 +309,15 @@ function WipeBanner() {
     );
   }
 
-  /* 재방문: 단어 개별 span — GSAP가 각각 scatter */
+  /* 재방문: 3문장 개별 div — GSAP timeline이 gather/scatter */
   return (
     <div ref={ref} style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center", overflow: "hidden" }}>
-      <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "18px" }}>Our Philosophy</p>
-      <blockquote className="v4-font-serif" style={{ ...innerStyle, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.28em" }}>
-        {WIPE_WORDS.map((word, i) => (
-          <span key={i} ref={(el) => { if (el) wordRefs.current[i] = el; }}
-            style={{ display: "inline-block", willChange: "transform" }}>
-            {word}
-          </span>
-        ))}
-      </blockquote>
+      <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "28px" }}>Our Philosophy</p>
+      <div className="v4-font-serif" style={{ maxWidth: "760px", margin: "0 auto 36px" }}>
+        <div ref={line1Ref} style={lineStyle}>"가구의 열고 닫음을</div>
+        <div ref={line2Ref} style={lineStyle}>매력적인 경험으로</div>
+        <div ref={line3Ref} style={lineStyle}>만들어 드립니다."</div>
+      </div>
       <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
     </div>
   );

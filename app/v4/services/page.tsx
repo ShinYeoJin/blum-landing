@@ -93,6 +93,16 @@ export default function V4Services() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  /* 작업 1: Hero 애니메이션 중 스크롤 잠금 */
+  useEffect(() => {
+    if (!showServices) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showServices]);
+
   /* Hero: staged entrance
      h1 slide-r: 0ms start, 900ms duration → done at 900ms
      h2 slide-l: 280ms start, 900ms duration → done at 1180ms
@@ -128,27 +138,29 @@ export default function V4Services() {
       ScrollTrigger.create({
         trigger:  container,
         start:    "top top",
-        end:      `+=${(count - 1) * 100}vh`,  /* (count-1) 전환 × 100vh */
+        end:      `+=${(count - 1) * 100}vh`,
         pin:      true,
-        scrub:    0.6,
+        scrub:    0.8,
+        /* 작업 2: 스크롤 1회 = 패널 1개 snap */
+        snap: {
+          snapTo:   1 / (count - 1),
+          duration: { min: 0.4, max: 0.9 },
+          ease:     "power2.inOut",
+          inertia:  false,
+        },
         onUpdate: (self) => {
-          /* progress 0→1 구간을 count-1 개 슬롯으로 나눔 */
           const rawIdx   = self.progress * (count - 1);
-          const slotIdx  = Math.floor(rawIdx);   // 현재 전환 슬롯 (0 ~ count-2)
-          const slotProg = rawIdx - slotIdx;      // 슬롯 내 진행도 (0 → 1)
+          const slotIdx  = Math.floor(rawIdx);
+          const slotProg = rawIdx - slotIdx;
 
           panels.forEach((p, i) => {
             if (i < slotIdx) {
-              /* 이미 지나간 패널: 위로 사라짐 */
               gsap.set(p, { yPercent: -110 });
             } else if (i === slotIdx) {
-              /* 현재 나가는 패널: 0 → -110 */
               gsap.set(p, { yPercent: -110 * slotProg });
             } else if (i === slotIdx + 1) {
-              /* 들어오는 패널: 110 → 0 */
               gsap.set(p, { yPercent: 110 * (1 - slotProg) });
             } else {
-              /* 아직 대기 중인 패널 */
               gsap.set(p, { yPercent: 110 });
             }
           });
@@ -210,13 +222,14 @@ export default function V4Services() {
         </div>
       </nav>
 
-      {/* ══ HERO — showServices 전까지 100vh 전체 점유 ════════════ */}
+      {/* ══ HERO — showServices 전까지 100vh 전체 고정 ════════════ */}
       <section style={{
         padding: "140px 2rem 80px",
         maxWidth: "1280px",
         margin: "0 auto",
-        minHeight: showServices ? "auto" : "calc(100vh - 64px)",
-        transition: "min-height 0.6s ease",
+        height: showServices ? "auto" : "100vh",
+        overflow: "hidden",
+        boxSizing: "border-box",
       }}>
         <p style={{
           fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
