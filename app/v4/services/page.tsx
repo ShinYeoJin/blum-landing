@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /* ── Design tokens ──────────────────────────────────────────────── */
 const GOLD  = "#D4AF37";
@@ -52,151 +50,140 @@ const SERVICES = [
   },
 ];
 
-/* ── FadeUp ─────────────────────────────────────────────────────── */
-function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [vis, setVis] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); io.disconnect(); } }, { threshold: 0.1 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} style={{
-      opacity: vis ? 1 : 0,
-      transform: vis ? "none" : "translateY(48px)",
-      transition: `opacity 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-    }}>{children}</div>
-  );
-}
+/* ── Section indices
+   0        = Hero
+   1 … 5   = Service panels (SERVICES[0] … SERVICES[4])
+   6        = CTA
+─────────────────────────────────────────────────────────────────── */
+const TOTAL = 1 + SERVICES.length + 1; // 7
 
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V4Services() {
-  gsap.registerPlugin(ScrollTrigger);
-
   const [navScrolled, setNavScrolled] = useState(false);
 
   /* Hero animation stages */
   const [h1,  setH1]  = useState(false);
   const [h2,  setH2]  = useState(false);
   const [sub, setSub] = useState(false);
-  /* Hero 완료 후 서비스 섹션 등장 */
-  const [showServices, setShowServices] = useState(false);
 
-  /* GSAP refs */
-  const pinContainerRef = useRef<HTMLDivElement>(null);
-  const panelRefs       = useRef<Array<HTMLDivElement | null>>([]);
+  /* Fullpage state */
+  const [sectionIdx, setSectionIdx]   = useState(0);
+  const [animate,    setAnimate]      = useState(false); // enable CSS transition after first render
 
+  /* Refs to avoid stale closures */
+  const idxRef          = useRef(0);
+  const heroReadyRef    = useRef(false);
+  const transitionRef   = useRef(false);
+  const touchStartY     = useRef(0);
+
+  /* Sync ref → state */
+  useEffect(() => { idxRef.current = sectionIdx; }, [sectionIdx]);
+
+  /* Nav scroll tint */
   useEffect(() => {
     const fn = () => setNavScrolled(window.scrollY > 60);
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* 작업 1: Hero 애니메이션 중 스크롤 잠금 */
+  /* Prevent native scroll for the whole page */
   useEffect(() => {
-    if (!showServices) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
-  }, [showServices]);
-
-  /* Hero: staged entrance
-     h1 slide-r: 0ms start, 900ms duration → done at 900ms
-     h2 slide-l: 280ms start, 900ms duration → done at 1180ms
-     sub fade:   700ms start, 900ms duration → done at 1600ms
-     서비스 섹션: 1700ms 후 표시 (서브 텍스트 완료 + 여유) */
-  useEffect(() => {
-    const t1 = setTimeout(() => setH1(true),           120);
-    const t2 = setTimeout(() => setH2(true),           400);
-    const t3 = setTimeout(() => setSub(true),          720);
-    const t4 = setTimeout(() => setShowServices(true), 1750);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
-  /* ── GSAP ScrollTrigger: pinned panel carousel ──────────────────
-     핀 방식: pinContainerRef를 pin.
-     각 패널은 절대 위치, 초기에는 translateY(100vh) (화면 아래)
-     ScrollTrigger scrub으로 각 패널을 순서대로 위로 올리고 앞 패널을 위로 내보냄.
-  ─────────────────────────────────────────────────────────────── */
-  useLayoutEffect(() => {
-    if (!showServices) return;
+  /* Hero animation → unlock navigation after 1750 ms */
+  useEffect(() => {
+    const t1 = setTimeout(() => setH1(true),  120);
+    const t2 = setTimeout(() => setH2(true),  400);
+    const t3 = setTimeout(() => setSub(true), 720);
+    const t4 = setTimeout(() => {
+      heroReadyRef.current = true;
+    }, 1750);
+    /* Enable CSS transitions after first paint so hero doesn't slide in */
+    const t5 = setTimeout(() => setAnimate(true), 50);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
+  }, []);
 
-    const ctx = gsap.context(() => {
-      const container = pinContainerRef.current;
-      if (!container) return;
+  /* Navigate to adjacent section */
+  const go = useCallback((dir: 1 | -1) => {
+    if (!heroReadyRef.current)   return;
+    if (transitionRef.current)   return;
+    const next = idxRef.current + dir;
+    if (next < 0 || next >= TOTAL) return;
 
-      const panels = panelRefs.current.filter(Boolean) as HTMLDivElement[];
-      const count  = panels.length;
+    transitionRef.current = true;
+    idxRef.current = next;
+    setSectionIdx(next);
+    setTimeout(() => { transitionRef.current = false; }, 880);
+  }, []);
 
-      /* 첫 패널은 중앙에, 나머지는 화면 아래에서 대기 */
-      gsap.set(panels[0], { yPercent: 0 });
-      panels.slice(1).forEach(p => gsap.set(p, { yPercent: 110 }));
+  /* Wheel */
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (Math.abs(e.deltaY) < 5) return;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [go]);
 
-      ScrollTrigger.create({
-        trigger:  container,
-        start:    "top top",
-        end:      `+=${(count - 1) * 100}vh`,
-        pin:      true,
-        scrub:    0.8,
-        /* 작업 2: 스크롤 1회 = 패널 1개 snap */
-        snap: {
-          snapTo:   1 / (count - 1),
-          duration: { min: 0.4, max: 0.9 },
-          ease:     "power2.inOut",
-          inertia:  false,
-        },
-        onUpdate: (self) => {
-          const rawIdx   = self.progress * (count - 1);
-          const slotIdx  = Math.floor(rawIdx);
-          const slotProg = rawIdx - slotIdx;
+  /* Touch */
+  useEffect(() => {
+    const onStart = (e: TouchEvent) => { touchStartY.current = e.touches[0].clientY; };
+    const onEnd   = (e: TouchEvent) => {
+      const diff = touchStartY.current - e.changedTouches[0].clientY;
+      if (Math.abs(diff) < 50) return;
+      go(diff > 0 ? 1 : -1);
+    };
+    window.addEventListener("touchstart", onStart, { passive: true });
+    window.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onStart);
+      window.removeEventListener("touchend",   onEnd);
+    };
+  }, [go]);
 
-          panels.forEach((p, i) => {
-            if (i < slotIdx) {
-              gsap.set(p, { yPercent: -110 });
-            } else if (i === slotIdx) {
-              gsap.set(p, { yPercent: -110 * slotProg });
-            } else if (i === slotIdx + 1) {
-              gsap.set(p, { yPercent: 110 * (1 - slotProg) });
-            } else {
-              gsap.set(p, { yPercent: 110 });
-            }
-          });
-        },
-      });
-    }, pinContainerRef);
-
-    return () => ctx.revert();
-  }, [showServices]);
-
-  /* CSS ─────────────────────────────────────────────────────────── */
+  /* ── CSS ────────────────────────────────────────────────────────── */
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
-
     .v4s-serif { font-family:'Cormorant Garamond','Georgia',serif; }
-    .v4s-nav-link { transition:color 0.2s ease; }
     .v4s-nav-link:hover { color:${GOLD} !important; }
     .v4s-btn { transition:all 0.35s cubic-bezier(0.25,1,0.5,1); display:inline-block; }
     .v4s-btn:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(212,175,55,0.3); }
 
     @keyframes v4s-slide-r { from{opacity:0;transform:translateX(70px)} to{opacity:1;transform:none} }
     @keyframes v4s-slide-l { from{opacity:0;transform:translateX(-70px)} to{opacity:1;transform:none} }
-    @keyframes v4s-fade    { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+    @keyframes v4s-fade    { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:none} }
 
     .v4s-h1r { animation: v4s-slide-r 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
+
+    .v4s-dot { transition: all 0.3s ease; }
+    .v4s-dot:hover { opacity: 1 !important; transform: scale(1.3); }
   `;
 
+  /* Helper: CSS transform for each section */
+  const sectionStyle = (idx: number): React.CSSProperties => ({
+    position:   "absolute",
+    inset:      0,
+    transform:  `translateY(${(idx - sectionIdx) * 100}%)`,
+    transition: animate ? "transform 0.8s ease-in-out" : "none",
+    willChange: "transform",
+  });
+
+  /* Dot indicators (show during service panels) */
+  const showDots = sectionIdx >= 1 && sectionIdx <= SERVICES.length;
+
   return (
-    <div style={{ backgroundColor: NAVY, color: CREAM, fontFamily: "'Helvetica Neue', Arial, sans-serif", minHeight: "100vh", overflowX: "hidden" }}>
+    <div style={{ backgroundColor: NAVY, color: CREAM, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
       {/* ══ NAV ════════════════════════════════════════════════════ */}
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, height: "64px",
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: "64px",
         backgroundColor: navScrolled ? "rgba(13,17,23,0.96)" : "rgba(13,17,23,0.7)",
         backdropFilter: "blur(20px)",
         borderBottom: navScrolled ? `1px solid ${LINE}` : "none",
@@ -222,185 +209,205 @@ export default function V4Services() {
         </div>
       </nav>
 
-      {/* ══ HERO — showServices 전까지 100vh 전체 고정 ════════════ */}
-      <section style={{
-        padding: "140px 2rem 80px",
-        maxWidth: "1280px",
-        margin: "0 auto",
-        height: showServices ? "auto" : "100vh",
-        overflow: "hidden",
-        boxSizing: "border-box",
-      }}>
-        <p style={{
-          fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
-          color: `${GOLD}88`, marginBottom: "24px",
-          opacity: h1 ? 1 : 0, transition: "opacity 0.6s ease 0.05s",
-        }}>Services · blum</p>
+      {/* ══ FULLPAGE CONTAINER ══════════════════════════════════════ */}
+      <div style={{ position: "fixed", inset: 0, overflow: "hidden" }}>
 
-        <div style={{ overflow: "hidden", marginBottom: "8px" }}>
-          {h1 && (
-            <h1 className="v4s-serif v4s-h1r" style={{
-              fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
-              color: CREAM, lineHeight: 0.95, margin: 0,
-            }}>blum이 함께하는</h1>
-          )}
-        </div>
-        <div style={{ overflow: "hidden", marginBottom: "36px" }}>
-          {h2 && (
-            <h1 className="v4s-serif v4s-h1l" style={{
-              fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
-              color: GOLD, fontStyle: "italic", lineHeight: 0.95, margin: 0,
-              animationDelay: "0ms",
-            }}>전 과정 서비스</h1>
-          )}
-        </div>
-        {sub && (
-          <p className="v4s-sub" style={{
-            fontSize: "15px", color: GRAY, lineHeight: 2,
-            fontWeight: 300, maxWidth: "480px",
+        {/* ── Section 0: Hero ───────────────────────────────────── */}
+        <div style={sectionStyle(0)}>
+          <div style={{
+            width: "100%", height: "100%",
+            backgroundColor: NAVY,
+            display: "flex", flexDirection: "column", justifyContent: "center",
+            padding: "0 2rem", boxSizing: "border-box",
           }}>
-            기획부터 설치, 판매까지 — blum은 파트너의 성공을 위해<br />
-            모든 단계에서 전문적인 지원을 제공합니다.
-          </p>
-        )}
-      </section>
+            <div style={{ maxWidth: "1280px", margin: "0 auto", width: "100%", paddingTop: "64px" }}>
+              <p style={{
+                fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
+                color: `${GOLD}88`, marginBottom: "24px",
+                opacity: h1 ? 1 : 0, transition: "opacity 0.6s ease 0.05s",
+              }}>Services · blum</p>
 
-      {/* ══ SERVICES — GSAP ScrollTrigger pinned ═══════════════════
-          showServices가 true가 되면 렌더, 그 후 useLayoutEffect로 GSAP 세팅.
-          pinContainerRef: 핀 고정 컨테이너 (100vh)
-          각 패널: absolute, 100%×100%, GSAP가 yPercent 조작
-      ════════════════════════════════════════════════════════════ */}
-      {showServices && (
-        <>
-          {/* 핀 가능한 스크롤 여백 + 고정 컨테이너 */}
-          <div
-            ref={pinContainerRef}
-            style={{ position: "relative", height: "100vh", overflow: "hidden" }}
-          >
-            {SERVICES.map((s, i) => {
-              const imgLeft = i % 2 === 0;
-              const bgColor = i % 2 === 0 ? "#0A0E14" : "#080B10";
-              return (
-                <div
-                  key={s.num}
-                  ref={(el) => { panelRefs.current[i] = el; }}
-                  style={{
-                    position: "absolute", inset: 0,
-                    backgroundColor: bgColor,
-                    display: "flex",
-                    flexDirection: imgLeft ? "row" : "row-reverse",
-                    willChange: "transform",
-                  }}
-                >
-                  {/* Image half */}
-                  <div style={{ flex: "0 0 52%", position: "relative", overflow: "hidden" }}>
-                    <img
-                      src={s.img}
-                      alt={s.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
-                    />
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      background: imgLeft
-                        ? `linear-gradient(to right, transparent 65%, ${bgColor} 100%)`
-                        : `linear-gradient(to left, transparent 65%, ${bgColor} 100%)`,
-                    }} />
-                  </div>
+              <div style={{ overflow: "hidden", marginBottom: "8px" }}>
+                {h1 && (
+                  <h1 className="v4s-serif v4s-h1r" style={{
+                    fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
+                    color: CREAM, lineHeight: 0.95, margin: 0,
+                  }}>blum이 함께하는</h1>
+                )}
+              </div>
+              <div style={{ overflow: "hidden", marginBottom: "36px" }}>
+                {h2 && (
+                  <h1 className="v4s-serif v4s-h1l" style={{
+                    fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
+                    color: GOLD, fontStyle: "italic", lineHeight: 0.95, margin: 0,
+                  }}>전 과정 서비스</h1>
+                )}
+              </div>
+              {sub && (
+                <p className="v4s-sub" style={{
+                  fontSize: "15px", color: GRAY, lineHeight: 2,
+                  fontWeight: 300, maxWidth: "480px",
+                }}>
+                  기획부터 설치, 판매까지 — blum은 파트너의 성공을 위해<br />
+                  모든 단계에서 전문적인 지원을 제공합니다.
+                </p>
+              )}
 
-                  {/* Text half */}
+              {/* Scroll cue */}
+              {sub && (
+                <div style={{ marginTop: "56px", display: "flex", alignItems: "center", gap: "12px", opacity: 0.45 }}>
+                  <span style={{ width: "32px", height: "1px", backgroundColor: GOLD }} />
+                  <span style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: GOLD }}>Scroll</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sections 1–5: Service panels ─────────────────────── */}
+        {SERVICES.map((s, i) => {
+          const imgLeft  = i % 2 === 0;
+          const bgColor  = i % 2 === 0 ? "#0A0E14" : "#080B10";
+          return (
+            <div key={s.num} style={sectionStyle(i + 1)}>
+              <div style={{
+                width: "100%", height: "100%",
+                backgroundColor: bgColor,
+                display: "flex",
+                flexDirection: imgLeft ? "row" : "row-reverse",
+              }}>
+                {/* Image half */}
+                <div style={{ flex: "0 0 52%", position: "relative", overflow: "hidden" }}>
+                  <img
+                    src={s.img}
+                    alt={s.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
+                  />
                   <div style={{
-                    flex: 1, display: "flex", alignItems: "center",
-                    padding: "0 clamp(28px,5%,72px)",
-                  }}>
-                    <div>
-                      {/* Ghost number */}
-                      <div className="v4s-serif" style={{
-                        fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
-                        color: `${GOLD}18`, lineHeight: 1, marginBottom: "4px",
-                      }}>{s.num}</div>
+                    position: "absolute", inset: 0,
+                    background: imgLeft
+                      ? `linear-gradient(to right, transparent 65%, ${bgColor} 100%)`
+                      : `linear-gradient(to left,  transparent 65%, ${bgColor} 100%)`,
+                  }} />
+                </div>
 
-                      {/* Service name */}
-                      <h2 className="v4s-serif" style={{
-                        fontSize: "clamp(1.8rem,3.5vw,3rem)", fontWeight: 300,
-                        color: CREAM, lineHeight: 1.1, marginBottom: "16px",
-                      }}>{s.name}</h2>
+                {/* Text half */}
+                <div style={{
+                  flex: 1, display: "flex", alignItems: "center",
+                  padding: "0 clamp(28px,5%,72px)",
+                }}>
+                  <div>
+                    <div className="v4s-serif" style={{
+                      fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
+                      color: `${GOLD}18`, lineHeight: 1, marginBottom: "4px",
+                    }}>{s.num}</div>
 
-                      {/* Gold divider */}
-                      <div style={{
-                        width: "40px", height: "1px",
-                        backgroundColor: `${GOLD}77`,
-                        marginBottom: "20px",
-                      }} />
+                    <h2 className="v4s-serif" style={{
+                      fontSize: "clamp(1.8rem,3.5vw,3rem)", fontWeight: 300,
+                      color: CREAM, lineHeight: 1.1, marginBottom: "16px",
+                    }}>{s.name}</h2>
 
-                      {/* Description */}
-                      <p style={{
-                        fontSize: "14px", color: GRAY, lineHeight: 1.95,
-                        maxWidth: "360px", marginBottom: "32px",
-                      }}>{s.desc}</p>
+                    <div style={{ width: "40px", height: "1px", backgroundColor: `${GOLD}77`, marginBottom: "20px" }} />
 
-                      {/* Items — 가독성 개선: 밝은 색·큰 폰트 */}
-                      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-                        {s.items.map((item) => (
-                          <li key={item} style={{
-                            fontSize: "13px",
-                            color: CREAM,
-                            display: "flex", alignItems: "center", gap: "12px",
-                            fontWeight: 300, letterSpacing: "0.02em",
-                          }}>
-                            <span style={{ width: "18px", height: "1px", backgroundColor: GOLD, flexShrink: 0, display: "inline-block" }} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <p style={{
+                      fontSize: "14px", color: GRAY, lineHeight: 1.95,
+                      maxWidth: "360px", marginBottom: "32px",
+                    }}>{s.desc}</p>
+
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {s.items.map((item) => (
+                        <li key={item} style={{
+                          fontSize: "13px", color: CREAM,
+                          display: "flex", alignItems: "center", gap: "12px",
+                          fontWeight: 300, letterSpacing: "0.02em",
+                        }}>
+                          <span style={{ width: "18px", height: "1px", backgroundColor: GOLD, flexShrink: 0, display: "inline-block" }} />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+          );
+        })}
 
-        </>
-      )}
-
-      {/* ══ CTA — Hero 애니메이션 완료 후에만 표시 ════════════════ */}
-      {showServices && <section style={{
-        padding: "120px 2rem",
-        textAlign: "center",
-        backgroundColor: "#070B10",
-        borderTop: `1px solid ${LINE}`,
-      }}>
-        <FadeUp delay={0}>
-          <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}66`, marginBottom: "20px" }}>Get in Touch</p>
-        </FadeUp>
-        <FadeUp delay={120}>
-          <h2 className="v4s-serif" style={{
-            fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
-            color: CREAM, marginBottom: "36px", lineHeight: 1.3,
+        {/* ── Section 6: CTA ───────────────────────────────────── */}
+        <div style={sectionStyle(SERVICES.length + 1)}>
+          <div style={{
+            width: "100%", height: "100%",
+            backgroundColor: "#070B10",
+            display: "flex", flexDirection: "column",
+            justifyContent: "center", alignItems: "center",
+            borderTop: `1px solid ${LINE}`,
+            padding: "0 2rem", boxSizing: "border-box",
+            textAlign: "center",
           }}>
-            더 자세한 서비스 안내가<br />필요하신가요?
-          </h2>
-        </FadeUp>
-        <FadeUp delay={280}>
-          <Link href="/v4/contact" className="v4s-btn" style={{
-            color: NAVY, textDecoration: "none",
-            fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-            padding: "16px 40px", backgroundColor: GOLD,
-          }}>문의하기</Link>
-        </FadeUp>
-      </section>}
+            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}66`, marginBottom: "20px" }}>
+              Get in Touch
+            </p>
+            <h2 className="v4s-serif" style={{
+              fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
+              color: CREAM, marginBottom: "36px", lineHeight: 1.3,
+            }}>
+              더 자세한 서비스 안내가<br />필요하신가요?
+            </h2>
+            <Link href="/v4/contact" className="v4s-btn" style={{
+              color: NAVY, textDecoration: "none",
+              fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
+              padding: "16px 40px", backgroundColor: GOLD,
+              marginBottom: "64px",
+            }}>문의하기</Link>
 
-      {/* ══ FOOTER ═════════════════════════════════════════════════ */}
-      <footer style={{ borderTop: `1px solid ${LINE}`, padding: "28px 2rem", backgroundColor: NAVY }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-          <span style={{ fontSize: "10px", color: "rgba(245,240,232,0.18)", letterSpacing: "0.1em" }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
-          <div style={{ display: "flex", gap: "24px" }}>
-            {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]] as [string, string][]).map(([l, h]) => (
-              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}77` : "rgba(245,240,232,0.2)", textDecoration: "none" }}>{l}</Link>
-            ))}
+            {/* Footer inside CTA section */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: `1px solid ${LINE}`, padding: "24px 2rem" }}>
+              <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+                <span style={{ fontSize: "10px", color: "rgba(245,240,232,0.18)", letterSpacing: "0.1em" }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
+                <div style={{ display: "flex", gap: "24px" }}>
+                  {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]] as [string, string][]).map(([l, h]) => (
+                    <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}77` : "rgba(245,240,232,0.2)", textDecoration: "none" }}>{l}</Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </footer>
+      </div>
+
+      {/* ══ Dot indicators (service sections only) ══════════════════ */}
+      <div style={{
+        position: "fixed", right: "28px", top: "50%", transform: "translateY(-50%)",
+        zIndex: 300, display: "flex", flexDirection: "column", gap: "10px",
+        opacity: showDots ? 1 : 0,
+        transition: "opacity 0.4s ease",
+        pointerEvents: showDots ? "auto" : "none",
+      }}>
+        {SERVICES.map((_, i) => (
+          <button
+            key={i}
+            className="v4s-dot"
+            onClick={() => {
+              if (transitionRef.current || !heroReadyRef.current) return;
+              const target = i + 1;
+              const diff   = target - idxRef.current;
+              if (diff === 0) return;
+              transitionRef.current = true;
+              idxRef.current = target;
+              setSectionIdx(target);
+              setTimeout(() => { transitionRef.current = false; }, 880);
+            }}
+            style={{
+              width: "6px", height: "6px",
+              borderRadius: "50%",
+              backgroundColor: GOLD,
+              border: "none", cursor: "pointer", padding: 0,
+              opacity: sectionIdx === i + 1 ? 1 : 0.25,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
