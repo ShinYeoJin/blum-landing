@@ -36,6 +36,45 @@ function Reveal({
   );
 }
 
+/* ── Slide in from left ─────────────────────────────────────────── */
+function SlideLeft({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const { ref, inView } = useInView(0.1);
+  return (
+    <div ref={ref} style={{
+      opacity: inView ? 1 : 0,
+      transform: inView ? "none" : "translateX(-52px)",
+      transition: `opacity 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+      willChange: "transform, opacity",
+    }}>{children}</div>
+  );
+}
+
+/* ── Expand line left→right ─────────────────────────────────────── */
+function ExpandLine({ delay = 0, className = "" }: { delay?: number; className?: string }) {
+  const { ref, inView } = useInView(0.1);
+  return (
+    <div ref={ref} className={className} style={{
+      transformOrigin: "left",
+      transform: inView ? "scaleX(1)" : "scaleX(0)",
+      transition: inView ? `transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms` : "none",
+    }} />
+  );
+}
+
+/* ── Scale in on entry (1.08→1) ─────────────────────────────────── */
+function ScaleIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const { ref, inView } = useInView(0.05);
+  return (
+    <div ref={ref} style={{ overflow: "hidden" }}>
+      <div style={{
+        transform: inView ? "scale(1)" : "scale(1.08)",
+        transition: `transform 1.4s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+        willChange: "transform",
+      }}>{children}</div>
+    </div>
+  );
+}
+
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
   const ref     = useRef<HTMLSpanElement>(null);
@@ -146,21 +185,27 @@ export default function V1() {
   return (
     <div className="bg-white text-zinc-900 overflow-x-hidden" style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
       <style>{`
-        @keyframes v1-ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
-        @keyframes v1-scrollbar { 0% { transform: translateY(-100%) } 100% { transform: translateY(300%) } }
-        @keyframes v1-blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
-        @keyframes v1-hero-in { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:translateY(0) } }
-        .v1-ticker { animation: v1-ticker 28s linear infinite; }
+        @keyframes v1-ticker    { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        @keyframes v1-scrollbar { 0%{transform:translateY(-100%)} 100%{transform:translateY(300%)} }
+        @keyframes v1-blink     { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes v1-hero-in   { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes v1-word-in   { from{opacity:0;transform:translateY(110%)} to{opacity:1;transform:translateY(0)} }
+        @keyframes v1-bounce    { 0%,100%{transform:translateY(0) rotate(90deg)} 50%{transform:translateY(5px) rotate(90deg)} }
+
+        .v1-ticker   { animation: v1-ticker 28s linear infinite; }
         .v1-scrollbar { animation: v1-scrollbar 2.2s cubic-bezier(0.4,0,0.2,1) infinite; }
-        .product-card { transition: transform 0.5s cubic-bezier(0.25,1,0.5,1), box-shadow 0.5s ease; }
-        .product-card:hover { transform: scale(1.01); box-shadow: 0 24px 60px rgba(0,0,0,0.10); }
-        .product-card:hover .product-img { transform: scale(1.04); }
+        .v1-bounce-txt { animation: v1-bounce 1.8s ease-in-out infinite; display:inline-block; }
+
+        .v1-word { display:inline-block; animation: v1-word-in 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+
+        .product-card { transition: transform 0.55s cubic-bezier(0.25,1,0.5,1), box-shadow 0.55s ease; }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 28px 64px rgba(0,0,0,0.12); }
+        .product-card:hover .product-img { transform: scale(1.06); }
         .product-card:hover .product-sub { opacity: 1; transform: translateY(0); }
         .value-row:hover .value-num { color: #18181b; }
+
         .v1-hero-badge { animation: v1-hero-in 1s cubic-bezier(0.16,1,0.3,1) 100ms both; }
-        .v1-hero-title { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 260ms both; }
-        .v1-hero-sub { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 430ms both; }
-        .v1-hero-cta { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 560ms both; }
+        .v1-hero-sub   { animation: v1-hero-in 1.1s cubic-bezier(0.16,1,0.3,1) 560ms both; }
       `}</style>
 
       {/* ══════════════════ HERO ══════════════════ */}
@@ -190,14 +235,20 @@ export default function V1() {
             <span className="text-[9px] tracking-[0.55em] uppercase text-white/40">Premium Furniture Fittings · Austria · Since 1952</span>
           </div>
 
-          <h1 className="v1-hero-title text-white mb-6 leading-none select-none" style={{
+          <h1 className="text-white mb-6 leading-none select-none" style={{
             fontSize: "clamp(3.5rem, 11vw, 10rem)",
             fontWeight: 200,
             letterSpacing: "-0.03em",
             lineHeight: 0.9,
           }}>
-            moving<br />
-            <span style={{ color: "rgba(161,161,170,0.85)", fontStyle: "italic" }}>ideas.</span>
+            {/* Word-by-word reveal — overflow:hidden clips the rise */}
+            <span style={{ display: "inline-block", overflow: "hidden" }}>
+              <span className="v1-word" style={{ animationDelay: "220ms" }}>moving</span>
+            </span>
+            <br />
+            <span style={{ display: "inline-block", overflow: "hidden" }}>
+              <span className="v1-word" style={{ color: "rgba(161,161,170,0.85)", fontStyle: "italic", animationDelay: "380ms" }}>ideas.</span>
+            </span>
           </h1>
 
           <div className="v1-hero-sub flex flex-col md:flex-row md:items-end gap-8 md:gap-20">
@@ -226,7 +277,7 @@ export default function V1() {
         </div>
 
         <div className="absolute bottom-8 right-8 flex flex-col items-center gap-3 z-10">
-          <span className="text-[8px] tracking-[0.4em] uppercase text-white/25 rotate-90 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
+          <span className="v1-bounce-txt text-[8px] tracking-[0.4em] uppercase text-white/25 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
           <div className="w-px h-14 bg-white/12 relative overflow-hidden">
             <div className="w-full bg-white/50 absolute top-0 v1-scrollbar" style={{ height: "45%" }} />
           </div>
@@ -268,12 +319,14 @@ export default function V1() {
       <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-20 items-start">
           <div className="md:col-span-5">
-            <Reveal>
+            <SlideLeft>
               <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-7">About Blum</p>
               <h2 className="text-3xl md:text-5xl font-extralight leading-[1.1] text-zinc-900 mb-8" style={{ letterSpacing: "-0.02em" }}>
                 가구의 움직임을<br />재정의합니다
               </h2>
-              <div className="w-10 h-px bg-zinc-200 mb-8" />
+            </SlideLeft>
+            <Reveal delay={80}>
+              <ExpandLine delay={80} className="w-10 h-px bg-zinc-200 mb-8" />
               <p className="text-zinc-400 leading-8 text-sm mb-5" style={{ fontWeight: 300 }}>
                 1952년 오스트리아 포어알베르크에서 시작된 blum은 현재 전 세계 120개국에서 사용되는 프리미엄 가구 피팅 제조사입니다.
               </p>
@@ -294,40 +347,48 @@ export default function V1() {
           <div className="md:col-span-7">
             <div className="grid grid-cols-2 gap-3">
               <Reveal delay={0} className="space-y-3">
-                <div className="aspect-[4/5] overflow-hidden bg-zinc-100">
-                  <img
-                    src={`${BASE}/images/268/202/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
-                    alt="blum factory"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#f4f4f5"; }}
-                  />
-                </div>
-                <div className="aspect-[4/3] overflow-hidden bg-zinc-100">
-                  <img
-                    src={`${BASE}/images/268/202/4214770/corporate/media/bilder/unternehmen/nachhaltigkeit/neu2025/Blum_umweltfreundliche_Transporte_4:3.jpg`}
-                    alt="blum sustainability"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#e4e4e7"; }}
-                  />
-                </div>
+                <ScaleIn>
+                  <div className="aspect-[4/5] overflow-hidden bg-zinc-100">
+                    <img
+                      src={`${BASE}/images/268/202/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
+                      alt="blum factory"
+                      className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#f4f4f5"; }}
+                    />
+                  </div>
+                </ScaleIn>
+                <ScaleIn delay={80}>
+                  <div className="aspect-[4/3] overflow-hidden bg-zinc-100">
+                    <img
+                      src={`${BASE}/images/268/202/4214770/corporate/media/bilder/unternehmen/nachhaltigkeit/neu2025/Blum_umweltfreundliche_Transporte_4:3.jpg`}
+                      alt="blum sustainability"
+                      className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#e4e4e7"; }}
+                    />
+                  </div>
+                </ScaleIn>
               </Reveal>
               <Reveal delay={120} className="space-y-3 mt-10">
-                <div className="aspect-[4/3] overflow-hidden bg-zinc-100">
-                  <img
-                    src={`${BASE}/images/268/202/4214774/corporate/media/bilder/unternehmen/img2633_aa_fot_fo_bau_-sall_-am_-v1_4:3.jpg`}
-                    alt="blum team"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#d4d4d8"; }}
-                  />
-                </div>
-                <div className="aspect-[4/5] overflow-hidden bg-zinc-100">
-                  <img
-                    src={`${BASE}/images/268/202/4214675/corporate/media/bilder/unternehmen/Geschaeftsfuehrung_Philipp-Blum_Martin-Blum_4:3.jpg`}
-                    alt="blum leadership"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#a1a1aa"; }}
-                  />
-                </div>
+                <ScaleIn delay={60}>
+                  <div className="aspect-[4/3] overflow-hidden bg-zinc-100">
+                    <img
+                      src={`${BASE}/images/268/202/4214774/corporate/media/bilder/unternehmen/img2633_aa_fot_fo_bau_-sall_-am_-v1_4:3.jpg`}
+                      alt="blum team"
+                      className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#d4d4d8"; }}
+                    />
+                  </div>
+                </ScaleIn>
+                <ScaleIn delay={140}>
+                  <div className="aspect-[4/5] overflow-hidden bg-zinc-100">
+                    <img
+                      src={`${BASE}/images/268/202/4214675/corporate/media/bilder/unternehmen/Geschaeftsfuehrung_Philipp-Blum_Martin-Blum_4:3.jpg`}
+                      alt="blum leadership"
+                      className="w-full h-full object-cover hover:scale-[1.03] transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#a1a1aa"; }}
+                    />
+                  </div>
+                </ScaleIn>
               </Reveal>
             </div>
           </div>
@@ -351,7 +412,7 @@ export default function V1() {
       </section>
 
       {/* ══════════════════ DIVIDER IMAGE ══════════════════ */}
-      <Reveal className="w-full overflow-hidden" y={20}>
+      <ScaleIn>
         <div className="relative w-full" style={{ height: "clamp(280px, 45vw, 600px)" }}>
           <img
             src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`}
@@ -369,16 +430,16 @@ export default function V1() {
             </div>
           </div>
         </div>
-      </Reveal>
+      </ScaleIn>
 
       {/* ══════════════════ PRODUCTS ══════════════════ */}
       <section id="products" className="py-28 md:py-40">
         <div className="max-w-7xl mx-auto px-8">
-          <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+            <SlideLeft>
               <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
               <h2 className="text-3xl md:text-5xl font-extralight" style={{ letterSpacing: "-0.02em" }}>Signature Systems</h2>
-            </div>
+            </SlideLeft>
             <Link
               href="/v1/products"
               className="text-[11px] tracking-[0.25em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group inline-flex items-center gap-2 shrink-0"
@@ -387,7 +448,7 @@ export default function V1() {
               전체 제품 보기
               <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
             </Link>
-          </Reveal>
+          </div>
 
           <div className="flex flex-col gap-px bg-zinc-100">
             {PRODUCTS.map((p, i) => {
@@ -473,7 +534,7 @@ export default function V1() {
       </section>
 
       {/* ══════════════════ FULL-BLEED FEATURE ══════════════════ */}
-      <Reveal y={20}>
+      <ScaleIn>
         <div className="relative overflow-hidden" style={{ height: "clamp(400px, 55vw, 720px)" }}>
           <img
             src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
@@ -504,19 +565,23 @@ export default function V1() {
             </div>
           </div>
         </div>
-      </Reveal>
+      </ScaleIn>
 
       {/* ══════════════════ PHILOSOPHY ══════════════════ */}
       <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-          <Reveal>
-            <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
-            <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
-            <div className="w-10 h-px bg-zinc-200 mb-8" />
-            <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
-              삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
-            </p>
-          </Reveal>
+          <div>
+            <SlideLeft>
+              <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
+              <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
+            </SlideLeft>
+            <ExpandLine delay={80} className="w-10 h-px bg-zinc-200 mb-8" />
+            <Reveal delay={120}>
+              <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
+                삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
+              </p>
+            </Reveal>
+          </div>
 
           <div>
             {VALUES.map((v, i) => (
@@ -554,10 +619,12 @@ export default function V1() {
       <Reveal>
         <section className="py-16 bg-zinc-50 border-y border-zinc-100">
           <div className="max-w-7xl mx-auto px-8">
-            <Reveal className="mb-12">
-              <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-3">Services</p>
-              <h2 className="text-2xl md:text-3xl font-extralight" style={{ letterSpacing: "-0.02em" }}>전문 서비스 지원</h2>
-            </Reveal>
+            <SlideLeft>
+              <div className="mb-12">
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-3">Services</p>
+                <h2 className="text-2xl md:text-3xl font-extralight" style={{ letterSpacing: "-0.02em" }}>전문 서비스 지원</h2>
+              </div>
+            </SlideLeft>
             <div className="flex flex-col gap-px bg-zinc-200">
               {SERVICES.map((s, i) => {
                 const isEven = i % 2 === 0;

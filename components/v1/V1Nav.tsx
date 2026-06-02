@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,13 +23,24 @@ const MENU = [
 ];
 
 export default function V1Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
+  const [scrolled, setScrolled]   = useState(false);
+  const [hidden,   setHidden]     = useState(false);
+  const [open,     setOpen]       = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const lastY    = useRef(0);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 48);
+    const fn = () => {
+      const y = window.scrollY;
+      setScrolled(y > 48);
+      if (y < 80) {
+        setHidden(false);
+      } else {
+        setHidden(y > lastY.current);
+      }
+      lastY.current = y;
+    };
     fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
@@ -45,9 +56,16 @@ export default function V1Nav() {
 
   return (
     <>
+      {/* Wrapper — slides up/down as a unit */}
+      <div style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 70,
+        transform: hidden ? "translateY(-80px)" : "translateY(0)",
+        transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+      }}>
+
       {/* Ticker */}
       <div
-        className="fixed top-0 left-0 right-0 z-[70] overflow-hidden flex items-center"
+        className="overflow-hidden flex items-center"
         style={{ backgroundColor: "#18181b", height: "24px" }}
       >
         <style>{`@keyframes v1tk{from{transform:translateX(0)}to{transform:translateX(-50%)}} .v1tk{animation:v1tk 30s linear infinite}`}</style>
@@ -62,9 +80,9 @@ export default function V1Nav() {
 
       {/* Nav */}
       <nav
-        className="fixed left-0 right-0 z-50 transition-all duration-300"
+        className="transition-all duration-300"
         style={{
-          top: "24px",
+          position: "relative",
           height: "56px",
           backgroundColor: bg,
           backdropFilter: scrolled ? "blur(16px)" : "none",
@@ -197,6 +215,7 @@ export default function V1Nav() {
           </div>
         )}
       </nav>
+      </div>{/* end hide/show wrapper */}
     </>
   );
 }
