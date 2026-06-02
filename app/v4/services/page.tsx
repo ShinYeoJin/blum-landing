@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-/* ── Design tokens (v4 통일) ─────────────────────────────────────── */
+/* ── Design tokens ──────────────────────────────────────────────── */
 const GOLD  = "#D4AF37";
 const NAVY  = "#0D1117";
 const CREAM = "#F5F0E8";
@@ -11,33 +13,33 @@ const GRAY  = "rgba(245,240,232,0.55)";
 const LINE  = "rgba(212,175,55,0.18)";
 const BASE  = "https://www.blum.com";
 
-/* ── Data ─────────────────────────────────────────────────────────── */
+/* ── Data ───────────────────────────────────────────────────────── */
 const SERVICES = [
   {
     num:  "01",
     name: "계획 / 설계 지원",
-    desc: "가구 기획 단계부터 blum이 함께합니다. 구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다. 도면 데이터와 제품 구성 프로그램을 통해 전문적인 가구 설계를 지원합니다.",
+    desc: "가구 기획 단계부터 blum이 함께합니다. 구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
     items: ["구역 플래너", "캐비닛 구성 시뮬레이터", "제품 구성 프로그램", "도면 데이터 제공"],
     img: `${BASE}/images/560/258/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
   {
     num:  "02",
     name: "E-Services",
-    desc: "언제 어디서나 온라인으로 blum의 모든 서비스를 이용하세요. CAD/CAM 데이터부터 주문 관리까지 디지털로 완결되는 온라인 서비스 포털을 제공합니다.",
+    desc: "언제 어디서나 온라인으로 blum의 모든 서비스를 이용하세요. CAD/CAM 데이터부터 주문 관리까지 디지털로 완결됩니다.",
     items: ["CAD/CAM 데이터 서비스", "제품 DB", "온라인 주문 인터페이스", "EASY ASSEMBLY 앱"],
     img: `${BASE}/images/560/258/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
   },
   {
     num:  "03",
     name: "조립 / 조정 지원",
-    desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 blum의 전문 조립 장치로 작업을 단순화하고 품질을 높입니다.",
+    desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 전문 조립 장치로 작업을 단순화합니다.",
     items: ["ECODRILL 드릴링 기기", "EASYSTICK 스탬핑 도구", "MINIPRESS top", "조립 장치 선택기"],
     img: `${BASE}/images/560/258/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
   {
     num:  "04",
     name: "마케팅 / 판매 지원",
-    desc: "blum 제품을 판매하는 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 고해상도 이미지, 영상, 기술 문서 등 판매에 필요한 모든 자료를 제공합니다.",
+    desc: "blum 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 고해상도 이미지, 영상, 기술 문서 등 판매에 필요한 모든 자료를 제공합니다.",
     items: ["마케팅 멀티미디어 자료실", "제품 이미지 / 영상", "기술 문서", "판매 지원 자료"],
     img: `${BASE}/images/560/258/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
   },
@@ -50,7 +52,7 @@ const SERVICES = [
   },
 ];
 
-/* ── FadeUp: 아래→위 fade-in (CTA용) ─────────────────────────────── */
+/* ── FadeUp ─────────────────────────────────────────────────────── */
 function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [vis, setVis] = useState(false);
@@ -70,64 +72,94 @@ function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V4Services() {
+  gsap.registerPlugin(ScrollTrigger);
+
   const [navScrolled, setNavScrolled] = useState(false);
 
   /* Hero animation stages */
-  const [h1,  setH1]  = useState(false); // line 1 slide from right
-  const [h2,  setH2]  = useState(false); // line 2 slide from left
-  const [sub, setSub] = useState(false); // sub text fade-in
+  const [h1,  setH1]  = useState(false);
+  const [h2,  setH2]  = useState(false);
+  const [sub, setSub] = useState(false);
+  /* Hero 완료 후 서비스 섹션 등장 */
+  const [showServices, setShowServices] = useState(false);
 
-  /* Sticky services: track scrollY + each section's offsetTop */
-  const [scrollY, setScrollY] = useState(0);
-  const svcRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const [svcOffsets, setSvcOffsets] = useState<number[]>([]);
-  const [svcVis, setSvcVis] = useState<boolean[]>(SERVICES.map(() => false));
+  /* GSAP refs */
+  const pinContainerRef = useRef<HTMLDivElement>(null);
+  const panelRefs       = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
-    const fn = () => { setNavScrolled(window.scrollY > 60); setScrollY(window.scrollY); };
+    const fn = () => setNavScrolled(window.scrollY > 60);
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Hero: staged entrance */
+  /* Hero: staged entrance
+     h1 slide-r: 0ms start, 900ms duration → done at 900ms
+     h2 slide-l: 280ms start, 900ms duration → done at 1180ms
+     sub fade:   700ms start, 900ms duration → done at 1600ms
+     서비스 섹션: 1700ms 후 표시 (서브 텍스트 완료 + 여유) */
   useEffect(() => {
-    const t1 = setTimeout(() => setH1(true),  120);
-    const t2 = setTimeout(() => setH2(true),  400);
-    const t3 = setTimeout(() => setSub(true), 700);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const t1 = setTimeout(() => setH1(true),           120);
+    const t2 = setTimeout(() => setH2(true),           400);
+    const t3 = setTimeout(() => setSub(true),          720);
+    const t4 = setTimeout(() => setShowServices(true), 1750);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
-  /* Measure section offsets after mount */
-  useEffect(() => {
-    const measure = () => {
-      setSvcOffsets(svcRefs.current.map(el => el?.getBoundingClientRect().top ?? 0 + window.scrollY));
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
+  /* ── GSAP ScrollTrigger: pinned panel carousel ──────────────────
+     핀 방식: pinContainerRef를 pin.
+     각 패널은 절대 위치, 초기에는 translateY(100vh) (화면 아래)
+     ScrollTrigger scrub으로 각 패널을 순서대로 위로 올리고 앞 패널을 위로 내보냄.
+  ─────────────────────────────────────────────────────────────── */
+  useLayoutEffect(() => {
+    if (!showServices) return;
 
-  /* IntersectionObserver per service content block */
-  useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-    svcRefs.current.forEach((el, i) => {
-      if (!el) return;
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) setSvcVis(p => { const n = [...p]; n[i] = true; return n; });
-      }, { threshold: 0.15 });
-      io.observe(el); observers.push(io);
-    });
-    return () => observers.forEach(io => io.disconnect());
-  }, []);
+    const ctx = gsap.context(() => {
+      const container = pinContainerRef.current;
+      if (!container) return;
 
-  /* Per-card parallax offset (subtle, content "rises" as you scroll) */
-  const parallax = (i: number) => {
-    const offset = svcOffsets[i] ?? 0;
-    const rel = scrollY - offset + (typeof window !== "undefined" ? window.innerHeight * 0.4 : 0);
-    return Math.min(0, -rel * 0.06); // negative = translate up
-  };
+      const panels = panelRefs.current.filter(Boolean) as HTMLDivElement[];
+      const count  = panels.length;
 
-  /* CSS ──────────────────────────────────────────────────────────── */
+      /* 첫 패널은 중앙에, 나머지는 화면 아래에서 대기 */
+      gsap.set(panels[0], { yPercent: 0 });
+      panels.slice(1).forEach(p => gsap.set(p, { yPercent: 110 }));
+
+      ScrollTrigger.create({
+        trigger:  container,
+        start:    "top top",
+        end:      `+=${count * 100}vh`,
+        pin:      true,
+        scrub:    0.6,
+        onUpdate: (self) => {
+          /* progress 0→1 구간을 count-1 개 슬롯으로 나눔 */
+          const rawIdx   = self.progress * (count - 1);
+          const slotIdx  = Math.floor(rawIdx);   // 현재 전환 슬롯 (0 ~ count-2)
+          const slotProg = rawIdx - slotIdx;      // 슬롯 내 진행도 (0 → 1)
+
+          panels.forEach((p, i) => {
+            if (i < slotIdx) {
+              /* 이미 지나간 패널: 위로 사라짐 */
+              gsap.set(p, { yPercent: -110 });
+            } else if (i === slotIdx) {
+              /* 현재 나가는 패널: 0 → -110 */
+              gsap.set(p, { yPercent: -110 * slotProg });
+            } else if (i === slotIdx + 1) {
+              /* 들어오는 패널: 110 → 0 */
+              gsap.set(p, { yPercent: 110 * (1 - slotProg) });
+            } else {
+              /* 아직 대기 중인 패널 */
+              gsap.set(p, { yPercent: 110 });
+            }
+          });
+        },
+      });
+    }, pinContainerRef);
+
+    return () => ctx.revert();
+  }, [showServices]);
+
+  /* CSS ─────────────────────────────────────────────────────────── */
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
@@ -137,43 +169,20 @@ export default function V4Services() {
     .v4s-btn { transition:all 0.35s cubic-bezier(0.25,1,0.5,1); display:inline-block; }
     .v4s-btn:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(212,175,55,0.3); }
 
-    /* Sticky service stack */
-    .v4s-svc-wrap {
-      position: relative;
-      height: 140vh;
-    }
-    .v4s-svc-sticky {
-      position: sticky;
-      top: 64px;
-      height: calc(100vh - 64px);
-      overflow: hidden;
-    }
-
-    /* Item list */
-    .v4s-item { display:flex; align-items:center; gap:10px; }
-    .v4s-item-dot { width:16px; height:1px; background:${GOLD}; flex-shrink:0; display:inline-block; }
-
     @keyframes v4s-slide-r { from{opacity:0;transform:translateX(70px)} to{opacity:1;transform:none} }
     @keyframes v4s-slide-l { from{opacity:0;transform:translateX(-70px)} to{opacity:1;transform:none} }
     @keyframes v4s-fade    { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
 
     .v4s-h1r { animation: v4s-slide-r 0.9s cubic-bezier(0.16,1,0.3,1) both; }
-    .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) 0.28s both; }
-    .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) 0.6s both; }
-
-    @media (max-width: 768px) {
-      .v4s-svc-wrap { height: auto; }
-      .v4s-svc-sticky { position: relative; top: auto; height: auto; min-height: 600px; }
-      .v4s-svc-inner { flex-direction: column !important; }
-      .v4s-svc-img { height: 260px !important; }
-    }
+    .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
   `;
 
   return (
     <div style={{ backgroundColor: NAVY, color: CREAM, fontFamily: "'Helvetica Neue', Arial, sans-serif", minHeight: "100vh", overflowX: "hidden" }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
 
-      {/* ══ NAV (v4 통일) ══════════════════════════════════════════ */}
+      {/* ══ NAV ════════════════════════════════════════════════════ */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, height: "64px",
         backgroundColor: navScrolled ? "rgba(13,17,23,0.96)" : "rgba(13,17,23,0.7)",
@@ -214,22 +223,18 @@ export default function V4Services() {
             <h1 className="v4s-serif v4s-h1r" style={{
               fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
               color: CREAM, lineHeight: 0.95, margin: 0,
-            }}>
-              blum이 함께하는
-            </h1>
+            }}>blum이 함께하는</h1>
           )}
         </div>
-        <div style={{ overflow: "hidden", marginBottom: "32px" }}>
+        <div style={{ overflow: "hidden", marginBottom: "36px" }}>
           {h2 && (
             <h1 className="v4s-serif v4s-h1l" style={{
               fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300,
               color: GOLD, fontStyle: "italic", lineHeight: 0.95, margin: 0,
-            }}>
-              전 과정 서비스
-            </h1>
+              animationDelay: "0ms",
+            }}>전 과정 서비스</h1>
           )}
         </div>
-
         {sub && (
           <p className="v4s-sub" style={{
             fontSize: "15px", color: GRAY, lineHeight: 2,
@@ -241,120 +246,90 @@ export default function V4Services() {
         )}
       </section>
 
-      {/* ══ SERVICES — sticky stack ═════════════════════════════════
-          각 카드가 sticky로 쌓이며 다음 카드가 이전 카드 위를 덮는 구조.
-          배경(이미지) 고정 + 콘텐츠 위로 솟구치는 효과.
-      ═════════════════════════════════════════════════════════════ */}
-      <section style={{ paddingBottom: "0" }}>
-        {SERVICES.map((s, i) => {
-          const visible  = svcVis[i];
-          const imgLeft  = i % 2 === 0;
-          const py       = parallax(i);
-
-          return (
-            <div key={s.num} className="v4s-svc-wrap">
-              <div
-                className="v4s-svc-sticky"
-                ref={(el) => { svcRefs.current[i] = el; }}
-                style={{
-                  zIndex: i + 1,
-                  backgroundColor: i % 2 === 0 ? "#0A0E14" : "#080B10",
-                  borderTop: `1px solid ${LINE}`,
-                }}
-              >
-                {/* Inner flex: image + text */}
-                <div className="v4s-svc-inner" style={{
-                  display: "flex",
-                  flexDirection: imgLeft ? "row" : "row-reverse",
-                  height: "100%",
-                }}>
-
-                  {/* ── Image half ─────────────────────────────── */}
-                  <div style={{
-                    flex: "0 0 52%", position: "relative", overflow: "hidden",
-                    opacity:    visible ? 1 : 0,
-                    transition: "opacity 1s ease 0ms",
-                  }}>
+      {/* ══ SERVICES — GSAP ScrollTrigger pinned ═══════════════════
+          showServices가 true가 되면 렌더, 그 후 useLayoutEffect로 GSAP 세팅.
+          pinContainerRef: 핀 고정 컨테이너 (100vh)
+          각 패널: absolute, 100%×100%, GSAP가 yPercent 조작
+      ════════════════════════════════════════════════════════════ */}
+      {showServices && (
+        <>
+          {/* 핀 가능한 스크롤 여백 + 고정 컨테이너 */}
+          <div
+            ref={pinContainerRef}
+            style={{ position: "relative", height: "100vh", overflow: "hidden" }}
+          >
+            {SERVICES.map((s, i) => {
+              const imgLeft = i % 2 === 0;
+              const bgColor = i % 2 === 0 ? "#0A0E14" : "#080B10";
+              return (
+                <div
+                  key={s.num}
+                  ref={(el) => { panelRefs.current[i] = el; }}
+                  style={{
+                    position: "absolute", inset: 0,
+                    backgroundColor: bgColor,
+                    display: "flex",
+                    flexDirection: imgLeft ? "row" : "row-reverse",
+                    willChange: "transform",
+                  }}
+                >
+                  {/* Image half */}
+                  <div style={{ flex: "0 0 52%", position: "relative", overflow: "hidden" }}>
                     <img
                       src={s.img}
                       alt={s.name}
-                      className="v4s-svc-img"
-                      style={{
-                        width: "100%", height: "110%", objectFit: "cover", display: "block",
-                        transform: `translateY(${py}px)`,
-                        transition: "transform 0.1s linear",
-                        willChange: "transform",
-                      }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
                     />
-                    {/* Gradient toward text side */}
                     <div style={{
                       position: "absolute", inset: 0,
                       background: imgLeft
-                        ? `linear-gradient(to right, transparent 65%, ${i % 2 === 0 ? "#0A0E14" : "#080B10"} 100%)`
-                        : `linear-gradient(to left,  transparent 65%, ${i % 2 === 0 ? "#0A0E14" : "#080B10"} 100%)`,
+                        ? `linear-gradient(to right, transparent 65%, ${bgColor} 100%)`
+                        : `linear-gradient(to left, transparent 65%, ${bgColor} 100%)`,
                     }} />
                   </div>
 
-                  {/* ── Text half ──────────────────────────────── */}
+                  {/* Text half */}
                   <div style={{
                     flex: 1, display: "flex", alignItems: "center",
                     padding: "0 clamp(28px,5%,72px)",
-                    transform: `translateY(${visible ? py * 0.5 : 60}px)`,
-                    opacity: visible ? 1 : 0,
-                    transition: visible
-                      ? `opacity 0.85s ease 150ms, transform 0.1s linear`
-                      : "opacity 0s, transform 0s",
                   }}>
                     <div>
                       {/* Ghost number */}
                       <div className="v4s-serif" style={{
                         fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
-                        color: `${GOLD}14`, lineHeight: 1, marginBottom: "4px",
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? "none" : "translateY(24px)",
-                        transition: "opacity 0.7s ease 80ms, transform 0.7s ease 80ms",
+                        color: `${GOLD}18`, lineHeight: 1, marginBottom: "4px",
                       }}>{s.num}</div>
 
                       {/* Service name */}
-                      <div style={{
-                        clipPath: visible ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
-                        transition: "clip-path 0.85s cubic-bezier(0.77,0,0.18,1) 220ms",
-                      }}>
-                        <h2 className="v4s-serif" style={{
-                          fontSize: "clamp(1.8rem,3.5vw,3rem)", fontWeight: 300,
-                          color: CREAM, lineHeight: 1.1, marginBottom: "20px",
-                        }}>{s.name}</h2>
-                      </div>
+                      <h2 className="v4s-serif" style={{
+                        fontSize: "clamp(1.8rem,3.5vw,3rem)", fontWeight: 300,
+                        color: CREAM, lineHeight: 1.1, marginBottom: "16px",
+                      }}>{s.name}</h2>
 
                       {/* Gold divider */}
                       <div style={{
-                        width: "40px", height: "1px", backgroundColor: `${GOLD}55`,
-                        transform: visible ? "scaleX(1)" : "scaleX(0)",
-                        transformOrigin: "left",
-                        transition: "transform 0.7s cubic-bezier(0.77,0,0.18,1) 420ms",
+                        width: "40px", height: "1px",
+                        backgroundColor: `${GOLD}77`,
                         marginBottom: "20px",
                       }} />
 
                       {/* Description */}
                       <p style={{
                         fontSize: "14px", color: GRAY, lineHeight: 1.95,
-                        maxWidth: "360px", marginBottom: "28px",
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? "none" : "translateY(16px)",
-                        transition: "opacity 0.8s ease 500ms, transform 0.8s ease 500ms",
+                        maxWidth: "360px", marginBottom: "32px",
                       }}>{s.desc}</p>
 
-                      {/* Items */}
-                      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-                        {s.items.map((item, ii) => (
-                          <li key={item} className="v4s-item" style={{
-                            fontSize: "12px", color: `${CREAM}55`,
-                            opacity: visible ? 1 : 0,
-                            transform: visible ? "none" : "translateY(12px)",
-                            transition: `opacity 0.7s ease ${560 + ii * 100}ms, transform 0.7s ease ${560 + ii * 100}ms`,
+                      {/* Items — 가독성 개선: 밝은 색·큰 폰트 */}
+                      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {s.items.map((item) => (
+                          <li key={item} style={{
+                            fontSize: "13px",
+                            color: CREAM,
+                            display: "flex", alignItems: "center", gap: "12px",
+                            fontWeight: 300, letterSpacing: "0.02em",
                           }}>
-                            <span className="v4s-item-dot" />
+                            <span style={{ width: "18px", height: "1px", backgroundColor: GOLD, flexShrink: 0, display: "inline-block" }} />
                             {item}
                           </li>
                         ))}
@@ -362,11 +337,14 @@ export default function V4Services() {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
+              );
+            })}
+          </div>
+
+          {/* 스크롤 여백 — 핀 구간 이후 페이지가 계속 이어지게 */}
+          <div style={{ height: `${(SERVICES.length - 1) * 100}vh` }} />
+        </>
+      )}
 
       {/* ══ CTA ════════════════════════════════════════════════════ */}
       <section style={{
@@ -388,16 +366,10 @@ export default function V4Services() {
         </FadeUp>
         <FadeUp delay={280}>
           <Link href="/v4/contact" className="v4s-btn" style={{
-            color: NAVY,
-            textDecoration: "none",
-            fontSize: "11px",
-            letterSpacing: "0.25em",
-            textTransform: "uppercase",
-            padding: "16px 40px",
-            backgroundColor: GOLD,
-          }}>
-            문의하기
-          </Link>
+            color: NAVY, textDecoration: "none",
+            fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
+            padding: "16px 40px", backgroundColor: GOLD,
+          }}>문의하기</Link>
         </FadeUp>
       </section>
 

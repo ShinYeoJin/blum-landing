@@ -246,10 +246,11 @@ function WipeBanner() {
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 export default function V4() {
-  /* Loading */
-  const [loaded,   setLoaded]   = useState(false);
-  const [loadOut,  setLoadOut]  = useState(false);
-  const [heroAnim, setHeroAnim] = useState(false);
+  /* Loading — sessionStorage로 첫 진입 시에만 표시 */
+  const alreadySeen = typeof window !== "undefined" && sessionStorage.getItem("v4seen") === "1";
+  const [loaded,   setLoaded]   = useState(alreadySeen);
+  const [loadOut,  setLoadOut]  = useState(alreadySeen);
+  const [heroAnim, setHeroAnim] = useState(alreadySeen);
 
   /* Nav */
   const [navScrolled, setNavScrolled] = useState(false);
@@ -276,11 +277,14 @@ export default function V4() {
   const valRefs                      = useRef<Array<HTMLDivElement | null>>([]);
   const [valVisible, setValVisible]  = useState<boolean[]>(VALUES.map(() => false));
 
-  /* Loading timers */
+  /* Loading timers — 첫 진입 시에만 */
   useEffect(() => {
+    if (alreadySeen) return;
+    sessionStorage.setItem("v4seen", "1");
     const t1 = setTimeout(() => setLoaded(true),  2400);
     const t2 = setTimeout(() => setLoadOut(true), 3100);
     return () => { clearTimeout(t1); clearTimeout(t2); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* Hero animation after loading screen */
