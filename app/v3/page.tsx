@@ -138,7 +138,7 @@ export default function V3() {
                 <span style={{ fontSize: "9px", letterSpacing: "0.4em", color: "#c8102e" }}>ABOUT BLUM</span>
               </div>
               <h2 style={{ fontSize: "clamp(2rem,5vw,4rem)", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: "22px" }}>
-                가구의<br />움직임을<br /><span style={{ color: "#c8102e" }}>완성합니다.</span>
+                삶의 질을<br />향상시키는<br /><span style={{ color: "#c8102e" }}>MOVING IDEAS.</span>
               </h2>
               <p style={{ fontSize: "13px", lineHeight: "2", color: "rgba(240,240,240,0.45)", maxWidth: "380px" }}>
                 1952년 오스트리아에서 시작된 blum은 전 세계 가구 피팅 산업을 이끌어왔습니다. 2,441백만 유로 매출, 9,850명의 임직원, 120개국 판매망 — 그 중심에 품질과 혁신이 있습니다.

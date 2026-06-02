@@ -87,7 +87,7 @@ export default function CompanyPage() {
               { num: "8", unit: "개 공장", label: "포어알베르크 생산 시설" },
               { num: "4", unit: "개 공장", label: "해외 생산 시설" },
               { num: "1952", unit: "년", label: "브랜드 창립" },
-              { num: "50,000", unit: "회+", label: "제품 내구성 테스트" },
+              { num: "100,000", unit: "회+", label: "개폐 테스트 기준" },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-4xl md:text-5xl font-light text-white mb-1">{s.num}</div>

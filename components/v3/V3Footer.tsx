@@ -38,11 +38,11 @@ export default function V3Footer() {
             <p className="text-[9px] tracking-[0.35em] uppercase mb-5 font-black" style={{ color: RED }}>COMPANY</p>
             <ul className="space-y-3">
               {[
-                ["ABOUT", "/company#about"],
-                ["FACTS & FIGURES", "/company#facts"],
-                ["SUSTAINABILITY", "/company#sustainability"],
-                ["SERVICES", "/services"],
-                ["CONTACT", "/contact"],
+                ["ABOUT", "/v3/company#about"],
+                ["FACTS & FIGURES", "/v3/company#facts"],
+                ["SUSTAINABILITY", "/v3/company#sustainability"],
+                ["SERVICES", "/v3/services"],
+                ["CONTACT", "/v3/contact"],
               ].map(([l, h]) => (
                 <li key={l}>
                   <Link href={h} className="text-[10px] tracking-[0.15em] uppercase font-black hover:opacity-80 transition-opacity"
@@ -59,7 +59,7 @@ export default function V3Footer() {
               Industriestrasse 1<br />
               6973 Höchst, Austria
             </p>
-            <Link href="/contact" className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black transition-opacity hover:opacity-90"
+            <Link href="/v3/contact" className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black transition-opacity hover:opacity-90"
               style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}>
               CONTACT US
             </Link>
