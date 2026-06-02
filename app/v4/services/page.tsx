@@ -70,6 +70,9 @@ export default function V4Services() {
   const [sectionIdx, setSectionIdx]   = useState(0);
   const [animate,    setAnimate]      = useState(false); // enable CSS transition after first render
 
+  /* Content entry animation — increments on each navigation so React remounts animated elements */
+  const [panelAnim, setPanelAnim] = useState<{ key: number; dir: "down" | "up" }>({ key: 0, dir: "down" });
+
   /* Refs to avoid stale closures */
   const idxRef          = useRef(0);
   const heroReadyRef    = useRef(false);
@@ -112,9 +115,11 @@ export default function V4Services() {
     const next = idxRef.current + dir;
     if (next < 0 || next >= TOTAL) return;
 
+    const scrollDir: "down" | "up" = dir === 1 ? "down" : "up";
     transitionRef.current = true;
     idxRef.current = next;
     setSectionIdx(next);
+    setPanelAnim(prev => ({ key: prev.key + 1, dir: scrollDir }));
     setTimeout(() => { transitionRef.current = false; }, 820);
   }, []);
 
@@ -163,6 +168,8 @@ export default function V4Services() {
     .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
 
+    @keyframes v4s-fall { from{opacity:0;transform:translateY(-36px)} to{opacity:1;transform:none} }
+    @keyframes v4s-rise { from{opacity:0;transform:translateY(36px)}  to{opacity:1;transform:none} }
   `;
 
   /* Helper: CSS for each section — each section is independently fixed.
@@ -270,6 +277,9 @@ export default function V4Services() {
         {SERVICES.map((s, i) => {
           const imgLeft  = i % 2 === 0;
           const bgColor  = i % 2 === 0 ? "#0A0E14" : "#080B10";
+          const isActive = sectionIdx === i + 1;
+          const animName = panelAnim.dir === "down" ? "v4s-fall" : "v4s-rise";
+          const easing   = "cubic-bezier(0.16,1,0.3,1)";
           return (
             <div key={s.num} style={sectionStyle(i + 1)}>
               <div style={{
@@ -278,8 +288,14 @@ export default function V4Services() {
                 display: "flex",
                 flexDirection: imgLeft ? "row" : "row-reverse",
               }}>
-                {/* Image half */}
-                <div style={{ flex: "0 0 52%", position: "relative", overflow: "hidden" }}>
+                {/* Image half — remounts when active, triggering entry animation */}
+                <div
+                  key={isActive ? `img-${panelAnim.key}` : `img-s-${i}`}
+                  style={{
+                    flex: "0 0 52%", position: "relative", overflow: "hidden",
+                    animation: isActive ? `${animName} 0.75s ${easing} both` : "none",
+                  }}
+                >
                   <img
                     src={s.img}
                     alt={s.name}
@@ -294,11 +310,15 @@ export default function V4Services() {
                   }} />
                 </div>
 
-                {/* Text half */}
-                <div style={{
-                  flex: 1, display: "flex", alignItems: "center",
-                  padding: "0 clamp(28px,5%,72px)",
-                }}>
+                {/* Text half — remounts when active, 120ms after image */}
+                <div
+                  key={isActive ? `txt-${panelAnim.key}` : `txt-s-${i}`}
+                  style={{
+                    flex: 1, display: "flex", alignItems: "center",
+                    padding: "0 clamp(28px,5%,72px)",
+                    animation: isActive ? `${animName} 0.75s ${easing} 0.12s both` : "none",
+                  }}
+                >
                   <div>
                     <div className="v4s-serif" style={{
                       fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
@@ -347,21 +367,42 @@ export default function V4Services() {
             padding: "0 2rem", boxSizing: "border-box",
             textAlign: "center",
           }}>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}66`, marginBottom: "20px" }}>
+            <p
+              key={`cta-label-${panelAnim.key}`}
+              style={{
+                fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
+                color: `${GOLD}66`, marginBottom: "20px",
+                animation: sectionIdx === SERVICES.length + 1
+                  ? "v4s-rise 0.75s cubic-bezier(0.16,1,0.3,1) both" : "none",
+              }}
+            >
               Get in Touch
             </p>
-            <h2 className="v4s-serif" style={{
-              fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
-              color: CREAM, marginBottom: "36px", lineHeight: 1.3,
-            }}>
+            <h2
+              key={`cta-h2-${panelAnim.key}`}
+              className="v4s-serif"
+              style={{
+                fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
+                color: CREAM, marginBottom: "36px", lineHeight: 1.3,
+                animation: sectionIdx === SERVICES.length + 1
+                  ? "v4s-rise 0.75s cubic-bezier(0.16,1,0.3,1) 0.1s both" : "none",
+              }}
+            >
               더 자세한 서비스 안내가<br />필요하신가요?
             </h2>
-            <Link href="/v4/contact" className="v4s-btn" style={{
-              color: NAVY, textDecoration: "none",
-              fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
-              padding: "16px 40px", backgroundColor: GOLD,
-              marginBottom: "64px",
-            }}>문의하기</Link>
+            <Link
+              key={`cta-btn-${panelAnim.key}`}
+              href="/v4/contact"
+              className="v4s-btn"
+              style={{
+                color: NAVY, textDecoration: "none",
+                fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase",
+                padding: "16px 40px", backgroundColor: GOLD,
+                marginBottom: "64px",
+                animation: sectionIdx === SERVICES.length + 1
+                  ? "v4s-rise 0.75s cubic-bezier(0.16,1,0.3,1) 0.22s both" : "none",
+              }}
+            >문의하기</Link>
 
             {/* Footer inside CTA section */}
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: `1px solid ${LINE}`, padding: "24px 2rem" }}>
