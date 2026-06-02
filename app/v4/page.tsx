@@ -133,22 +133,26 @@ const TIMELINE = [
 function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const [n, setN]   = useState(0);
   const ref          = useRef<HTMLSpanElement>(null);
-  const [on, setOn] = useState(false);
+  const started      = useRef(false);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { threshold: 0 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!on) return;
-    const start = performance.now(), dur = 2000;
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1);
-      setN(Math.round((1 - Math.pow(1 - p, 3)) * to));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }, [on, to]);
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || started.current) return;
+      started.current = true;
+      io.disconnect();
+      const t0 = performance.now(), dur = 2000;
+      let raf: number;
+      const tick = (now: number) => {
+        const p = Math.min((now - t0) / dur, 1);
+        setN(Math.round((1 - Math.pow(1 - p, 3)) * to));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(raf);
+    }, { threshold: 0, rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [to]);
   return <span ref={ref}>{n.toLocaleString()}{suffix}</span>;
 }
 

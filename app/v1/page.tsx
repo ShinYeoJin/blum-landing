@@ -38,19 +38,28 @@ function Reveal({
 
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [val, setVal] = useState(0);
-  const { ref, inView } = useInView(0);
+  const ref     = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
   useEffect(() => {
-    if (!inView) return;
-    const start = performance.now();
-    const dur = 1600;
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(eased * target));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }, [inView, target]);
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || started.current) return;
+      started.current = true;
+      io.disconnect();
+      const t0 = performance.now(), dur = 1800;
+      let raf: number;
+      const tick = (now: number) => {
+        const p = Math.min((now - t0) / dur, 1);
+        setVal(Math.round((1 - Math.pow(1 - p, 3)) * target));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(raf);
+    }, { threshold: 0, rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [target]);
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
