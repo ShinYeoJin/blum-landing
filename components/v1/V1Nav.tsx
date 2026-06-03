@@ -63,21 +63,6 @@ export default function V1Nav() {
         transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
       }}>
 
-      {/* Ticker */}
-      <div
-        className="overflow-hidden flex items-center"
-        style={{ backgroundColor: "#18181b", height: "24px" }}
-      >
-        <style>{`@keyframes v1tk{from{transform:translateX(0)}to{transform:translateX(-50%)}} .v1tk{animation:v1tk 30s linear infinite}`}</style>
-        <div className="v1tk flex whitespace-nowrap">
-          {[...Array(4)].map((_, i) => (
-            <span key={i} style={{ color: "rgba(255,255,255,0.5)", fontSize: "9px", letterSpacing: "0.3em", paddingRight: "60px" }}>
-              BLUM · MOVING IDEAS · SINCE 1952 · PREMIUM FURNITURE FITTINGS · 120 COUNTRIES
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Nav */}
       <nav
         className="transition-all duration-300"

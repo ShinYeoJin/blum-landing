@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import BlumGSAP from "@/components/BlumGSAP";
 
@@ -158,24 +158,28 @@ const SERVICES = [
 export default function V1() {
   const [openValue, setOpenValue] = useState<number | null>(null);
 
-  /* ── Brand (About) refs for GSAP animations ─────────────────── */
-  const aboutRef     = useRef<HTMLElement>(null);
-  const aboutImgRef  = useRef<HTMLImageElement>(null);
-  const aboutOverRef = useRef<HTMLDivElement>(null);
-  const aboutLblRef  = useRef<HTMLParagraphElement>(null);
-  const aboutH2Ref   = useRef<HTMLHeadingElement>(null);
-  const aboutLineRef = useRef<HTMLDivElement>(null);
-  const aboutB1Ref   = useRef<HTMLParagraphElement>(null);
-  const aboutB2Ref   = useRef<HTMLParagraphElement>(null);
-  const aboutLinkRef = useRef<HTMLAnchorElement>(null);
+  /* ── Hero → Brand transition refs ───────────────────────────── */
+  const transitionOuterRef = useRef<HTMLDivElement>(null);
+  const heroLayerRef       = useRef<HTMLDivElement>(null);
+  const heroTextRef        = useRef<HTMLDivElement>(null);
+  const scrollIndicRef     = useRef<HTMLDivElement>(null);
+  const gridLayerRef       = useRef<HTMLDivElement>(null);
+  const g1Ref              = useRef<HTMLImageElement>(null);
+  const g2Ref              = useRef<HTMLImageElement>(null);
+  const g3Ref              = useRef<HTMLImageElement>(null);
+  const g4Ref              = useRef<HTMLImageElement>(null);
+  const featuredLayerRef   = useRef<HTMLDivElement>(null);
+  const aboutLayerRef      = useRef<HTMLDivElement>(null);
+  const aboutLblRef        = useRef<HTMLParagraphElement>(null);
+  const aboutH2Ref         = useRef<HTMLHeadingElement>(null);
+  const aboutLineRef       = useRef<HTMLDivElement>(null);
+  const aboutB1Ref         = useRef<HTMLParagraphElement>(null);
+  const aboutB2Ref         = useRef<HTMLParagraphElement>(null);
+  const aboutLinkRef       = useRef<HTMLAnchorElement>(null);
 
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
-    /* Prevent BlumGSAP from re-wrapping the brand h2 */
     if (aboutH2Ref.current) aboutH2Ref.current.dataset.gsapMask = "1";
-
-    /* Pre-hide product cards so BlumGSAP grid-stagger skips them
-       (BlumGSAP bails early when el.style.opacity === "0") */
     document.querySelectorAll<HTMLElement>("#products .product-card").forEach((el) => {
       el.style.opacity    = "0";
       el.style.transform  = "translateY(100px)";
@@ -183,7 +187,7 @@ export default function V1() {
     });
   }, []);
 
-  /* ── GSAP: brand entry + product stagger ────────────────────── */
+  /* ── GSAP: hero→brand ScrollTrigger + product stagger ────────── */
   useEffect(() => {
     const kills: Array<() => void> = [];
 
@@ -193,57 +197,60 @@ export default function V1() {
       gsap.registerPlugin(ScrollTrigger);
 
       /* ═══════════════════════════════════════════════════════════
-         BRAND SECTION
-         Triggered by scroll position: fires when the user has
-         scrolled 60 % of one viewport height — i.e. when the
-         brand panel is already 40 % visible from the bottom.
-         GSAP ScrollTrigger is NOT used here because sticky
-         elements have unreliable trigger positions.
+         HERO → BRAND TRANSITION  (ScrollTrigger scrub)
+         Outer 400vh container is the trigger.
+         Inner 100vh sticky section holds all animation layers.
+
+         Phase 1 (scroll 0→100vh):  hero shrinks 1→0.85, grid appears
+         Phase 2 (scroll 100→200vh): grid → featured image expands 1→1.2
+         Phase 3 (scroll 200→300vh): text overlay fades in
          ═══════════════════════════════════════════════════════════ */
-      const aboutImg = aboutImgRef.current;
-      if (aboutImg) {
-        /* Set initial hidden state for every text element */
-        const textEls = [
-          aboutLblRef.current,
-          aboutH2Ref.current,
-          aboutB1Ref.current,
-          aboutB2Ref.current,
-          aboutLinkRef.current,
-        ];
-        textEls.forEach((el) => { if (el) gsap.set(el, { opacity: 0, y: 44 }); });
+      const outer = transitionOuterRef.current;
+      if (outer) {
+        /* initial states */
+        gsap.set(gridLayerRef.current, { opacity: 0 });
+        gsap.set([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current], { opacity: 0, scale: 0.94 });
+        gsap.set(featuredLayerRef.current, { opacity: 0, scale: 0.88 });
+        gsap.set(aboutLayerRef.current, { opacity: 0 });
+        ([aboutLblRef, aboutH2Ref, aboutB1Ref, aboutB2Ref, aboutLinkRef] as React.RefObject<HTMLElement>[]).forEach(
+          (r) => { if (r.current) gsap.set(r.current, { opacity: 0, y: 40 }); }
+        );
         if (aboutLineRef.current) gsap.set(aboutLineRef.current, { scaleX: 0, transformOrigin: "left" });
-        if (aboutOverRef.current) gsap.set(aboutOverRef.current, { opacity: 0.1 });
-        /* Image starts zoomed-in */
-        gsap.set(aboutImg, { scale: 1.1 });
 
-        let triggered = false;
-        const threshold = window.innerHeight * 0.6;
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: outer,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 1,
+          },
+        });
 
-        const onScroll = () => {
-          if (triggered || window.scrollY < threshold) return;
-          triggered = true;
-          window.removeEventListener("scroll", onScroll);
+        /* Phase 1 — hero shrinks, text fades, grid images pop in */
+        tl
+          .to(heroLayerRef.current,  { scale: 0.85, duration: 1 }, 0)
+          .to(heroTextRef.current,   { opacity: 0, y: -24, duration: 0.55 }, 0)
+          .to(scrollIndicRef.current,{ opacity: 0, duration: 0.35 }, 0)
+          .to(gridLayerRef.current,  { opacity: 1, duration: 0.5 }, 0.25)
+          .to([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current],
+            { opacity: 1, scale: 1, stagger: 0.18, duration: 0.75 }, 0.35)
 
-          /* Image shrinks to natural size */
-          gsap.to(aboutImg, { scale: 1, duration: 1.5, ease: "power2.out" });
+        /* Phase 2 — grid fades out, featured image expands fullscreen */
+          .to([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current],
+            { opacity: 0, stagger: 0.1, duration: 0.5 }, 1.15)
+          .to(gridLayerRef.current,  { opacity: 0, duration: 0.45 }, 1.25)
+          .to(featuredLayerRef.current, { opacity: 1, scale: 1.2, duration: 1.1 }, 1.35)
 
-          /* Overlay deepens */
-          if (aboutOverRef.current)
-            gsap.to(aboutOverRef.current, { opacity: 0.65, duration: 1.2, ease: "power2.out" });
+        /* Phase 3 — text overlay appears */
+          .to(aboutLayerRef.current, { opacity: 1, duration: 0.45 }, 2.2)
+          .to(aboutLblRef.current,   { opacity: 1, y: 0, duration: 0.55 }, 2.3)
+          .to(aboutH2Ref.current,    { opacity: 1, y: 0, duration: 0.65 }, 2.45)
+          .to(aboutLineRef.current,  { scaleX: 1,        duration: 0.45 }, 2.65)
+          .to(aboutB1Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.7)
+          .to(aboutB2Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.85)
+          .to(aboutLinkRef.current,  { opacity: 1, y: 0, duration: 0.55 }, 3.0);
 
-          /* Text sequential fade-in */
-          const E = 0.85;
-          const base = 0.3;
-          if (aboutLblRef.current)  gsap.to(aboutLblRef.current,  { opacity: 1, y: 0, duration: E, ease: "power2.out", delay: base });
-          if (aboutH2Ref.current)   gsap.to(aboutH2Ref.current,   { opacity: 1, y: 0, duration: E, ease: "power2.out", delay: base + 0.15 });
-          if (aboutLineRef.current) gsap.to(aboutLineRef.current,  { scaleX: 1,        duration: 0.6, ease: "power3.inOut", delay: base + 0.35 });
-          if (aboutB1Ref.current)   gsap.to(aboutB1Ref.current,   { opacity: 1, y: 0, duration: E, ease: "power2.out", delay: base + 0.46 });
-          if (aboutB2Ref.current)   gsap.to(aboutB2Ref.current,   { opacity: 1, y: 0, duration: E, ease: "power2.out", delay: base + 0.59 });
-          if (aboutLinkRef.current) gsap.to(aboutLinkRef.current,  { opacity: 1, y: 0, duration: E, ease: "power2.out", delay: base + 0.72 });
-        };
-
-        window.addEventListener("scroll", onScroll, { passive: true });
-        kills.push(() => window.removeEventListener("scroll", onScroll));
+        kills.push(() => { tl.scrollTrigger?.kill(); tl.kill(); });
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -251,20 +258,10 @@ export default function V1() {
          ═══════════════════════════════════════════════════════════ */
       const cards = document.querySelectorAll<HTMLElement>("#products .product-card");
       if (cards.length > 0) {
-        /* Clear the "transition:none" we set in useLayoutEffect */
         cards.forEach((c) => { c.style.transition = ""; });
-
         const cardsTween = gsap.to(cards, {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: "power2.out",
-          stagger: 0.15,
-          scrollTrigger: {
-            trigger: "#products",
-            start: "top 68%",
-            once: true,
-          },
+          y: 0, opacity: 1, duration: 0.9, ease: "power2.out", stagger: 0.15,
+          scrollTrigger: { trigger: "#products", start: "top 68%", once: true },
         });
         kills.push(() => cardsTween.kill());
       }
@@ -286,15 +283,13 @@ export default function V1() {
     */
     <div className="bg-white text-zinc-900" style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
       <style>{`
-        @keyframes v1-ticker    { from{transform:translateX(0)} to{transform:translateX(-50%)} }
         @keyframes v1-scrollbar { 0%{transform:translateY(-100%)} 100%{transform:translateY(300%)} }
         @keyframes v1-word-in   { from{opacity:0;transform:translateY(110%)} to{opacity:1;transform:translateY(0)} }
         @keyframes v1-bounce    { 0%,100%{transform:translateY(0) rotate(90deg)} 50%{transform:translateY(5px) rotate(90deg)} }
 
-        .v1-ticker    { animation: v1-ticker 28s linear infinite; }
-        .v1-scrollbar { animation: v1-scrollbar 2.2s cubic-bezier(0.4,0,0.2,1) infinite; }
+        .v1-scrollbar  { animation: v1-scrollbar 2.2s cubic-bezier(0.4,0,0.2,1) infinite; }
         .v1-bounce-txt { animation: v1-bounce 1.8s ease-in-out infinite; display:inline-block; }
-        .v1-word { display:inline-block; animation: v1-word-in 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+        .v1-word       { display:inline-block; animation: v1-word-in 0.9s cubic-bezier(0.16,1,0.3,1) both; }
 
         .product-card { transition: box-shadow 0.55s ease; }
         .product-card:hover { box-shadow: 0 28px 64px rgba(0,0,0,0.12); }
@@ -306,124 +301,132 @@ export default function V1() {
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
-          LAYER 1 — HERO
-          position: sticky keeps it pinned at the top; every subsequent
-          section with a higher z-index and solid background will slide
-          up over it as the user scrolls.
-          overflow: hidden is scoped to this element only (does NOT
-          break the parent's sticky behaviour).
+          HERO + BRAND TRANSITION
+          Outer 400vh container provides scroll space.
+          Inner 100vh sticky section holds all animation layers.
+          ScrollTrigger scrubs the GSAP timeline through 3 phases.
       ══════════════════════════════════════════════════════════════ */}
-      <section
-        style={{
-          position: "sticky", top: 0,
-          height: "100vh", minHeight: 600,
-          zIndex: 10,
-          overflow: "hidden",
-          backgroundColor: "#09090b",
-          display: "flex", alignItems: "flex-end",
-        }}
-      >
-        {/* Background image */}
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-          <img
-            src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
-            alt="blum hero"
-            className="w-full h-full object-cover"
-            style={{ opacity: 0.42 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #09090b 32%, rgba(9,9,11,0.55) 65%, rgba(9,9,11,0.15) 100%)" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(9,9,11,0.65) 0%, transparent 55%)" }} />
-        </div>
-
-        {/* "moving / ideas." — word-by-word CSS entry animation */}
-        <div className="relative z-10 max-w-7xl mx-auto px-8 pb-20 w-full">
-          <h1 className="text-white leading-none select-none" style={{
-            fontSize: "clamp(3.5rem, 11vw, 10rem)",
-            fontWeight: 200,
-            letterSpacing: "-0.03em",
-            lineHeight: 0.9,
-          }}>
-            <span style={{ display: "inline-block", overflow: "hidden" }}>
-              <span className="v1-word" style={{ animationDelay: "220ms" }}>moving</span>
-            </span>
-            <br />
-            <span style={{ display: "inline-block", overflow: "hidden" }}>
-              <span className="v1-word" style={{ color: "rgba(161,161,170,0.85)", fontStyle: "italic", animationDelay: "380ms" }}>ideas.</span>
-            </span>
-          </h1>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 right-8 flex flex-col items-center gap-3 z-10">
-          <span className="v1-bounce-txt text-[8px] tracking-[0.4em] uppercase text-white/25 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
-          <div className="w-px h-14 relative overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
-            <div className="w-full bg-white/50 absolute top-0 v1-scrollbar" style={{ height: "45%" }} />
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════
-          LAYER 2 — BRAND (ABOUT)
-          z-index: 20 > hero's 10 → slides up and covers the hero.
-          GSAP animates image scale(1.1→1) + sequential text reveals
-          once the user has scrolled 60 % of one viewport height.
-      ══════════════════════════════════════════════════════════════ */}
-      <section
-        ref={aboutRef}
-        style={{
-          position: "sticky", top: 0,
-          height: "100vh",
-          zIndex: 20,
-          overflow: "hidden",
-          backgroundColor: "#09090b",
-        }}
-      >
-        {/* Full-screen background image — hover:scale-100 tells BlumGSAP to skip parallax */}
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-          <img
-            ref={aboutImgRef}
-            src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
-            alt="blum factory"
-            className="w-full h-full object-cover hover:scale-100"
-            style={{ willChange: "transform" }}
-            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
-          />
-          {/* Overlay — GSAP animates opacity 0.1 → 0.65 */}
-          <div ref={aboutOverRef} style={{ position: "absolute", inset: 0, backgroundColor: "#000000" }} />
-        </div>
-
-        {/* Text overlay — all hidden; GSAP reveals on scroll */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center" }}>
-          <div className="max-w-7xl mx-auto px-8 w-full">
-            <p ref={aboutLblRef} style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "2rem" }}>
-              About Blum
-            </p>
-            <h2
-              ref={aboutH2Ref}
-              style={{ fontSize: "clamp(2.2rem,5vw,4.5rem)", fontWeight: 200, letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff", marginBottom: "1.5rem" }}
+      <div ref={transitionOuterRef} style={{ position: "relative", zIndex: 10 }}>
+        <div style={{ height: "400vh" }}>
+          <section
+            style={{
+              position: "sticky", top: 0,
+              height: "100vh", minHeight: 600,
+              overflow: "hidden",
+              backgroundColor: "#09090b",
+            }}
+          >
+            {/* ── Layer A: Hero background image (scale 1 → 0.85) ── */}
+            <div
+              ref={heroLayerRef}
+              style={{ position: "absolute", inset: 0, zIndex: 1, transformOrigin: "center" }}
             >
-              가구의 움직임을<br />재정의합니다
-            </h2>
-            <div ref={aboutLineRef} style={{ width: "2.5rem", height: "1px", backgroundColor: "rgba(255,255,255,0.25)", marginBottom: "2rem" }} />
-            <p ref={aboutB1Ref} style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 2, fontWeight: 300, maxWidth: "28rem", marginBottom: "1rem" }}>
-              1952년 오스트리아 포어알베르크에서 시작된 blum은 현재 전 세계 120개국에서 사용되는 프리미엄 가구 피팅 제조사입니다.
-            </p>
-            <p ref={aboutB2Ref} style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 2, fontWeight: 300, maxWidth: "28rem", marginBottom: "3rem" }}>
-              힌지, 서랍, 리프트 시스템을 통해 매일 수백만 명의 일상을 더 편리하고 아름답게 만들고 있습니다.
-            </p>
-            <Link
-              ref={aboutLinkRef}
-              href="/v1/company"
-              className="group"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", textDecoration: "none" }}
+              <img
+                src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
+                alt="blum hero"
+                className="w-full h-full object-cover"
+                style={{ opacity: 0.42 }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #09090b 32%, rgba(9,9,11,0.55) 65%, rgba(9,9,11,0.15) 100%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(9,9,11,0.65) 0%, transparent 55%)" }} />
+            </div>
+
+            {/* ── Layer B: Grid of 4 images (phase 1) ── */}
+            <div
+              ref={gridLayerRef}
+              style={{ position: "absolute", inset: 0, zIndex: 2 }}
             >
-              브랜드 스토리
-              <span style={{ display: "inline-block", transition: "transform 0.3s" }} className="group-hover:translate-x-1">→</span>
-            </Link>
-          </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", height: "100%", gap: "2px" }}>
+                <img ref={g1Ref} src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`} alt="blum 01" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <img ref={g2Ref} src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`} alt="blum 02" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <img ref={g3Ref} src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`} alt="blum 03" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                <img ref={g4Ref} src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`} alt="blum 04" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              </div>
+            </div>
+
+            {/* ── Layer C: Featured fullscreen image (scale 1 → 1.2, phase 2) ── */}
+            <div
+              ref={featuredLayerRef}
+              style={{ position: "absolute", inset: 0, zIndex: 3, transformOrigin: "center" }}
+            >
+              <img
+                src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
+                alt="blum factory"
+                className="w-full h-full object-cover"
+                style={{ willChange: "transform" }}
+                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
+              />
+              <div style={{ position: "absolute", inset: 0, backgroundColor: "#000000", opacity: 0.62 }} />
+            </div>
+
+            {/* ── Layer D: Text overlay (phase 3) ── */}
+            <div
+              ref={aboutLayerRef}
+              style={{ position: "absolute", inset: 0, zIndex: 4, display: "flex", alignItems: "center" }}
+            >
+              <div className="max-w-7xl mx-auto px-8 w-full">
+                <p ref={aboutLblRef} style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "2rem" }}>
+                  About Blum
+                </p>
+                <h2
+                  ref={aboutH2Ref}
+                  style={{ fontSize: "clamp(2.2rem,5vw,4.5rem)", fontWeight: 200, letterSpacing: "-0.02em", lineHeight: 1.1, color: "#ffffff", marginBottom: "1.5rem" }}
+                >
+                  가구의 움직임을<br />재정의합니다
+                </h2>
+                <div ref={aboutLineRef} style={{ width: "2.5rem", height: "1px", backgroundColor: "rgba(255,255,255,0.25)", marginBottom: "2rem" }} />
+                <p ref={aboutB1Ref} style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 2, fontWeight: 300, maxWidth: "28rem", marginBottom: "1rem" }}>
+                  1952년 오스트리아 포어알베르크에서 시작된 blum은 현재 전 세계 120개국에서 사용되는 프리미엄 가구 피팅 제조사입니다.
+                </p>
+                <p ref={aboutB2Ref} style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 2, fontWeight: 300, maxWidth: "28rem", marginBottom: "3rem" }}>
+                  힌지, 서랍, 리프트 시스템을 통해 매일 수백만 명의 일상을 더 편리하고 아름답게 만들고 있습니다.
+                </p>
+                <Link
+                  ref={aboutLinkRef}
+                  href="/v1/company"
+                  className="group"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "11px", letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", textDecoration: "none" }}
+                >
+                  브랜드 스토리
+                  <span style={{ display: "inline-block", transition: "transform 0.3s" }} className="group-hover:translate-x-1">→</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* ── "moving / ideas." hero text (fades out in phase 1) ── */}
+            <div
+              ref={heroTextRef}
+              style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 5 }}
+              className="max-w-7xl mx-auto px-8 pb-20 w-full"
+            >
+              <h1 className="text-white select-none" style={{
+                fontSize: "clamp(3.5rem, 11vw, 10rem)",
+                fontWeight: 200,
+                letterSpacing: "-0.03em",
+                lineHeight: 1,
+              }}>
+                <span style={{ display: "inline-block", overflow: "hidden", paddingBottom: "0.08em" }}>
+                  <span className="v1-word" style={{ animationDelay: "220ms" }}>moving</span>
+                </span>
+                <br />
+                <span style={{ display: "inline-block", overflow: "hidden", paddingBottom: "0.08em" }}>
+                  <span className="v1-word" style={{ color: "rgba(161,161,170,0.85)", fontStyle: "italic", animationDelay: "380ms" }}>ideas.</span>
+                </span>
+              </h1>
+            </div>
+
+            {/* ── Scroll indicator ── */}
+            <div ref={scrollIndicRef} className="absolute bottom-8 right-8 flex flex-col items-center gap-3" style={{ zIndex: 5 }}>
+              <span className="v1-bounce-txt text-[8px] tracking-[0.4em] uppercase text-white/25 origin-center mb-2" style={{ writingMode: "vertical-rl" }}>scroll</span>
+              <div className="w-px h-14 relative overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
+                <div className="w-full bg-white/50 absolute top-0 v1-scrollbar" style={{ height: "45%" }} />
+              </div>
+            </div>
+
+          </section>
         </div>
-      </section>
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           LAYER 3 — ALL REMAINING CONTENT
