@@ -853,25 +853,16 @@ export default function V1() {
             </div>
           </div>
 
-          {/* ── Step 2: image (full bg) + beige panel slides in from right ── */}
+          {/* ── Step 2: fullscreen beige panel slides in from right ── */}
           <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-            {/* Background image fills full width */}
-            <img
-              src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-              alt="blum showcase"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`; }}
-            />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.55) 0%, rgba(9,9,11,0.1) 50%)" }} />
-
-            {/* Beige panel: absolute, right:0, width:50%, slides in from right */}
+            {/* Beige panel: covers full screen, slides in from right */}
             <div
               ref={snapBeigePanelRef}
               style={{
                 position: "absolute",
                 top: 0,
                 right: 0,
-                width: "50%",
+                width: "100%",
                 height: "100%",
                 backgroundColor: "#F5F0E8",
                 overflowY: "auto",
