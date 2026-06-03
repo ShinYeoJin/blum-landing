@@ -272,7 +272,7 @@ export default function V1Services() {
       >
         {/* Background image */}
         <img
-          src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
+          src={`${BASE}/images/560/258/4215892/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
           alt="blum services"
           style={{
             position: "absolute",
@@ -316,10 +316,13 @@ export default function V1Services() {
       ══════════════════════════════════════════ */}
       <section
         style={{
+          marginTop: "35vh",
           height: "75vh",
           minHeight: 480,
           display: "flex",
           overflow: "hidden",
+          paddingLeft: "12%",
+          paddingRight: "12%",
         }}
       >
         {SERVICES.map((svc) => (
