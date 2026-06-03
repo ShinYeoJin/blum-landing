@@ -34,6 +34,7 @@ function ContactButton({ textColor, borderColor }: { textColor: string; borderCo
   return (
     <Link
       href="/v1/contact"
+      scroll={false}
       style={{
         marginLeft: "16px",
         padding: "8px 20px",
@@ -128,6 +129,7 @@ export default function V1Nav() {
               >
                 <Link
                   href={item.href}
+                  scroll={false}
                   className="block px-5 py-2 text-xs tracking-[0.15em] uppercase transition-all duration-200 relative group"
                   style={{ color: textColor, textDecoration: "none" }}
                   onClick={() => {
@@ -211,6 +213,7 @@ export default function V1Nav() {
               <div key={item.label}>
                 <Link
                   href={item.href}
+                  scroll={false}
                   className="block px-8 py-3.5 text-xs tracking-[0.15em] uppercase border-b"
                   style={{ color: "#18181b", textDecoration: "none", borderColor: "rgba(24,24,27,0.05)" }}
                   onClick={() => { setMobileOpen(false); window.scrollTo(0, 0); }}
