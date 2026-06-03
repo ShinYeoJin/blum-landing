@@ -327,14 +327,14 @@ export default function V1Services() {
       ══════════════════════════════════════════ */}
       <section
         style={{
-          marginTop: "28vh",       /* 35vh × 0.8 = 28vh  (20% 감소) */
+          marginTop: "22.4vh",     /* 28vh × 0.8 = 22.4vh  (20% 감소) */
           height: "75vh",
           minHeight: 480,
           display: "flex",
           overflow: "hidden",
           borderRadius: "16px",
-          paddingLeft: "22%",      /* 12% + 10% */
-          paddingRight: "22%",     /* 12% + 10% */
+          paddingLeft: "15.4%",    /* 22% × 0.7 = 15.4%  (30% 감소) */
+          paddingRight: "15.4%",   /* 22% × 0.7 = 15.4%  (30% 감소) */
         }}
       >
         {SERVICES.map((svc, i) => (
