@@ -332,42 +332,45 @@ export default function V3Products() {
 
       <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
 
-        {/* ── HERO — sticky, fades out on scroll ── */}
-        <section
-          ref={heroRef}
-          style={{
-            position: "sticky",
-            top: 0,
-            height: "100vh",
-            display: "flex",
-            alignItems: "flex-end",
-            padding: "0 24px 80px",
-            zIndex: 10,
-            opacity: heroOpacity,
-            transform: `translateY(${heroY}px)`,
-            pointerEvents: heroOpacity < 0.1 ? "none" : "auto",
-          }}
-        >
-          <div className="max-w-7xl w-full mx-auto">
-            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>Products</p>
-            <h1 style={{ fontSize: "clamp(52px, 10vw, 120px)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, textTransform: "uppercase", marginBottom: 24 }}>
-              제품<br /><span style={{ color: RED }}>라인업</span>
-            </h1>
-            <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 24 }} />
-            <p style={{ fontSize: 14, maxWidth: 480, lineHeight: 1.7, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-              blum의 피팅 시스템은 단순한 하드웨어가 아닙니다.<br />
-              120개국에서 검증된 혁신 기술로 가구의 가능성을 다시 정의합니다.
-            </p>
-          </div>
-        </section>
+        {/* ── HERO — 200vh scroll space so hero fades before cards begin ── */}
+        {/*  outer div = scroll track (200vh): first 100vh hero is in view,   */}
+        {/*  next 100vh it rises+fades while black bg shows, then cards start  */}
+        <div style={{ height: "200vh", position: "relative", zIndex: 1 }}>
+          <section
+            ref={heroRef}
+            style={{
+              position: "sticky",
+              top: 0,
+              height: "100vh",
+              display: "flex",
+              alignItems: "flex-end",
+              padding: "0 24px 80px",
+              opacity: heroOpacity,
+              transform: `translateY(${heroY}px)`,
+              pointerEvents: heroOpacity < 0.1 ? "none" : "auto",
+            }}
+          >
+            <div className="max-w-7xl w-full mx-auto">
+              <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>Products</p>
+              <h1 style={{ fontSize: "clamp(52px, 10vw, 120px)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, textTransform: "uppercase", marginBottom: 24 }}>
+                제품<br /><span style={{ color: RED }}>라인업</span>
+              </h1>
+              <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 24 }} />
+              <p style={{ fontSize: 14, maxWidth: 480, lineHeight: 1.7, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+                blum의 피팅 시스템은 단순한 하드웨어가 아닙니다.<br />
+                120개국에서 검증된 혁신 기술로 가구의 가능성을 다시 정의합니다.
+              </p>
+            </div>
+          </section>
+        </div>
 
-        {/* ── CARD SECTION — sticky scroll ── */}
+        {/* ── CARD SECTION — starts after hero scroll track, no overlap ── */}
         <div
           ref={wrapperRef}
           style={{
-            height: `${(CATEGORIES.length + 1) * 100}vh`,  /* 700vh — 1 screen per card + 1 buffer */
+            height: `${(CATEGORIES.length + 1) * 100}vh`,  /* 700vh */
             position: "relative",
-            marginTop: "-100vh",                             /* overlap hero's sticky space */
+            zIndex: 0,
           }}
         >
           <div
