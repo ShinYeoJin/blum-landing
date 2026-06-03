@@ -548,6 +548,65 @@ export default function V1() {
     };
   }, []);
 
+  /* ── Window wheel lock: brand/services 섹션에서 외부 스크롤 방지 ── */
+  useEffect(() => {
+    const brandEl = snapRef.current as HTMLElement | null;
+    const svcEl   = snapServicesRef.current as HTMLElement | null;
+    if (!brandEl || !svcEl) return;
+
+    const absTop = (el: HTMLElement) => el.getBoundingClientRect().top + window.scrollY;
+    let snapping = false;
+
+    const onWinWheel = (e: WheelEvent) => {
+      const scrollY   = window.scrollY;
+      const brandTop  = absTop(brandEl);
+      const svcTop    = absTop(svcEl);
+      const onBrand   = Math.abs(scrollY - brandTop) <= 5;
+      const onSvc     = Math.abs(scrollY - svcTop)   <= 5;
+      const between   = !onBrand && !onSvc && scrollY > brandTop + 5 && scrollY < svcTop - 5;
+
+      /* 스냅 진행 중이면 무조건 기본 스크롤 차단 */
+      if (snapping) { e.preventDefault(); return; }
+
+      /* 두 섹션 사이 중간에 걸렸을 때 → 가까운 쪽으로 스냅 */
+      if (between) {
+        e.preventDefault();
+        snapping = true;
+        window.scrollTo({ top: e.deltaY > 0 ? svcTop : brandTop, behavior: "smooth" });
+        setTimeout(() => { snapping = false; }, 1000);
+        return;
+      }
+
+      /* brand 섹션 위치인데 커서가 brand div 밖(예: nav) → brand 핸들러로 전달 */
+      if (onBrand && !brandEl.contains(e.target as Node)) {
+        e.preventDefault();
+        brandEl.dispatchEvent(new WheelEvent("wheel", {
+          deltaY: e.deltaY, deltaMode: e.deltaMode, bubbles: false, cancelable: true,
+        }));
+        return;
+      }
+
+      /* services 섹션 위치인데 커서가 services div 밖 → 방향에 따라 처리 */
+      if (onSvc && !svcEl.contains(e.target as Node)) {
+        e.preventDefault();
+        if (e.deltaY < -30) {
+          /* wheel-up: services 핸들러로 전달 (brand로 돌아가기) */
+          svcEl.dispatchEvent(new WheelEvent("wheel", {
+            deltaY: e.deltaY, deltaMode: e.deltaMode, bubbles: false, cancelable: true,
+          }));
+        } else if (e.deltaY > 30) {
+          /* wheel-down: services 내부 다음 스냅으로 이동 */
+          const vh      = window.innerHeight;
+          const nextSnap = Math.min(Math.round(svcEl.scrollTop / vh) + 1, 2);
+          svcEl.scrollTo({ top: nextSnap * vh, behavior: "smooth" });
+        }
+      }
+    };
+
+    window.addEventListener("wheel", onWinWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWinWheel);
+  }, []);
+
   return (
     /*
       IMPORTANT: Do NOT add overflow-x: hidden here.
