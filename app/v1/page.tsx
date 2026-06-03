@@ -566,18 +566,18 @@ export default function V1() {
       const scrollY   = window.scrollY;
       const brandTop  = absTop(brandEl);
       const svcTop    = absTop(svcEl);
-      const onBrand   = Math.abs(scrollY - brandTop) <= 5;
-      const onSvc     = Math.abs(scrollY - svcTop)   <= 5;
-      const between   = !onBrand && !onSvc && scrollY > brandTop + 5 && scrollY < svcTop - 5;
+      const onBrand   = scrollY >= brandTop - 20 && scrollY <= brandTop + 20;
+      const onSvc     = Math.abs(scrollY - svcTop)   <= 20;
+      const between   = !onBrand && !onSvc && scrollY > brandTop + 20 && scrollY < svcTop - 20;
 
       /* 스냅 진행 중이면 무조건 기본 스크롤 차단 */
       if (snapping) { e.preventDefault(); return; }
 
-      /* 두 섹션 사이 중간에 걸렸을 때 → 가까운 쪽으로 스냅 */
+      /* 두 섹션 사이 중간에 걸렸을 때 → 항상 brand로 복귀 (베이지 패널 시퀀스를 반드시 거치게) */
       if (between) {
         e.preventDefault();
         snapping = true;
-        window.scrollTo({ top: e.deltaY > 0 ? svcTop : brandTop, behavior: "smooth" });
+        window.scrollTo({ top: brandTop, behavior: "smooth" });
         setTimeout(() => { snapping = false; }, 1000);
         return;
       }
