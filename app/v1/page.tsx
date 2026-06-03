@@ -444,43 +444,73 @@ export default function V1() {
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
 
-    /* helper: slide-up text */
-    const slideUp = (ref: React.RefObject<HTMLDivElement | null>, fromY: string) => {
-      const el = ref.current;
-      if (!el) return;
-      el.style.opacity    = "0";
-      el.style.transform  = `translateY(${fromY})`;
-      el.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        el.style.opacity   = "1";
-        el.style.transform = "translateY(0)";
+    /* snap 1: title slide-up */
+    const t = svcTitleRef.current;
+    if (t) {
+      t.style.opacity    = "0";
+      t.style.transform  = "translateY(40px)";
+      t.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        t.style.opacity = "1"; t.style.transform = "translateY(0)";
         io.disconnect();
       }, { threshold: 0.2 });
-      io.observe(el);
-      observers.push(io);
-    };
+      io.observe(t); observers.push(io);
+    }
 
-    /* helper: scale-down fullscreen image */
-    const scaleIn = (ref: React.RefObject<HTMLImageElement | null>) => {
-      const el = ref.current;
-      if (!el) return;
-      el.style.transform  = "scale(1.1)";
-      el.style.transition = "transform 1.2s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        el.style.transform = "scale(1)";
+    /* snap 2: fullscreen image scale 1.1→1 */
+    const pi = svcPlanImgRef.current;
+    if (pi) {
+      pi.style.transform  = "scale(1.1)";
+      pi.style.transition = "transform 1.2s cubic-bezier(0.16,1,0.3,1)";
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        pi.style.transform = "scale(1)";
         io.disconnect();
       }, { threshold: 0.3 });
-      io.observe(el);
-      observers.push(io);
-    };
+      io.observe(pi); observers.push(io);
+    }
 
-    slideUp(svcTitleRef, "40px");
-    scaleIn(svcPlanImgRef);
-    slideUp(svcPlanRef,  "40px");
-    scaleIn(svcEsvcImgRef);
-    slideUp(svcEsvcRef,  "-40px");
+    /* snap 3: plan text slide-up */
+    const pt = svcPlanRef.current;
+    if (pt) {
+      pt.style.opacity    = "0";
+      pt.style.transform  = "translateY(40px)";
+      pt.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return;
+        pt.style.opacity = "1"; pt.style.transform = "translateY(0)";
+        io.disconnect();
+      }, { threshold: 0.2 });
+      io.observe(pt); observers.push(io);
+    }
+
+    /* snap 4: e-services image scale-up (0.5→1) + text slide-down with delay */
+    const ei = svcEsvcImgRef.current;
+    const et = svcEsvcRef.current;
+    if (ei) {
+      ei.style.opacity    = "0";
+      ei.style.transform  = "scale(0.5)";
+      ei.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
+    }
+    if (et) {
+      et.style.opacity    = "0";
+      et.style.transform  = "translateY(-40px)";
+      et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s";
+    }
+    if (ei || et) {
+      const snap4 = ei?.parentElement ?? et?.closest("[data-snap4]") as HTMLElement | null;
+      const target = snap4 ?? ei ?? et;
+      if (target) {
+        const io = new IntersectionObserver(([e]) => {
+          if (!e.isIntersecting) return;
+          if (ei) { ei.style.opacity = "1"; ei.style.transform = "scale(1)"; }
+          if (et) { et.style.opacity = "1"; et.style.transform = "translateY(0)"; }
+          io.disconnect();
+        }, { threshold: 0.3 });
+        io.observe(target); observers.push(io);
+      }
+    }
 
     return () => observers.forEach((io) => io.disconnect());
   }, []);
@@ -956,12 +986,11 @@ export default function V1() {
         </div>{/* end snap container */}
 
         {/* ══════════════════════════════════════════════════════════════
-            SERVICES SNAP SEQUENCE  (CSS scroll-snap, 5 × 100vh)
+            SERVICES SNAP SEQUENCE  (CSS scroll-snap, 4 × 100vh)
             Snap 1: 서비스 제목 (IO 슬라이드 업)
             Snap 2: 계획/설계 이미지 풀스크린 (IO scale 1.1→1)
-            Snap 3: 계획/설계 콘텐츠 (좌: IO 슬라이드 업, 우: 다른 이미지)
-            Snap 4: E-Services 이미지 풀스크린 (IO scale 1.1→1)
-            Snap 5: E-Services 콘텐츠 (좌: 다른 이미지, 우: IO 슬라이드 다운)
+            Snap 3: 계획/설계 콘텐츠 (좌: IO 슬라이드 업, 우: 같은 이미지 축소)
+            Snap 4: E-Services (좌: 이미지 scale 0.5→1, 우: 텍스트 슬라이드 다운 0.7s 딜레이)
         ══════════════════════════════════════════════════════════════ */}
         <section
           ref={snapServicesRef}
@@ -990,11 +1019,11 @@ export default function V1() {
             </div>
           </div>
 
-          {/* ── Snap 2: 계획/설계 풀스크린 이미지 (persoenliche-services) ── */}
+          {/* ── Snap 2: 계획/설계 풀스크린 (technischer_support) ── */}
           <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden" }}>
             <img
               ref={svcPlanImgRef}
-              src={`${BASE}/images/560/336/4207488/corporate/media/bilder/services/services-overview/persoenliche-services_5:3.jpg`}
+              src={`${BASE}/images/560/420/4207482/corporate/media/bilder/services/services-overview/technischer_support_w2_220916_4927_enlarged_4:3.jpg`}
               alt="계획/설계 지원"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
@@ -1002,7 +1031,7 @@ export default function V1() {
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(9,9,11,0.05) 0%, rgba(9,9,11,0.3) 100%)" }} />
           </div>
 
-          {/* ── Snap 3: 계획/설계 콘텐츠 — 좌: 텍스트, 우: 다른 이미지 ── */}
+          {/* ── Snap 3: 계획/설계 콘텐츠 — 좌: 텍스트, 우: 같은 이미지 축소 ── */}
           <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcPlanRef}>
@@ -1030,41 +1059,30 @@ export default function V1() {
                 </div>
               </div>
             </div>
-            {/* 우: 다른 이미지 (technischer_support) */}
+            {/* 우: 같은 이미지 (축소 버전) */}
             <div style={{ position: "relative", overflow: "hidden" }}>
               <img
                 src={`${BASE}/images/560/420/4207482/corporate/media/bilder/services/services-overview/technischer_support_w2_220916_4927_enlarged_4:3.jpg`}
-                alt="계획/설계 지원 상세"
+                alt="계획/설계 지원"
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
               />
             </div>
           </div>
 
-          {/* ── Snap 4: E-Services 풀스크린 이미지 (digitale-services) ── */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden" }}>
-            <img
-              ref={svcEsvcImgRef}
-              src={`${BASE}/images/560/336/4214419/corporate/media/bilder/services/services-overview/digitale-services_5:3.jpg`}
-              alt="E-Services"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
-            />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(9,9,11,0.05) 0%, rgba(9,9,11,0.3) 100%)" }} />
-          </div>
-
-          {/* ── Snap 5: E-Services 콘텐츠 — 좌: 다른 이미지, 우: 텍스트 ── */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
-            {/* 좌: 다른 이미지 (me19632151) */}
-            <div style={{ position: "relative", overflow: "hidden" }}>
+          {/* ── Snap 4: E-Services — 좌: 이미지 scale 0.5→1, 우: 텍스트 슬라이드 다운 ── */}
+          <div data-snap4="" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
+            {/* 좌: 이미지 scale-up */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px" }}>
               <img
+                ref={svcEsvcImgRef}
                 src={`${BASE}/images/560/420/4207498/corporate/media/bilder/services/services-overview/me19632151_all_src_4:3.jpg`}
-                alt="E-Services 상세"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                alt="E-Services"
+                style={{ width: "100%", height: "100%", objectFit: "cover", transformOrigin: "center" }}
                 onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
               />
             </div>
-            {/* 우: 텍스트 */}
+            {/* 우: 텍스트 슬라이드 다운 (0.7s 딜레이) */}
             <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcEsvcRef}>
                 <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">E-Services</p>
