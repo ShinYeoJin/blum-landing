@@ -196,6 +196,11 @@ export default function V1() {
   const snapBeigePanelRef = useRef<HTMLDivElement>(null); // step 2 beige panel
   const snapServicesRef   = useRef<HTMLElement>(null);    // exit target
 
+  /* ── Services snap refs ──────────────────────────────────────── */
+  const svcTitleRef       = useRef<HTMLDivElement>(null); // snap 1 title
+  const svcPlanRef        = useRef<HTMLDivElement>(null); // snap 3 left content
+  const svcEsvcRef        = useRef<HTMLDivElement>(null); // snap 5 left content
+
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
     if (aboutH2Ref.current) aboutH2Ref.current.dataset.gsapMask = "1";
@@ -431,6 +436,32 @@ export default function V1() {
       io1.disconnect();
       snap.removeEventListener("wheel", onWheel);
     };
+  }, []);
+
+  /* ── Services snap: IO animations ───────────────────────────── */
+  useEffect(() => {
+    const animTargets: [React.RefObject<HTMLDivElement | null>, string, string][] = [
+      [svcTitleRef,  "translateY(40px)", "translateY(0)"],
+      [svcPlanRef,   "translateY(40px)", "translateY(0)"],
+      [svcEsvcRef,   "translateY(-40px)", "translateY(0)"],
+    ];
+    const observers: IntersectionObserver[] = [];
+    animTargets.forEach(([ref, fromTrans, toTrans]) => {
+      const el = ref.current;
+      if (!el) return;
+      el.style.opacity    = "0";
+      el.style.transform  = fromTrans;
+      el.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
+      const io = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        el.style.opacity   = "1";
+        el.style.transform = toTrans;
+        io.disconnect();
+      }, { threshold: 0.25 });
+      io.observe(el);
+      observers.push(io);
+    });
+    return () => observers.forEach((io) => io.disconnect());
   }, []);
 
   return (
@@ -903,50 +934,143 @@ export default function V1() {
 
         </div>{/* end snap container */}
 
-        {/* ── SERVICES STRIP ── */}
-        <section ref={snapServicesRef} className="py-16 bg-zinc-50 border-y border-zinc-100">
-          <div className="max-w-7xl mx-auto px-8">
-            <SlideLeft>
-              <div className="mb-12">
-                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-3">Services</p>
-                <h2 className="text-2xl md:text-3xl font-extralight" style={{ letterSpacing: "-0.02em" }}>전문 서비스 지원</h2>
+        {/* ══════════════════════════════════════════════════════════════
+            SERVICES SNAP SEQUENCE  (CSS scroll-snap, 5 × 100vh)
+            Snap 1: 서비스 제목 (흰 배경, IO 슬라이드 인)
+            Snap 2: 계획/설계 이미지 풀스크린
+            Snap 3: 계획/설계 콘텐츠 (좌: 텍스트 IO, 우: 이미지)
+            Snap 4: E-Services 이미지 풀스크린
+            Snap 5: E-Services 콘텐츠 (좌: 텍스트 IO, 우: 이미지)
+        ══════════════════════════════════════════════════════════════ */}
+        <section
+          ref={snapServicesRef}
+          style={{
+            height: "100vh",
+            overflowY: "scroll",
+            scrollSnapType: "y mandatory",
+            scrollbarWidth: "none",
+          } as React.CSSProperties}
+          className="[&::-webkit-scrollbar]:hidden"
+        >
+
+          {/* ── Snap 1: 서비스 제목 ── */}
+          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "flex", alignItems: "center", backgroundColor: "#ffffff" }}>
+            <div className="max-w-7xl mx-auto px-8 w-full">
+              <div ref={svcTitleRef}>
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-5">Services</p>
+                <h2 className="font-extralight text-zinc-900 leading-tight" style={{ fontSize: "clamp(2.5rem,6vw,5rem)", letterSpacing: "-0.03em" }}>
+                  전문 서비스<br />지원
+                </h2>
+                <div className="w-12 h-px bg-zinc-200 mt-8 mb-6" />
+                <p className="text-sm text-zinc-400 max-w-md leading-7" style={{ fontWeight: 300 }}>
+                  계획·설계부터 디지털 서비스까지,<br />blum의 전문 서비스가 함께합니다.
+                </p>
               </div>
-            </SlideLeft>
-            <div className="flex flex-col gap-px bg-zinc-200">
-              {SERVICES.map((s, i) => {
-                const isEven = i % 2 === 0;
-                return (
-                  <Link key={s.title} href={s.href} className="group grid grid-cols-1 md:grid-cols-2 bg-zinc-50 hover:bg-white transition-colors duration-300" style={{ textDecoration: "none", minHeight: "280px" }}>
-                    {isEven ? (
-                      <>
-                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2 md:order-1">
-                          <div className="w-8 h-px bg-zinc-300 mb-5 group-hover:w-16 transition-all duration-300" />
-                          <h3 className="text-lg font-light text-zinc-900 mb-3 group-hover:text-zinc-600 transition-colors">{s.title}</h3>
-                          <p className="text-xs text-zinc-400 leading-relaxed mb-5" style={{ fontWeight: 300 }}>{s.body}</p>
-                          <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">더 알아보기 →</span>
-                        </div>
-                        <div className="relative overflow-hidden bg-zinc-100 order-1 md:order-2" style={{ minHeight: "280px" }}>
-                          <img src={s.img} alt={s.title} className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="relative overflow-hidden bg-zinc-100 order-1" style={{ minHeight: "280px" }}>
-                          <img src={s.img} alt={s.title} className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        </div>
-                        <div className="flex flex-col justify-center px-10 md:px-14 py-12 order-2">
-                          <div className="w-8 h-px bg-zinc-300 mb-5 group-hover:w-16 transition-all duration-300" />
-                          <h3 className="text-lg font-light text-zinc-900 mb-3 group-hover:text-zinc-600 transition-colors">{s.title}</h3>
-                          <p className="text-xs text-zinc-400 leading-relaxed mb-5" style={{ fontWeight: 300 }}>{s.body}</p>
-                          <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">더 알아보기 →</span>
-                        </div>
-                      </>
-                    )}
-                  </Link>
-                );
-              })}
             </div>
           </div>
+
+          {/* ── Snap 2: 계획/설계 이미지 풀스크린 ── */}
+          <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden" }}>
+            <img
+              src={`${BASE}/images/560/336/4207488/corporate/media/bilder/services/services-overview/persoenliche-services_5:3.jpg`}
+              alt="계획/설계 지원"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
+            />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.25) 100%)" }} />
+          </div>
+
+          {/* ── Snap 3: 계획/설계 콘텐츠 ── */}
+          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
+            {/* 좌: 텍스트 */}
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
+              <div ref={svcPlanRef}>
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Plan &amp; Design</p>
+                <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
+                  계획/설계<br />지원
+                </h3>
+                <div className="w-8 h-px bg-zinc-300 mb-6" />
+                <p className="text-sm text-zinc-500 leading-7 mb-8 max-w-sm" style={{ fontWeight: 300 }}>
+                  공간에 최적화된 blum 솔루션을 함께 설계합니다. 전문 컨설턴트가 처음부터 끝까지 함께합니다.
+                </p>
+                <ul className="flex flex-col gap-3">
+                  {["3D 계획 도구 지원", "맞춤형 공간 설계", "전문 컨설팅 서비스", "설치 전 시뮬레이션"].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-xs text-zinc-500 tracking-wide">
+                      <span className="w-1 h-1 rounded-full bg-zinc-300 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <Link href="/v1/services" className="inline-flex items-center gap-3 text-[11px] tracking-[0.2em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group" style={{ textDecoration: "none" }}>
+                    자세히 보기
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+            {/* 우: 이미지 */}
+            <div style={{ position: "relative", overflow: "hidden" }}>
+              <img
+                src={`${BASE}/images/560/336/4207488/corporate/media/bilder/services/services-overview/persoenliche-services_5:3.jpg`}
+                alt="계획/설계 지원"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
+              />
+            </div>
+          </div>
+
+          {/* ── Snap 4: E-Services 이미지 풀스크린 ── */}
+          <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden" }}>
+            <img
+              src={`${BASE}/images/560/336/4214419/corporate/media/bilder/services/services-overview/digitale-services_5:3.jpg`}
+              alt="E-Services"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
+            />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(9,9,11,0.08) 0%, rgba(9,9,11,0.25) 100%)" }} />
+          </div>
+
+          {/* ── Snap 5: E-Services 콘텐츠 ── */}
+          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
+            {/* 좌: 텍스트 */}
+            <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
+              <div ref={svcEsvcRef}>
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">E-Services</p>
+                <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
+                  디지털<br />서비스
+                </h3>
+                <div className="w-8 h-px bg-zinc-300 mb-6" />
+                <p className="text-sm text-zinc-500 leading-7 mb-8 max-w-sm" style={{ fontWeight: 300 }}>
+                  언제 어디서든 접근 가능한 blum의 디지털 플랫폼. 제품 선택부터 주문까지 한 곳에서 해결합니다.
+                </p>
+                <ul className="flex flex-col gap-3">
+                  {["온라인 주문 시스템", "제품 카탈로그 다운로드", "CAD 데이터 제공", "기술 지원 채널"].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-xs text-zinc-500 tracking-wide">
+                      <span className="w-1 h-1 rounded-full bg-zinc-300 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <Link href="/v1/services" className="inline-flex items-center gap-3 text-[11px] tracking-[0.2em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group" style={{ textDecoration: "none" }}>
+                    자세히 보기
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+            {/* 우: 이미지 */}
+            <div style={{ position: "relative", overflow: "hidden" }}>
+              <img
+                src={`${BASE}/images/560/336/4214419/corporate/media/bilder/services/services-overview/digitale-services_5:3.jpg`}
+                alt="E-Services"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`; }}
+              />
+            </div>
+          </div>
+
         </section>
 
         {/* ── CTA ── */}
