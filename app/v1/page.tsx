@@ -440,92 +440,86 @@ export default function V1() {
     };
   }, []);
 
-  /* ── Services snap: IO animations (reversible) ──────────────── */
+  /* ── Services snap: scroll-listener animations (reversible) ─── */
   useEffect(() => {
-    const observers: IntersectionObserver[] = [];
+    const container = snapServicesRef.current as HTMLElement | null;
 
-    /* Snap 1: title slide-up / reverse on exit */
-    const t = svcTitleRef.current;
-    if (t) {
-      t.style.opacity    = "0";
-      t.style.transform  = "translateY(40px)";
-      t.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          t.style.opacity = "1"; t.style.transform = "translateY(0)";
-        } else {
-          t.style.opacity = "0"; t.style.transform = "translateY(40px)";
-        }
+    /* Snap 1 title: IO on outer viewport (outer page scroll triggers this) */
+    const titleEl = svcTitleRef.current;
+    let titleIO: IntersectionObserver | null = null;
+    if (titleEl) {
+      titleEl.style.opacity    = "0";
+      titleEl.style.transform  = "translateY(40px)";
+      titleEl.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
+      titleIO = new IntersectionObserver(([e]) => {
+        titleEl.style.opacity   = e.isIntersecting ? "1" : "0";
+        titleEl.style.transform = e.isIntersecting ? "translateY(0)" : "translateY(40px)";
       }, { threshold: 0.2 });
-      io.observe(t); observers.push(io);
+      titleIO.observe(titleEl);
     }
 
-    /* Snap 2 right image: scale 1.8→1 on enter, 1→1.8 on exit */
-    const pi = svcPlanImgRef.current;
-    if (pi) {
-      pi.style.transform  = "scale(1.8)";
-      pi.style.transition = "transform 1s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([e]) => {
-        pi.style.transform = e.isIntersecting ? "scale(1)" : "scale(1.8)";
-      }, { threshold: 0.3 });
-      io.observe(pi); observers.push(io);
-    }
+    if (!container) return () => { titleIO?.disconnect(); };
 
-    /* Snap 2 left text: slide-up on enter, reset on exit */
-    const pt = svcPlanRef.current;
-    if (pt) {
-      pt.style.opacity    = "0";
-      pt.style.transform  = "translateY(40px)";
-      pt.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          pt.style.opacity = "1"; pt.style.transform = "translateY(0)";
-        } else {
-          pt.style.opacity = "0"; pt.style.transform = "translateY(40px)";
+    const pi = svcPlanImgRef.current;  // snap 2 right image
+    const pt = svcPlanRef.current;     // snap 2 left text
+    const ei = svcEsvcImgRef.current;  // snap 3 left image
+    const et = svcEsvcRef.current;     // snap 3 right text
+
+    /* Initial hidden states */
+    if (pi) { pi.style.transform = "scale(1.8)"; pi.style.transition = "transform 1s cubic-bezier(0.16,1,0.3,1)"; }
+    if (pt) { pt.style.opacity = "0"; pt.style.transform = "translateY(40px)"; pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s"; }
+    if (ei) { ei.style.opacity = "0"; ei.style.transform = "scale(0.5)"; ei.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)"; }
+    if (et) { et.style.opacity = "0"; et.style.transform = "translateY(-40px)"; et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s"; }
+
+    let inS2 = false;
+    let inS3 = false;
+
+    const onSvcScroll = () => {
+      const vh = window.innerHeight;
+      const st = container.scrollTop;
+      const nowS2 = st > vh * 0.4;
+      const nowS3 = st > vh * 1.4;
+
+      /* Snap 2 transition */
+      if (nowS2 !== inS2) {
+        inS2 = nowS2;
+        if (pi) pi.style.transform = inS2 ? "scale(1)" : "scale(1.8)";
+        if (pt) {
+          if (inS2) {
+            /* forward: text slides up 1s after image starts */
+            pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s";
+            pt.style.opacity = "1"; pt.style.transform = "translateY(0)";
+          } else {
+            /* reverse: quick reset, then restore delay for next play */
+            pt.style.transition = "opacity 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1)";
+            pt.style.opacity = "0"; pt.style.transform = "translateY(40px)";
+            setTimeout(() => { if (pt) pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s"; }, 450);
+          }
         }
-      }, { threshold: 0.2 });
-      io.observe(pt); observers.push(io);
-    }
+      }
 
-    /* Snap 3 left image: scale 0.5→1 on enter, reverse on exit */
-    const ei = svcEsvcImgRef.current;
-    if (ei) {
-      ei.style.opacity    = "0";
-      ei.style.transform  = "scale(0.5)";
-      ei.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)";
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          ei.style.opacity = "1"; ei.style.transform = "scale(1)";
-        } else {
-          ei.style.opacity = "0"; ei.style.transform = "scale(0.5)";
+      /* Snap 3 transition */
+      if (nowS3 !== inS3) {
+        inS3 = nowS3;
+        if (ei) { ei.style.opacity = inS3 ? "1" : "0"; ei.style.transform = inS3 ? "scale(1)" : "scale(0.5)"; }
+        if (et) {
+          if (inS3) {
+            et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s";
+            et.style.opacity = "1"; et.style.transform = "translateY(0)";
+          } else {
+            et.style.transition = "opacity 0.4s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1)";
+            et.style.opacity = "0"; et.style.transform = "translateY(-40px)";
+            setTimeout(() => { if (et) et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s"; }, 450);
+          }
         }
-      }, { threshold: 0.3 });
-      io.observe(ei); observers.push(io);
-    }
+      }
+    };
 
-    /* Snap 3 right text: slide-down with 0.7s delay on enter, reverse on exit */
-    const et = svcEsvcRef.current;
-    if (et) {
-      et.style.opacity    = "0";
-      et.style.transform  = "translateY(-40px)";
-      et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s";
-      const io = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          et.style.opacity = "1"; et.style.transform = "translateY(0)";
-        } else {
-          /* remove delay on reverse so it snaps back quickly */
-          et.style.transition = "opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)";
-          et.style.opacity    = "0"; et.style.transform = "translateY(-40px)";
-          /* restore delay for next forward play */
-          setTimeout(() => {
-            if (et) et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s";
-          }, 550);
-        }
-      }, { threshold: 0.3 });
-      io.observe(et); observers.push(io);
-    }
-
-    return () => observers.forEach((io) => io.disconnect());
+    container.addEventListener("scroll", onSvcScroll, { passive: true });
+    return () => {
+      titleIO?.disconnect();
+      container.removeEventListener("scroll", onSvcScroll);
+    };
   }, []);
 
   return (
