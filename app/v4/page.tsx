@@ -530,7 +530,7 @@ export default function V4() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/v4" className="v4-font-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
           <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
-            {([["제품", "#products"], ["가치", "#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            {([["제품", "#products"], ["가치", "#values"], ["서비스", "/v4/services"], ["Contact Us", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
               <Link key={label} href={href} className="v4-nav-link" style={{ color: GRAY, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label}</Link>
             ))}
           </div>

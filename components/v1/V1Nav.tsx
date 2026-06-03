@@ -18,8 +18,8 @@ const MENU = [
     ],
   },
   { label: "서비스", href: "/v1/services", children: [] },
-  { label: "회사", href: "/v1/company", children: [] },
-  { label: "연락처", href: "/v1/contact", children: [] },
+  { label: "기업 소개", href: "/v1/company", children: [] },
+  { label: "Contact Us", href: "/v1/contact", children: [] },
 ];
 
 export default function V1Nav() {
