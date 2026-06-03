@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -66,6 +66,11 @@ export default function V1Products() {
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
+  /* scroll to top before first paint so GSAP pin doesn't cover hero */
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   /* ── Section 1: hero text reveal (plays on mount + on nav re-entry) ── */
   useEffect(() => {
     const hero = heroRef.current;
@@ -87,7 +92,6 @@ export default function V1Products() {
       }));
     };
 
-    window.scrollTo(0, 0);
     playHero();
     window.addEventListener("v1-products-enter", playHero);
     return () => window.removeEventListener("v1-products-enter", playHero);
