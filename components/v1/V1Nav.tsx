@@ -22,6 +22,40 @@ const MENU = [
   { label: "Contact Us", href: "/v1/contact", children: [] },
 ];
 
+const SUB_PAGES = ["/v1/products", "/v1/services", "/v1/company", "/v1/contact"];
+
+function ContactButton({ textColor, borderColor }: { textColor: string; borderColor: string }) {
+  const pathname = usePathname();
+  const isSub    = SUB_PAGES.some((p) => pathname.startsWith(p));
+  const [hovered, setHovered] = useState(false);
+
+  const bg    = hovered && isSub ? "#18181b" : "transparent";
+  const color = hovered && isSub ? "#ffffff"  : textColor;
+
+  return (
+    <Link
+      href="/v1/contact"
+      style={{
+        marginLeft: "16px",
+        padding: "8px 20px",
+        fontSize: "11px",
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+        border: `1px solid ${borderColor}`,
+        color,
+        backgroundColor: bg,
+        textDecoration: "none",
+        transition: "background-color 0.3s ease, color 0.3s ease",
+      }}
+      className={!isSub ? "hover:bg-zinc-900 hover:text-white" : ""}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      문의하기
+    </Link>
+  );
+}
+
 export default function V1Nav() {
   const [scrolled, setScrolled]   = useState(false);
   const [hidden,   setHidden]     = useState(false);
@@ -146,13 +180,7 @@ export default function V1Nav() {
               </div>
             ))}
 
-            <Link
-              href="/v1/contact"
-              className="ml-4 px-5 py-2 text-xs tracking-[0.15em] uppercase border transition-all duration-200 hover:bg-zinc-900 hover:text-white"
-              style={{ color: textColor, borderColor, textDecoration: "none" }}
-            >
-              문의하기
-            </Link>
+            <ContactButton textColor={textColor} borderColor={borderColor} />
           </div>
 
           {/* Mobile */}
