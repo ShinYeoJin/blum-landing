@@ -87,6 +87,7 @@ export default function V1Products() {
       }));
     };
 
+    window.scrollTo(0, 0);
     playHero();
     window.addEventListener("v1-products-enter", playHero);
     return () => window.removeEventListener("v1-products-enter", playHero);
