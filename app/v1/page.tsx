@@ -190,6 +190,19 @@ export default function V1() {
   const aboutB2Ref         = useRef<HTMLParagraphElement>(null);
   const aboutLinkRef       = useRef<HTMLAnchorElement>(null);
 
+  /* ── Brand-Sequence (4-step fullpage) refs ──────────────────── */
+  const seqSentinelRef  = useRef<HTMLDivElement>(null);
+  const seqPanelRef     = useRef<HTMLDivElement>(null);
+  const seq2LblRef      = useRef<HTMLParagraphElement>(null);
+  const seq2TitleRef    = useRef<HTMLParagraphElement>(null);
+  const seq2LinkRef     = useRef<HTMLAnchorElement>(null);
+  const seq3OverRef     = useRef<HTMLDivElement>(null);
+  const seq3CardsRef    = useRef<HTMLDivElement>(null);
+  const philosophyRef   = useRef<HTMLElement>(null);
+  const seqStepRef      = useRef<number>(0);
+  const seqActiveRef    = useRef<boolean>(false);
+  const seqDebounceRef  = useRef<boolean>(false);
+
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
     if (aboutH2Ref.current) aboutH2Ref.current.dataset.gsapMask = "1";
@@ -357,6 +370,147 @@ export default function V1() {
 
     init();
     return () => kills.forEach((fn) => fn());
+  }, []);
+
+  /* ── Brand Sequence: 4-step wheel-driven fullpage flow ─────────── */
+  useEffect(() => {
+    const sentinel  = seqSentinelRef.current;
+    const panel     = seqPanelRef.current;
+    const phil      = philosophyRef.current;
+    if (!sentinel || !panel || !phil) return;
+
+    /* Initial hidden state for step 2/3 elements */
+    const hideStep2 = () => {
+      [seq2LblRef.current, seq2TitleRef.current, seq2LinkRef.current].forEach((el) => {
+        if (el) { el.style.opacity = "0"; el.style.transform = "translateY(32px)"; }
+      });
+    };
+    const hideStep3 = () => {
+      if (seq3OverRef.current) seq3OverRef.current.style.opacity = "0";
+      if (seq3CardsRef.current) {
+        Array.from(seq3CardsRef.current.children).forEach((c) => {
+          (c as HTMLElement).style.opacity = "0";
+          (c as HTMLElement).style.transform = "translateY(48px)";
+        });
+      }
+    };
+    hideStep2();
+    hideStep3();
+    panel.style.opacity = "0";
+    panel.style.pointerEvents = "none";
+
+    const transition = (dir: "fwd" | "bwd") => {
+      if (seqDebounceRef.current) return;
+      const cur = seqStepRef.current;
+      const next = dir === "fwd" ? cur + 1 : cur - 1;
+      if (next < 0 || next > 4) return;
+
+      seqDebounceRef.current = true;
+      setTimeout(() => { seqDebounceRef.current = false; }, 800);
+
+      if (next === 0 && dir === "bwd") {
+        /* Exit sequence backward — unlock scroll, hide panel */
+        seqActiveRef.current = false;
+        panel.style.opacity = "0";
+        panel.style.pointerEvents = "none";
+        seqStepRef.current = 0;
+        hideStep2();
+        hideStep3();
+        return;
+      }
+
+      if (next === 4 && dir === "fwd") {
+        /* Exit sequence forward — scroll to philosophy */
+        seqActiveRef.current = false;
+        panel.style.opacity = "0";
+        panel.style.pointerEvents = "none";
+        seqStepRef.current = 0;
+        hideStep2();
+        hideStep3();
+        phil.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+
+      seqStepRef.current = next;
+
+      /* STEP 1 → show panel with image only */
+      if (next === 1) {
+        hideStep2();
+        hideStep3();
+        panel.style.opacity = "1";
+        panel.style.pointerEvents = "auto";
+        return;
+      }
+
+      /* STEP 2 → text overlay */
+      if (next === 2) {
+        if (seq3OverRef.current) seq3OverRef.current.style.opacity = "0";
+        hideStep3();
+        const els = [seq2LblRef.current, seq2TitleRef.current, seq2LinkRef.current];
+        els.forEach((el, i) => {
+          if (!el) return;
+          el.style.transition = `opacity 0.6s ease ${i * 120}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 120}ms`;
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+        });
+        return;
+      }
+
+      /* STEP 2 → STEP 1 (reverse) */
+      if (next === 1 && dir === "bwd") {
+        hideStep2();
+        return;
+      }
+
+      /* STEP 3 → stat cards + darker overlay */
+      if (next === 3) {
+        if (seq3OverRef.current) {
+          seq3OverRef.current.style.transition = "opacity 0.5s ease";
+          seq3OverRef.current.style.opacity = "0.45";
+        }
+        if (seq3CardsRef.current) {
+          Array.from(seq3CardsRef.current.children).forEach((c, i) => {
+            const el = c as HTMLElement;
+            el.style.transition = `opacity 0.55s ease ${i * 100}ms, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms`;
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+          });
+        }
+        return;
+      }
+
+      /* STEP 3 → STEP 2 (reverse) */
+      if (next === 2 && dir === "bwd") {
+        hideStep3();
+        return;
+      }
+    };
+
+    /* IntersectionObserver to detect when sentinel enters/leaves viewport */
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !seqActiveRef.current) {
+          seqActiveRef.current = true;
+          seqStepRef.current = 0;
+          transition("fwd"); /* auto-advance to step 1 */
+        }
+      },
+      { threshold: 0.5 }
+    );
+    io.observe(sentinel);
+
+    const onWheel = (e: WheelEvent) => {
+      if (!seqActiveRef.current) return;
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? "fwd" : "bwd";
+      transition(dir);
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      io.disconnect();
+      window.removeEventListener("wheel", onWheel);
+    };
   }, []);
 
   return (
@@ -733,38 +887,96 @@ export default function V1() {
           </div>
         </section>
 
-        {/* ── FULL-BLEED FEATURE ── */}
-        <ScaleIn>
-          <div className="relative overflow-hidden" style={{ height: "clamp(400px, 55vw, 720px)" }}>
-            <img
-              src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-              alt="blum showcase"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                el.src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
-              }}
-            />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(9,9,11,0.72) 0%, rgba(9,9,11,0.2) 60%)" }} />
-            <div className="absolute inset-0 flex items-end">
-              <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
-                <p className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">Brand Showcase</p>
-                <p className="text-white font-extralight leading-tight" style={{ fontSize: "clamp(2rem, 5vw, 4.5rem)", letterSpacing: "-0.02em" }}>
-                  세계가 인정한<br />오스트리아의 기술
-                </p>
-                <div className="mt-6">
-                  <Link href="/v1/company" className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group" style={{ textDecoration: "none" }}>
-                    브랜드 알아보기
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
-                </div>
+        {/* ── BRAND SEQUENCE SENTINEL + FIXED PANEL ── */}
+        {/* Sentinel: sits in normal flow; IO triggers sequence entry */}
+        <div ref={seqSentinelRef} style={{ height: "1px", pointerEvents: "none" }} />
+
+        {/* Fixed 100vh panel — hidden until sequence is active */}
+        <div
+          ref={seqPanelRef}
+          style={{
+            position: "fixed", inset: 0, zIndex: 50,
+            transition: "opacity 0.4s ease",
+          }}
+        >
+          {/* Background image */}
+          <img
+            src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
+            alt="blum showcase"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
+            }}
+          />
+          {/* Base gradient */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.65) 0%, rgba(9,9,11,0.15) 65%)" }} />
+          {/* Step 3 extra dark overlay */}
+          <div ref={seq3OverRef} style={{ position: "absolute", inset: 0, backgroundColor: "#09090b", opacity: 0, transition: "opacity 0.5s ease" }} />
+
+          {/* Step 2 text overlay */}
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
+            <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
+              <p
+                ref={seq2LblRef}
+                className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4"
+                style={{ transition: "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)" }}
+              >Brand Showcase</p>
+              <p
+                ref={seq2TitleRef}
+                className="text-white font-extralight leading-tight"
+                style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em", transition: "opacity 0.6s ease 120ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 120ms" }}
+              >
+                세계가 인정한<br />오스트리아의 기술
+              </p>
+              <div className="mt-6">
+                <Link
+                  ref={seq2LinkRef}
+                  href="/v1/company"
+                  className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
+                  style={{ textDecoration: "none", transition: "opacity 0.6s ease 240ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 240ms, color 0.2s" }}
+                >
+                  브랜드 알아보기
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </Link>
               </div>
             </div>
           </div>
-        </ScaleIn>
+
+          {/* Step 3 stat cards */}
+          <div
+            ref={seq3CardsRef}
+            style={{
+              position: "absolute", bottom: "10%", left: "50%", transform: "translateX(-50%)",
+              display: "flex", gap: "clamp(16px,3vw,48px)", flexWrap: "wrap", justifyContent: "center",
+            }}
+          >
+            {[
+              { num: "1952", label: "창립" },
+              { num: "120", label: "개국" },
+              { num: "9,850", label: "임직원" },
+              { num: "2,441M€", label: "매출" },
+            ].map((s) => (
+              <div
+                key={s.num}
+                style={{
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  backdropFilter: "blur(12px)",
+                  padding: "clamp(20px,2.5vw,36px) clamp(24px,3vw,48px)",
+                  textAlign: "center",
+                  minWidth: "clamp(110px,14vw,160px)",
+                  transition: "opacity 0.55s ease, transform 0.55s cubic-bezier(0.16,1,0.3,1)",
+                }}
+              >
+                <p className="text-white font-extralight" style={{ fontSize: "clamp(1.6rem,3.5vw,3rem)", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.num}</p>
+                <p className="text-white/50 tracking-[0.2em] uppercase" style={{ fontSize: "9px", marginTop: "8px" }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ── PHILOSOPHY ── */}
-        <section className="py-28 md:py-40 max-w-7xl mx-auto px-8">
+        <section ref={philosophyRef} className="py-28 md:py-40 max-w-7xl mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
             <div>
               <SlideLeft>
