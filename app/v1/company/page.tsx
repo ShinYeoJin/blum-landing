@@ -69,54 +69,69 @@ function StatItem({ stat, delay }: { stat: typeof STATS[0]; delay: number }) {
   );
 }
 
-/* ── snap panel text reveal ── */
-function PanelText({ children, active }: { children: React.ReactNode; active: boolean }) {
-  return (
-    <div
-      style={{
-        opacity:    active ? 1 : 0,
-        transform:  active ? "translateY(0)" : "translateY(48px)",
-        transition: "opacity 0.8s ease 0.1s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ── scroll-snap A-B-C-D container ── */
-function SnapSequence() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activePanel, setActivePanel] = useState<"A"|"B"|"C"|"D">("A");
-  const panelRefs = {
-    A: useRef<HTMLDivElement>(null),
-    B: useRef<HTMLDivElement>(null),
-    C: useRef<HTMLDivElement>(null),
-    D: useRef<HTMLDivElement>(null),
-  };
+/* ── GSAP pin photo sequence ── */
+function PhotoSequence() {
+  const pinRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
-    const onScroll = () => {
-      const { scrollTop, clientHeight } = container;
-      const idx = Math.round(scrollTop / clientHeight);
-      const panels: Array<"A"|"B"|"C"|"D"> = ["A","B","C","D"];
-      setActivePanel(panels[Math.min(idx, 3)]);
+    const init = async () => {
+      const { gsap }          = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
+
+      ctx = gsap.context(() => {
+        const pin = pinRef.current;
+        if (!pin) return;
+
+        const p1  = pin.querySelector<HTMLElement>(".photo-1");
+        const p2  = pin.querySelector<HTMLElement>(".photo-2");
+        const p3  = pin.querySelector<HTMLElement>(".photo-3");
+        const tm  = pin.querySelector<HTMLElement>(".text-management");
+        const ts  = pin.querySelector<HTMLElement>(".text-sustainability");
+        const ta  = pin.querySelector<HTMLElement>(".text-about");
+        if (!p1 || !p2 || !p3 || !tm || !ts || !ta) return;
+
+        /* Initial states — texts hidden */
+        gsap.set([tm, ts, ta], { opacity: 0, y: 60 });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger:    pin,
+            start:      "top top",
+            end:        "+=400%",
+            pin:        true,
+            scrub:      1,
+            pinSpacing: true,
+          },
+        });
+
+        /* ── PHASE 1 → 2: p3 expands left, management text appears ── */
+        tl
+          .to([p1, p2], { opacity: 0, duration: 1 }, 0)
+          .to(p3,  { x: "-25vw", width: "50%", duration: 1 }, 0)
+          .to(tm,  { y: 0, opacity: 1, duration: 1 }, 0.5)
+
+        /* ── PHASE 2 → 3: swap to p2 + sustainability ── */
+          .to([p3, tm], { opacity: 0, duration: 1 }, 1.5)
+          .to(p2, { opacity: 1, x: "-25vw", width: "50%", duration: 1 }, 1.5)
+          .to(ts, { y: 0, opacity: 1, duration: 1 }, 2)
+
+        /* ── PHASE 3 → 4: swap to p1 + about ── */
+          .to([p2, ts], { opacity: 0, duration: 1 }, 3)
+          .to(p1, { opacity: 1, x: "-25vw", width: "50%", duration: 1 }, 3)
+          .to(ta, { y: 0, opacity: 1, duration: 1 }, 3.5)
+
+          .to({}, { duration: 0.01 }, 3.99);
+
+        ScrollTrigger.refresh();
+      });
     };
 
-    container.addEventListener("scroll", onScroll, { passive: true });
-    return () => container.removeEventListener("scroll", onScroll);
+    init();
+    return () => ctx?.revert();
   }, []);
-
-  const panelStyle: React.CSSProperties = {
-    height: "100vh",
-    scrollSnapAlign: "start",
-    flexShrink: 0,
-    display: "flex",
-    overflow: "hidden",
-  };
 
   const imgStyle: React.CSSProperties = {
     width: "100%",
@@ -125,127 +140,123 @@ function SnapSequence() {
     display: "block",
   };
 
-  const textColStyle: React.CSSProperties = {
-    flex: "0 0 45%",
+  /* shared text panel styles */
+  const textPanel: React.CSSProperties = {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "45%",
+    height: "100%",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     padding: "0 64px",
     backgroundColor: "#ffffff",
-    overflow: "hidden",
+    pointerEvents: "none",
   };
 
-  const dividerStyle: React.CSSProperties = {
-    width: 36,
-    height: 1,
-    backgroundColor: "#d4d4d8",
-    margin: "20px 0",
+  const divider: React.CSSProperties = {
+    width: 36, height: 1, backgroundColor: "#d4d4d8", margin: "20px 0",
   };
 
   return (
     <div
-      ref={containerRef}
+      className="photo-sequence"
+      ref={pinRef}
       style={{
         height: "100vh",
-        overflowY: "scroll",
-        scrollSnapType: "y mandatory",
-        scrollBehavior: "smooth",
+        position: "relative",
+        overflow: "hidden",
+        backgroundColor: "#f4f4f5",
       }}
     >
-      {/* ── Panel A: 3 photos grid ── */}
-      <div ref={panelRefs.A} style={{ ...panelStyle, flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f4f4f5", padding: "48px" }}>
-        <PanelText active={activePanel === "A"}>
-          <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 16, textAlign: "center" }}>
-            Our Story
-          </p>
-        </PanelText>
+      {/* ── Phase 1: 3-photo grid layer ── */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "48px",
+          gap: "2rem",
+          pointerEvents: "none",
+        }}
+      >
+        {/* photo-1 */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "2rem",
-            width: "100%",
-          }}
+          className="photo-1"
+          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
         >
-          {[PHOTO1, PHOTO2, PHOTO3].map((src, i) => (
-            <div key={i} style={{ height: 400, overflow: "hidden" }}>
-              <img src={src} alt="" style={imgStyle}
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Panel B: 3rd photo + leadership ── */}
-      <div ref={panelRefs.B} style={panelStyle}>
-        <div style={{ flex: "0 0 55%", overflow: "hidden" }}>
-          <img src={PHOTO3} alt="경영진" style={imgStyle}
+          <img src={PHOTO1} alt="blum workplace" style={imgStyle}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
-        <div style={textColStyle}>
-          <PanelText active={activePanel === "B"}>
-            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Leadership</p>
-            <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35, marginBottom: 6 }}>
-              Philipp &amp; Martin Blum
-            </h2>
-            <p style={{ fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 0 }}>공동 경영진</p>
-            <div style={dividerStyle} />
-            <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85, marginBottom: 20 }}>
-              창업자 Julius Blum의 후손인 두 형제가 blum을 이끌고 있습니다. 가족 기업의 전통을 이어받아 품질과 혁신, 지속가능성을 핵심 가치로 삼고 있습니다.
-            </p>
-            <blockquote style={{ fontSize: "clamp(15px, 1.8vw, 20px)", fontWeight: 300, fontStyle: "italic", color: "#18181b", lineHeight: 1.6, borderLeft: "2px solid #d4d4d8", paddingLeft: 20, margin: 0 }}>
-              "당사는 끊임없이 움직여<br />더 나은 아이디어를 만듭니다."
-            </blockquote>
-          </PanelText>
-        </div>
-      </div>
 
-      {/* ── Panel C: 2nd photo + sustainability ── */}
-      <div ref={panelRefs.C} style={panelStyle}>
-        <div style={{ flex: "0 0 55%", overflow: "hidden" }}>
+        {/* photo-2 */}
+        <div
+          className="photo-2"
+          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
+        >
           <img src={PHOTO2} alt="지속가능성" style={imgStyle}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
-        <div style={textColStyle}>
-          <PanelText active={activePanel === "C"}>
-            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Sustainability</p>
-            <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
-              지속가능한 미래를<br />함께 만듭니다
-            </h2>
-            <div style={dividerStyle} />
-            <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85, marginBottom: 20 }}>
-              blum은 환경 친화적인 생산 방식, 친환경 물류, 에너지 효율화를 통해 지속가능한 비즈니스를 실현합니다.
-            </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-              {["에너지 및 기후 보호", "순환 경제 및 자원 활용", "환경 친화적 운송", "직원 건강과 안전 최우선"].map((item) => (
-                <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, color: "#52525b" }}>
-                  <span style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#18181b", flexShrink: 0, display: "inline-block" }} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </PanelText>
+
+        {/* photo-3 */}
+        <div
+          className="photo-3"
+          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
+        >
+          <img src={PHOTO3} alt="경영진" style={imgStyle}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
       </div>
 
-      {/* ── Panel D: 1st photo + about blum ── */}
-      <div ref={panelRefs.D} style={panelStyle}>
-        <div style={{ flex: "0 0 55%", overflow: "hidden" }}>
-          <img src={PHOTO1} alt="about blum" style={imgStyle}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        </div>
-        <div style={textColStyle}>
-          <PanelText active={activePanel === "D"}>
-            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>About Blum</p>
-            <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
-              편리함을 높이고 삶의 질을<br />향상시키는 가구 피팅 제조사
-            </h2>
-            <div style={dividerStyle} />
-            <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85 }}>
-              Julius Blum GmbH는 고품질 주방 및 가구용 피팅을 제조하는 세계 최고의 제조업체 중 하나입니다. 오스트리아 포어알베르크에 본사를 두고, 전 세계 120개국 이상에 제품을 수출하고 있습니다. blum의 제품은 힌지, 서랍, 리프트 시스템 등 가구의 움직임과 관련된 모든 영역을 포괄합니다.
-            </p>
-          </PanelText>
-        </div>
+      {/* ── Text: management ── */}
+      <div className="text-management" style={textPanel}>
+        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Leadership</p>
+        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35, marginBottom: 6 }}>
+          Philipp &amp; Martin Blum
+        </h2>
+        <p style={{ fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "#a1a1aa" }}>공동 경영진</p>
+        <div style={divider} />
+        <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85, marginBottom: 20 }}>
+          창업자 Julius Blum의 후손인 두 형제가 blum을 이끌고 있습니다. 가족 기업의 전통을 이어받아 품질과 혁신, 지속가능성을 핵심 가치로 삼고 있습니다.
+        </p>
+        <blockquote style={{ fontSize: "clamp(14px, 1.6vw, 19px)", fontWeight: 300, fontStyle: "italic", color: "#18181b", lineHeight: 1.6, borderLeft: "2px solid #d4d4d8", paddingLeft: 20, margin: 0 }}>
+          "당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다."
+        </blockquote>
+      </div>
+
+      {/* ── Text: sustainability ── */}
+      <div className="text-sustainability" style={textPanel}>
+        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Sustainability</p>
+        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
+          지속가능한 미래를<br />함께 만듭니다
+        </h2>
+        <div style={divider} />
+        <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85, marginBottom: 20 }}>
+          blum은 환경 친화적인 생산 방식, 친환경 물류, 에너지 효율화를 통해 지속가능한 비즈니스를 실현합니다.
+        </p>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+          {["에너지 및 기후 보호", "순환 경제 및 자원 활용", "환경 친화적 운송", "직원 건강과 안전 최우선"].map((item) => (
+            <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, color: "#52525b" }}>
+              <span style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "#18181b", flexShrink: 0, display: "inline-block" }} />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── Text: about blum ── */}
+      <div className="text-about" style={textPanel}>
+        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>About Blum</p>
+        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
+          편리함을 높이고 삶의 질을<br />향상시키는 가구 피팅 제조사
+        </h2>
+        <div style={divider} />
+        <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85 }}>
+          Julius Blum GmbH는 고품질 주방 및 가구용 피팅을 제조하는 세계 최고의 제조업체 중 하나입니다. 오스트리아 포어알베르크에 본사를 두고, 전 세계 120개국 이상에 제품을 수출하고 있습니다. blum의 제품은 힌지, 서랍, 리프트 시스템 등 가구의 움직임과 관련된 모든 영역을 포괄합니다.
+        </p>
       </div>
     </div>
   );
@@ -369,8 +380,8 @@ export default function V1Company() {
         </div>
       </section>
 
-      {/* STEP 3–6: Scroll-snap A → B → C → D */}
-      <SnapSequence />
+      {/* STEP 3–6: GSAP pin photo sequence */}
+      <PhotoSequence />
 
       {/* STEP 7: CTA */}
       <section style={{ padding: "80px 48px", textAlign: "center", borderTop: "1px solid rgba(24,24,27,0.06)", backgroundColor: "#ffffff" }}>
