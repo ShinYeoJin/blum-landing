@@ -107,23 +107,25 @@ function PhotoSequence() {
           },
         });
 
-        /* ── PHASE 1→2: photo3 moves left and expands, management text in ── */
+        /* ── PHASE 1→2: photo3 moves left+expands, management text in ── */
         tl
           .to([p1, p2], { opacity: 0, duration: 0.6 }, 0)
           .to(p3, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 0)
-          .to(tm, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 0.6)
+          .to(tm, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 0.7)
 
-        /* ── PHASE 2→3: photo3+management out, photo2 moves left, sustainability in ── */
-          .to([p3, tm], { opacity: 0, duration: 0.6 }, 1.5)
-          .to(p2, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 1.5)
-          .to(ts, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 2.1)
+        /* ── PHASE 2→3: previous out → photo2 set+appear, sustainability text in ── */
+          .to([p3, tm], { opacity: 0, duration: 0.5 }, 1.6)
+          .set(p2, { opacity: 1, left: "2%", width: "48%" }, 2.1)
+          .from(p2, { opacity: 0, duration: 0.5, ease: "power2.out" }, 2.1)
+          .to(ts, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 2.4)
 
-        /* ── PHASE 3→4: photo2+sustainability out, photo1 expands in place, about in ── */
-          .to([p2, ts], { opacity: 0, duration: 0.6 }, 3)
-          .to(p1, { width: "48%", duration: 1, ease: "power2.inOut" }, 3)
-          .to(ta, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 3.6)
+        /* ── PHASE 3→4: previous out → photo1 set+appear, about text in ── */
+          .to([p2, ts], { opacity: 0, duration: 0.5 }, 3.1)
+          .set(p1, { opacity: 1, left: "2%", width: "48%" }, 3.6)
+          .from(p1, { opacity: 0, duration: 0.5, ease: "power2.out" }, 3.6)
+          .to(ta, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 3.9)
 
-          .to({}, { duration: 0.01 }, 3.99);
+          .to({}, { duration: 0.01 }, 4.5);
 
         ScrollTrigger.refresh();
       });
