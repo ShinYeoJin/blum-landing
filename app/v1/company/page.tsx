@@ -84,7 +84,6 @@ function PhotoSequence() {
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin = pinRef.current;
@@ -290,7 +289,6 @@ function HeroSection() {
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin  = pinRef.current;

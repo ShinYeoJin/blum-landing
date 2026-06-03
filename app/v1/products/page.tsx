@@ -91,7 +91,6 @@ export default function V1Products() {
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin    = pinRef.current;
