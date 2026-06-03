@@ -158,6 +158,12 @@ const SERVICES = [
 export default function V1() {
   const [openValue, setOpenValue] = useState<number | null>(null);
 
+  /* ── Divider ("SINCE 1952") refs ────────────────────────────── */
+  const dividerWrapRef = useRef<HTMLDivElement>(null);
+  const dividerImgRef  = useRef<HTMLDivElement>(null);   // scaling wrapper
+  const dividerLblRef  = useRef<HTMLParagraphElement>(null);
+  const dividerTxtRef  = useRef<HTMLParagraphElement>(null);
+
   /* ── Hero → Brand transition refs ───────────────────────────── */
   const transitionOuterRef = useRef<HTMLDivElement>(null);
   const heroLayerRef       = useRef<HTMLDivElement>(null);
@@ -302,16 +308,47 @@ export default function V1() {
       }
 
       /* ═══════════════════════════════════════════════════════════
-         PRODUCT CARDS — stagger 100px → 0
+         DIVIDER IMAGE — scale 0.6 → 1.0 (scrub), then text reveal
+         ═══════════════════════════════════════════════════════════ */
+      const divWrap = dividerWrapRef.current;
+      if (divWrap && dividerImgRef.current && dividerLblRef.current && dividerTxtRef.current) {
+        gsap.set(dividerImgRef.current, { scale: 0.6, transformOrigin: "center" });
+        gsap.set(dividerLblRef.current, { opacity: 0 });
+        gsap.set(dividerTxtRef.current, { opacity: 0, y: 50 });
+
+        const divTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: divWrap,
+            start: "top 78%",
+            end: "center 25%",
+            scrub: 0.9,
+          },
+        });
+        /* image scale first, then text sequentially */
+        divTl
+          .to(dividerImgRef.current, { scale: 1.0, duration: 1, ease: "none" })
+          .to(dividerLblRef.current, { opacity: 1, duration: 0.35 }, 0.88)
+          .to(dividerTxtRef.current, { opacity: 1, y: 0, duration: 0.5 }, 1.08);
+
+        kills.push(() => { divTl.scrollTrigger?.kill(); divTl.kill(); });
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+         PRODUCT CARDS — individual ScrollTrigger per card
+         Cards pre-hidden by useLayoutEffect (opacity:0, y:100px).
+         Each card animates translateY 100px→0 + fade as it enters.
          ═══════════════════════════════════════════════════════════ */
       const cards = document.querySelectorAll<HTMLElement>("#products .product-card");
       if (cards.length > 0) {
-        cards.forEach((c) => { c.style.transition = ""; });
-        const cardsTween = gsap.to(cards, {
-          y: 0, opacity: 1, duration: 0.9, ease: "power2.out", stagger: 0.15,
-          scrollTrigger: { trigger: "#products", start: "top 68%", once: true },
+        cards.forEach((c) => {
+          c.style.transition = "";
+          const tw = gsap.to(c, {
+            y: 0, opacity: 1,
+            duration: 0.85, ease: "power2.out",
+            scrollTrigger: { trigger: c, start: "top 88%", once: true },
+          });
+          kills.push(() => tw.kill());
         });
-        kills.push(() => cardsTween.kill());
       }
 
       await new Promise<void>((r) => setTimeout(r, 100));
@@ -538,25 +575,30 @@ export default function V1() {
         </section>
 
         {/* ── DIVIDER IMAGE ── */}
-        <ScaleIn>
-          <div className="relative w-full" style={{ height: "clamp(280px, 45vw, 600px)" }}>
-            <img
-              src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`}
-              alt="blum workspace"
-              className="w-full h-full object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 50%)" }} />
+        {/* GSAP: dividerImgRef (scaling wrapper) scale 0.6→1, then text reveal */}
+        <div ref={dividerWrapRef}>
+          <div className="relative w-full" style={{ height: "clamp(280px, 45vw, 600px)", overflow: "hidden" }}>
+            {/* Scaling wrapper — image + gradient scale together */}
+            <div ref={dividerImgRef} style={{ position: "absolute", inset: 0, transformOrigin: "center", willChange: "transform" }}>
+              <img
+                src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`}
+                alt="blum workspace"
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 50%)" }} />
+            </div>
+            {/* Text layer — NOT scaled, reveals after image */}
             <div className="absolute inset-0 flex items-center">
               <div className="max-w-7xl mx-auto px-8 w-full">
-                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Since 1952</p>
-                <p className="text-2xl md:text-4xl font-extralight text-zinc-900 leading-snug max-w-xs" style={{ letterSpacing: "-0.01em" }}>
+                <p ref={dividerLblRef} className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Since 1952</p>
+                <p ref={dividerTxtRef} className="text-2xl md:text-4xl font-extralight text-zinc-900 leading-snug max-w-xs" style={{ letterSpacing: "-0.01em" }}>
                   오스트리아 정밀<br />제조의 전통
                 </p>
               </div>
             </div>
           </div>
-        </ScaleIn>
+        </div>
 
         {/* ── PRODUCTS ── */}
         {/*
@@ -568,9 +610,9 @@ export default function V1() {
           <div className="max-w-7xl mx-auto px-8">
             <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-start">
 
-              {/* Left — sticky header */}
+              {/* Left — sticky sidebar (수직 중앙 고정) */}
               <div className="md:w-80 shrink-0">
-                <div className="md:sticky" style={{ top: "88px" }}>
+                <div className="md:sticky" style={{ top: "calc(50vh - 9rem)" }}>
                   <SlideLeft>
                     <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
                     <h2 className="text-3xl md:text-4xl font-extralight mb-4" style={{ letterSpacing: "-0.02em" }}>
