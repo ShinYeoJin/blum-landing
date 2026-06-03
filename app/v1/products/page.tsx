@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -57,8 +57,8 @@ const CATEGORIES = [
 ];
 
 export default function V1Products() {
-  /* Section 1: hero */
-  const heroRef   = useRef<HTMLElement>(null);
+  /* Section 1: hero animation key (incremented to replay CSS animation) */
+  const [animKey, setAnimKey] = useState(0);
 
   /* Section 2: pin container + layers */
   const pinRef    = useRef<HTMLDivElement>(null);
@@ -66,35 +66,17 @@ export default function V1Products() {
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  /* scroll to top before first paint so GSAP pin doesn't cover hero */
+  /* ensure scroll=0 before first paint and disable browser scroll restoration */
   useLayoutEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
   }, []);
 
-  /* ── Section 1: hero text reveal (plays on mount + on nav re-entry) ── */
+  /* replay hero animation when nav "제품" is clicked while already on this page */
   useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    const playHero = () => {
-      const items = hero.querySelectorAll<HTMLElement>(".h-item");
-      items.forEach((el) => {
-        el.style.transition = "";
-        el.style.opacity    = "0";
-        el.style.transform  = "translateY(52px)";
-      });
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        items.forEach((el, i) => {
-          el.style.transition = `opacity 0.9s ease ${i * 140}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 140}ms`;
-          el.style.opacity    = "1";
-          el.style.transform  = "translateY(0)";
-        });
-      }));
-    };
-
-    playHero();
-    window.addEventListener("v1-products-enter", playHero);
-    return () => window.removeEventListener("v1-products-enter", playHero);
+    const replay = () => { window.scrollTo(0, 0); setAnimKey((k) => k + 1); };
+    window.addEventListener("v1-products-enter", replay);
+    return () => window.removeEventListener("v1-products-enter", replay);
   }, []);
 
   /* ── Section 2: GSAP ScrollTrigger pin + scrub ── */
@@ -165,12 +147,18 @@ export default function V1Products() {
   return (
     <div style={{ backgroundColor: "#ffffff", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
+      <style>{`
+        @keyframes v1HeroItem {
+          from { opacity: 0; transform: translateY(52px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
       {/* ════════════════════════════════════════════════
           SECTION 1 — Hero title (100 vh, white)
-          Intersection Observer triggers sequential reveal.
+          CSS keyframe animation replays on animKey change.
       ════════════════════════════════════════════════ */}
       <section
-        ref={heroRef}
         style={{
           height: "100vh",
           display: "flex",
@@ -180,15 +168,15 @@ export default function V1Products() {
           padding: "0 32px",
         }}
       >
-        <div style={{ textAlign: "center", maxWidth: 600 }}>
-          <p className="h-item" style={{ fontSize: 11, letterSpacing: "0.45em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 24 }}>
+        <div key={animKey} style={{ textAlign: "center", maxWidth: 600 }}>
+          <p style={{ fontSize: 11, letterSpacing: "0.45em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 24, animation: "v1HeroItem 0.9s cubic-bezier(0.16,1,0.3,1) 0ms both" }}>
             Products
           </p>
-          <h1 className="h-item" style={{ fontSize: "clamp(36px, 5.5vw, 72px)", fontWeight: 300, letterSpacing: "-0.02em", color: "#18181b", marginBottom: 28, lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: "clamp(36px, 5.5vw, 72px)", fontWeight: 300, letterSpacing: "-0.02em", color: "#18181b", marginBottom: 28, lineHeight: 1.1, animation: "v1HeroItem 0.9s cubic-bezier(0.16,1,0.3,1) 140ms both" }}>
             제품 카테고리
           </h1>
-          <div className="h-item" style={{ width: 40, height: 1, backgroundColor: "#d4d4d8", margin: "0 auto 28px" }} />
-          <p className="h-item" style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8 }}>
+          <div style={{ width: 40, height: 1, backgroundColor: "#d4d4d8", margin: "0 auto 28px", animation: "v1HeroItem 0.9s cubic-bezier(0.16,1,0.3,1) 280ms both" }} />
+          <p style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8, animation: "v1HeroItem 0.9s cubic-bezier(0.16,1,0.3,1) 420ms both" }}>
             blum의 모든 피팅 솔루션은 기능성과 디자인의 균형을 최우선으로 설계됩니다.
             <br />주방과 가구를 더 아름답고 편리하게.
           </p>
