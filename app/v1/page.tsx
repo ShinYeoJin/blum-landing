@@ -201,8 +201,7 @@ export default function V1() {
   const bsStepRef       = useRef<number>(0);
   const bsActiveRef     = useRef<boolean>(false);
   const bsDebounceRef   = useRef<boolean>(false);
-  /* placeholder height div shown when sequence is active so page doesn't jump */
-  const bsSpacerRef     = useRef<HTMLDivElement>(null);
+  const bsServicesRef   = useRef<HTMLElement>(null);   // services section anchor
 
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
@@ -472,9 +471,15 @@ export default function V1() {
         el.style.transform = "translateY(40px)";
       });
       if (goForward) {
-        /* jump scroll past sentinel so normal scroll resumes below */
-        const sy = sentinel.getBoundingClientRect().top + window.scrollY + 2;
-        window.scrollTo({ top: sy, behavior: "instant" });
+        /* scroll so services section top aligns with viewport top */
+        const svc = bsServicesRef.current;
+        if (svc) {
+          const top = svc.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top, behavior: "instant" });
+        } else {
+          const sy = sentinel.getBoundingClientRect().top + window.scrollY + 2;
+          window.scrollTo({ top: sy, behavior: "instant" });
+        }
       }
     };
 
@@ -1016,11 +1021,9 @@ export default function V1() {
           </div>
         </div>
 
-        {/* Spacer so content below the sequence doesn't overlap */}
-        <div ref={bsSpacerRef} style={{ height: "100vh" }} />
 
         {/* ── SERVICES STRIP ── */}
-        <section className="py-16 bg-zinc-50 border-y border-zinc-100">
+        <section ref={bsServicesRef} className="py-16 bg-zinc-50 border-y border-zinc-100">
           <div className="max-w-7xl mx-auto px-8">
             <SlideLeft>
               <div className="mb-12">
