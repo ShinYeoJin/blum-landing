@@ -333,8 +333,8 @@ export default function V1Services() {
           display: "flex",
           overflow: "hidden",
           borderRadius: "16px",
-          paddingLeft: "10.8%",    /* 15.4% × 0.7 = 10.8%  (30% 감소) */
-          paddingRight: "10.8%",   /* 15.4% × 0.7 = 10.8%  (30% 감소) */
+          paddingLeft: "16.2%",    /* 10.8% × 1.5 (50% 증가) */
+          paddingRight: "16.2%",
         }}
       >
         {SERVICES.map((svc, i) => (
