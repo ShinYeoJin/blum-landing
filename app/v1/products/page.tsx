@@ -66,10 +66,12 @@ export default function V1Products() {
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  /* ensure scroll=0 before first paint and disable browser scroll restoration */
+  /* block all scroll until GSAP has initialized, then re-enable */
   useLayoutEffect(() => {
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
+    document.documentElement.style.overflowY = "hidden";
+    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 600);
+    return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
   }, []);
 
   /* replay hero animation when nav "제품" is clicked while already on this page */

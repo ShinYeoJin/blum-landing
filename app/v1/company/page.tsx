@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -368,6 +368,13 @@ function HeroSection() {
    PAGE
 ══════════════════════════════════════════════════════════ */
 export default function V1Company() {
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.style.overflowY = "hidden";
+    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 600);
+    return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
+  }, []);
+
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
