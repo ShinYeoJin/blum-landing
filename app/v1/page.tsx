@@ -168,7 +168,13 @@ export default function V1() {
   const g2Ref              = useRef<HTMLImageElement>(null);
   const g3Ref              = useRef<HTMLImageElement>(null);
   const g4Ref              = useRef<HTMLImageElement>(null);
+  const g5Ref              = useRef<HTMLImageElement>(null);
+  const g6Ref              = useRef<HTMLImageElement>(null);
+  const g7Ref              = useRef<HTMLImageElement>(null);
+  const g8Ref              = useRef<HTMLImageElement>(null);
+  const g9Ref              = useRef<HTMLImageElement>(null);
   const featuredLayerRef   = useRef<HTMLDivElement>(null);
+  const featuredImgRef     = useRef<HTMLDivElement>(null);
   const aboutLayerRef      = useRef<HTMLDivElement>(null);
   const aboutLblRef        = useRef<HTMLParagraphElement>(null);
   const aboutH2Ref         = useRef<HTMLHeadingElement>(null);
@@ -209,8 +215,13 @@ export default function V1() {
       if (outer) {
         /* initial states */
         gsap.set(gridLayerRef.current, { opacity: 0 });
-        gsap.set([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current], { opacity: 0, scale: 0.94 });
-        gsap.set(featuredLayerRef.current, { opacity: 0, scale: 0.88 });
+        gsap.set(
+          [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
+           g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
+          { opacity: 0, scale: 0.94 }
+        );
+        gsap.set(featuredLayerRef.current, { opacity: 0 });
+        gsap.set(featuredImgRef.current,   { scale: 1.0 });
         gsap.set(aboutLayerRef.current, { opacity: 0 });
         ([aboutLblRef, aboutH2Ref, aboutB1Ref, aboutB2Ref, aboutLinkRef] as React.RefObject<HTMLElement>[]).forEach(
           (r) => { if (r.current) gsap.set(r.current, { opacity: 0, y: 40 }); }
@@ -226,20 +237,27 @@ export default function V1() {
           },
         });
 
-        /* Phase 1 — hero shrinks, text fades, grid images pop in */
+        /* Phase 1 — hero shrinks, text fades, masonry grid images pop in */
         tl
           .to(heroLayerRef.current,  { scale: 0.85, duration: 1 }, 0)
           .to(heroTextRef.current,   { opacity: 0, y: -24, duration: 0.55 }, 0)
           .to(scrollIndicRef.current,{ opacity: 0, duration: 0.35 }, 0)
           .to(gridLayerRef.current,  { opacity: 1, duration: 0.5 }, 0.25)
-          .to([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current],
-            { opacity: 1, scale: 1, stagger: 0.18, duration: 0.75 }, 0.35)
+          .to(
+            [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
+             g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
+            { opacity: 1, scale: 1, stagger: 0.1, duration: 0.7 }, 0.35
+          )
 
-        /* Phase 2 — grid fades out, featured image expands fullscreen */
-          .to([g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current],
-            { opacity: 0, stagger: 0.1, duration: 0.5 }, 1.15)
-          .to(gridLayerRef.current,  { opacity: 0, duration: 0.45 }, 1.25)
-          .to(featuredLayerRef.current, { opacity: 1, scale: 1.2, duration: 1.1 }, 1.35)
+        /* Phase 2 — grid fades out, featured image reveals and zooms 1.0 → 1.3 */
+          .to(
+            [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
+             g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
+            { opacity: 0, stagger: 0.07, duration: 0.45 }, 1.15
+          )
+          .to(gridLayerRef.current,     { opacity: 0, duration: 0.45 }, 1.25)
+          .to(featuredLayerRef.current, { opacity: 1, duration: 0.6 }, 1.35)
+          .to(featuredImgRef.current,   { scale: 1.3, duration: 1.6, ease: "power1.inOut" }, 1.35)
 
         /* Phase 3 — text overlay appears */
           .to(aboutLayerRef.current, { opacity: 1, duration: 0.45 }, 2.2)
@@ -332,31 +350,59 @@ export default function V1() {
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(9,9,11,0.65) 0%, transparent 55%)" }} />
             </div>
 
-            {/* ── Layer B: Grid of 4 images (phase 1) ── */}
+            {/* ── Layer B: Masonry grid of 9 images (phase 1) ── */}
             <div
               ref={gridLayerRef}
               style={{ position: "absolute", inset: 0, zIndex: 2 }}
             >
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", height: "100%", gap: "2px" }}>
-                <img ref={g1Ref} src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`} alt="blum 01" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <img ref={g2Ref} src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`} alt="blum 02" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <img ref={g3Ref} src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`} alt="blum 03" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                <img ref={g4Ref} src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`} alt="blum 04" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1.15fr 0.9fr 0.95fr",
+                gridTemplateRows: "repeat(10, 1fr)",
+                height: "100%",
+                gap: "22px",
+                padding: "22px",
+              }}>
+                {/* col 1, rows 1-5 — tall portrait */}
+                <img ref={g1Ref} src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`} alt="blum 01" style={{ gridColumn: "1", gridRow: "1 / 6", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 2, rows 1-3 — medium portrait */}
+                <img ref={g2Ref} src={`${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`} alt="blum 02" style={{ gridColumn: "2", gridRow: "1 / 4", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 3, rows 1-4 — taller portrait */}
+                <img ref={g3Ref} src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`} alt="blum 03" style={{ gridColumn: "3", gridRow: "1 / 5", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 2, rows 4-7 — medium */}
+                <img ref={g4Ref} src={`${BASE}/images/560/258/4215047/corporate/media/bilder/produkte/klappensysteme/aventos-hki/Blum-AVENTOS-HKi-ME44188536_4:3.jpg`} alt="blum 04" style={{ gridColumn: "2", gridRow: "4 / 8", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 3, rows 5-7 — medium */}
+                <img ref={g5Ref} src={`${BASE}/images/560/258/4207901/corporate/media/bilder/produkte/klappensysteme/aventos-top/kla1119_mc_4:3.jpg`} alt="blum 05" style={{ gridColumn: "3", gridRow: "5 / 8", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 1, rows 6-10 — tall portrait */}
+                <img ref={g6Ref} src={`${BASE}/images/560/336/4195996/corporate/media/bilder/unternehmen/img2630_aa_fot_fo_bau_-sall_-am_-v1_5:3.jpg`} alt="blum 06" style={{ gridColumn: "1", gridRow: "6 / 11", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 2, rows 8-10 — bottom middle */}
+                <img ref={g7Ref} src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`} alt="blum 07" style={{ gridColumn: "2", gridRow: "8 / 11", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 3, rows 8-9 — small */}
+                <img ref={g8Ref} src={`${BASE}/images/560/258/4207766/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96565125_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`} alt="blum 08" style={{ gridColumn: "3", gridRow: "8 / 10", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                {/* col 3, row 10 — small */}
+                <img ref={g9Ref} src={`${BASE}/images/560/258/4215892/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`} alt="blum 09" style={{ gridColumn: "3", gridRow: "10 / 11", width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               </div>
             </div>
 
-            {/* ── Layer C: Featured fullscreen image (scale 1 → 1.2, phase 2) ── */}
+            {/* ── Layer C: Featured fullscreen image (scale 1.0 → 1.3, phase 2) ── */}
+            {/* Outer container clips the zoomed image; text overlay stays outside */}
             <div
               ref={featuredLayerRef}
-              style={{ position: "absolute", inset: 0, zIndex: 3, transformOrigin: "center" }}
+              style={{ position: "absolute", inset: 0, zIndex: 3, overflow: "hidden" }}
             >
-              <img
-                src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
-                alt="blum factory"
-                className="w-full h-full object-cover"
-                style={{ willChange: "transform" }}
-                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
-              />
+              {/* Inner image wrapper — GSAP scales THIS (1.0 → 1.3) */}
+              <div
+                ref={featuredImgRef}
+                style={{ position: "absolute", inset: 0, transformOrigin: "center", willChange: "transform" }}
+              >
+                <img
+                  src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
+                  alt="blum factory"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
+                />
+              </div>
+              {/* Dark overlay — NOT scaled, stays in place */}
               <div style={{ position: "absolute", inset: 0, backgroundColor: "#000000", opacity: 0.62 }} />
             </div>
 
