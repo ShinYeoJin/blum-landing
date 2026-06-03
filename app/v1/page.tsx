@@ -190,18 +190,17 @@ export default function V1() {
   const aboutB2Ref         = useRef<HTMLParagraphElement>(null);
   const aboutLinkRef       = useRef<HTMLAnchorElement>(null);
 
-  /* ── Brand-Sequence (4-step fullpage) refs ──────────────────── */
-  const seqSentinelRef  = useRef<HTMLDivElement>(null);
-  const seqPanelRef     = useRef<HTMLDivElement>(null);
-  const seq2LblRef      = useRef<HTMLParagraphElement>(null);
-  const seq2TitleRef    = useRef<HTMLParagraphElement>(null);
-  const seq2LinkRef     = useRef<HTMLAnchorElement>(null);
-  const seq3OverRef     = useRef<HTMLDivElement>(null);
-  const seq3CardsRef    = useRef<HTMLDivElement>(null);
-  const philosophyRef   = useRef<HTMLElement>(null);
-  const seqStepRef      = useRef<number>(0);
-  const seqActiveRef    = useRef<boolean>(false);
-  const seqDebounceRef  = useRef<boolean>(false);
+  /* ── Brand+Philosophy scrub sequence refs ───────────────────── */
+  const bsOuterRef      = useRef<HTMLDivElement>(null);
+  const bsPinRef        = useRef<HTMLDivElement>(null);
+  const bsDarkRef       = useRef<HTMLDivElement>(null);
+  const bs2LblRef       = useRef<HTMLParagraphElement>(null);
+  const bs2TitleRef     = useRef<HTMLParagraphElement>(null);
+  const bs2LinkRef      = useRef<HTMLDivElement>(null);
+  const bs3CardsRef     = useRef<HTMLDivElement>(null);
+  const bs4PhilRef      = useRef<HTMLDivElement>(null);
+  const bs4LeftRef      = useRef<HTMLDivElement>(null);
+  const bs4RightRef     = useRef<HTMLDivElement>(null);
 
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
@@ -372,145 +371,82 @@ export default function V1() {
     return () => kills.forEach((fn) => fn());
   }, []);
 
-  /* ── Brand Sequence: 4-step wheel-driven fullpage flow ─────────── */
+  /* ── Brand + Philosophy: GSAP pin + scrub sequence ────────────── */
   useEffect(() => {
-    const sentinel  = seqSentinelRef.current;
-    const panel     = seqPanelRef.current;
-    const phil      = philosophyRef.current;
-    if (!sentinel || !panel || !phil) return;
+    const kills: Array<() => void> = [];
 
-    /* Initial hidden state for step 2/3 elements */
-    const hideStep2 = () => {
-      [seq2LblRef.current, seq2TitleRef.current, seq2LinkRef.current].forEach((el) => {
-        if (el) { el.style.opacity = "0"; el.style.transform = "translateY(32px)"; }
+    const init = async () => {
+      const { gsap }         = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
+
+      const outer   = bsOuterRef.current;
+      const pin     = bsPinRef.current;
+      const dark    = bsDarkRef.current;
+      const lbl     = bs2LblRef.current;
+      const title   = bs2TitleRef.current;
+      const linkDiv = bs2LinkRef.current;
+      const cards   = bs3CardsRef.current;
+      const philDiv = bs4PhilRef.current;
+      const philL   = bs4LeftRef.current;
+      const philR   = bs4RightRef.current;
+      if (!outer || !pin || !dark || !lbl || !title || !linkDiv || !cards || !philDiv || !philL || !philR) return;
+
+      /* ── Initial hidden states ── */
+      gsap.set(dark,    { opacity: 0 });
+      gsap.set([lbl, title, linkDiv], { opacity: 0, y: 36 });
+      const cardEls = Array.from(cards.children) as HTMLElement[];
+      gsap.set(cardEls, { opacity: 0, y: 56 });
+      gsap.set(philDiv, { opacity: 0 });
+      gsap.set([philL, philR], { opacity: 0, y: 48 });
+
+      /* ── 400vh outer → pin the 100vh inner ── */
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: outer,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 1.2,
+          pin: false,
+        },
       });
-    };
-    const hideStep3 = () => {
-      if (seq3OverRef.current) seq3OverRef.current.style.opacity = "0";
-      if (seq3CardsRef.current) {
-        Array.from(seq3CardsRef.current.children).forEach((c) => {
-          (c as HTMLElement).style.opacity = "0";
-          (c as HTMLElement).style.transform = "translateY(48px)";
-        });
-      }
-    };
-    hideStep2();
-    hideStep3();
-    panel.style.opacity = "0";
-    panel.style.pointerEvents = "none";
 
-    const transition = (dir: "fwd" | "bwd") => {
-      if (seqDebounceRef.current) return;
-      const cur = seqStepRef.current;
-      const next = dir === "fwd" ? cur + 1 : cur - 1;
-      if (next < 0 || next > 4) return;
+      /*
+        Timeline map (progress 0→1 = 400vh of scroll):
+          0.00–0.25  phase 1: image only (nothing to do — everything starts hidden)
+          0.25–0.50  phase 2: text overlay slides in
+          0.50–0.75  phase 3: dark overlay + cards appear
+          0.75–1.00  phase 4: image/cards/text fade, philosophy fades in
+      */
 
-      seqDebounceRef.current = true;
-      setTimeout(() => { seqDebounceRef.current = false; }, 800);
+      /* Phase 2 — text in (duration = 0.25 each, start at 0.25) */
+      tl
+        .to(lbl,     { opacity: 1, y: 0, duration: 0.1, ease: "power2.out" }, 0.25)
+        .to(title,   { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, 0.28)
+        .to(linkDiv, { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.32)
 
-      if (next === 0 && dir === "bwd") {
-        /* Exit sequence backward — unlock scroll, hide panel */
-        seqActiveRef.current = false;
-        panel.style.opacity = "0";
-        panel.style.pointerEvents = "none";
-        seqStepRef.current = 0;
-        hideStep2();
-        hideStep3();
-        return;
-      }
+      /* Phase 3 — darken + cards in */
+        .to(dark,    { opacity: 0.5, duration: 0.15, ease: "none" }, 0.50)
+        .to(cardEls[0], { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.52)
+        .to(cardEls[1], { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.56)
+        .to(cardEls[2], { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.60)
+        .to(cardEls[3], { opacity: 1, y: 0, duration: 0.10, ease: "power2.out" }, 0.64)
 
-      if (next === 4 && dir === "fwd") {
-        /* Exit sequence forward — scroll to philosophy */
-        seqActiveRef.current = false;
-        panel.style.opacity = "0";
-        panel.style.pointerEvents = "none";
-        seqStepRef.current = 0;
-        hideStep2();
-        hideStep3();
-        phil.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
+      /* Phase 4 — image layer fades, philosophy appears */
+        .to([lbl, title, linkDiv, ...cardEls, dark], { opacity: 0, duration: 0.08, ease: "power1.in" }, 0.75)
+        .to(pin,    { opacity: 0, duration: 0.10, ease: "power1.in" }, 0.77)
+        .to(philDiv, { opacity: 1, duration: 0.12, ease: "power2.out" }, 0.82)
+        .to(philL,   { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, 0.85)
+        .to(philR,   { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, 0.89);
 
-      seqStepRef.current = next;
+      kills.push(() => { tl.scrollTrigger?.kill(); tl.kill(); });
 
-      /* STEP 1 → show panel with image only */
-      if (next === 1) {
-        hideStep2();
-        hideStep3();
-        panel.style.opacity = "1";
-        panel.style.pointerEvents = "auto";
-        return;
-      }
-
-      /* STEP 2 → text overlay */
-      if (next === 2) {
-        if (seq3OverRef.current) seq3OverRef.current.style.opacity = "0";
-        hideStep3();
-        const els = [seq2LblRef.current, seq2TitleRef.current, seq2LinkRef.current];
-        els.forEach((el, i) => {
-          if (!el) return;
-          el.style.transition = `opacity 0.6s ease ${i * 120}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 120}ms`;
-          el.style.opacity = "1";
-          el.style.transform = "translateY(0)";
-        });
-        return;
-      }
-
-      /* STEP 2 → STEP 1 (reverse) */
-      if (next === 1 && dir === "bwd") {
-        hideStep2();
-        return;
-      }
-
-      /* STEP 3 → stat cards + darker overlay */
-      if (next === 3) {
-        if (seq3OverRef.current) {
-          seq3OverRef.current.style.transition = "opacity 0.5s ease";
-          seq3OverRef.current.style.opacity = "0.45";
-        }
-        if (seq3CardsRef.current) {
-          Array.from(seq3CardsRef.current.children).forEach((c, i) => {
-            const el = c as HTMLElement;
-            el.style.transition = `opacity 0.55s ease ${i * 100}ms, transform 0.55s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms`;
-            el.style.opacity = "1";
-            el.style.transform = "translateY(0)";
-          });
-        }
-        return;
-      }
-
-      /* STEP 3 → STEP 2 (reverse) */
-      if (next === 2 && dir === "bwd") {
-        hideStep3();
-        return;
-      }
+      await new Promise<void>((r) => setTimeout(r, 50));
+      ScrollTrigger.refresh();
     };
 
-    /* IntersectionObserver to detect when sentinel enters/leaves viewport */
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !seqActiveRef.current) {
-          seqActiveRef.current = true;
-          seqStepRef.current = 0;
-          transition("fwd"); /* auto-advance to step 1 */
-        }
-      },
-      { threshold: 0.5 }
-    );
-    io.observe(sentinel);
-
-    const onWheel = (e: WheelEvent) => {
-      if (!seqActiveRef.current) return;
-      e.preventDefault();
-      const dir = e.deltaY > 0 ? "fwd" : "bwd";
-      transition(dir);
-    };
-
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => {
-      io.disconnect();
-      window.removeEventListener("wheel", onWheel);
-    };
+    init();
+    return () => kills.forEach((fn) => fn());
   }, []);
 
   return (
@@ -887,132 +823,135 @@ export default function V1() {
           </div>
         </section>
 
-        {/* ── BRAND SEQUENCE SENTINEL + FIXED PANEL ── */}
-        {/* Sentinel: sits in normal flow; IO triggers sequence entry */}
-        <div ref={seqSentinelRef} style={{ height: "1px", pointerEvents: "none" }} />
-
-        {/* Fixed 100vh panel — hidden until sequence is active */}
-        <div
-          ref={seqPanelRef}
-          style={{
-            position: "fixed", inset: 0, zIndex: 50,
-            transition: "opacity 0.4s ease",
-          }}
-        >
-          {/* Background image */}
-          <img
-            src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-            alt="blum showcase"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
-            }}
-          />
-          {/* Base gradient */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.65) 0%, rgba(9,9,11,0.15) 65%)" }} />
-          {/* Step 3 extra dark overlay */}
-          <div ref={seq3OverRef} style={{ position: "absolute", inset: 0, backgroundColor: "#09090b", opacity: 0, transition: "opacity 0.5s ease" }} />
-
-          {/* Step 2 text overlay */}
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
-            <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
-              <p
-                ref={seq2LblRef}
-                className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4"
-                style={{ transition: "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)" }}
-              >Brand Showcase</p>
-              <p
-                ref={seq2TitleRef}
-                className="text-white font-extralight leading-tight"
-                style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em", transition: "opacity 0.6s ease 120ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 120ms" }}
-              >
-                세계가 인정한<br />오스트리아의 기술
-              </p>
-              <div className="mt-6">
-                <Link
-                  ref={seq2LinkRef}
-                  href="/v1/company"
-                  className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
-                  style={{ textDecoration: "none", transition: "opacity 0.6s ease 240ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 240ms, color 0.2s" }}
-                >
-                  브랜드 알아보기
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </Link>
+        {/* ══════════════════════════════════════════════════════════════
+            BRAND + PHILOSOPHY SCRUB SEQUENCE
+            400vh outer gives scroll space; 100vh inner is pinned.
+            GSAP scrub timeline drives all 4 phases:
+              0–25%  image only
+              25–50% text overlay slides in
+              50–75% darker + stat cards appear
+              75–100% everything fades; philosophy slides in
+        ══════════════════════════════════════════════════════════════ */}
+        <div ref={bsOuterRef} style={{ position: "relative", zIndex: 20 }}>
+          <div style={{ height: "400vh" }}>
+            {/* Pinned 100vh container */}
+            <div
+              style={{
+                position: "sticky", top: 0,
+                height: "100vh", overflow: "hidden",
+              }}
+            >
+              {/* ── Background image layer (ref for phase-4 fade) ── */}
+              <div ref={bsPinRef} style={{ position: "absolute", inset: 0 }}>
+                <img
+                  src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
+                  alt="blum showcase"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
+                  }}
+                />
+                {/* Fixed base gradient */}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.60) 0%, rgba(9,9,11,0.12) 65%)" }} />
+                {/* Phase-3 dark overlay */}
+                <div ref={bsDarkRef} style={{ position: "absolute", inset: 0, backgroundColor: "#09090b" }} />
               </div>
-            </div>
-          </div>
 
-          {/* Step 3 stat cards */}
-          <div
-            ref={seq3CardsRef}
-            style={{
-              position: "absolute", bottom: "10%", left: "50%", transform: "translateX(-50%)",
-              display: "flex", gap: "clamp(16px,3vw,48px)", flexWrap: "wrap", justifyContent: "center",
-            }}
-          >
-            {[
-              { num: "1952", label: "창립" },
-              { num: "120", label: "개국" },
-              { num: "9,850", label: "임직원" },
-              { num: "2,441M€", label: "매출" },
-            ].map((s) => (
+              {/* ── Phase 2: text overlay ── */}
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end", zIndex: 2 }}>
+                <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
+                  <p ref={bs2LblRef} className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">
+                    Brand Showcase
+                  </p>
+                  <p ref={bs2TitleRef} className="text-white font-extralight leading-tight"
+                    style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em" }}>
+                    세계가 인정한<br />오스트리아의 기술
+                  </p>
+                  <div ref={bs2LinkRef} className="mt-6">
+                    <Link
+                      href="/v1/company"
+                      className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
+                      style={{ textDecoration: "none" }}
+                    >
+                      브랜드 알아보기
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Phase 3: stat cards ── */}
               <div
-                key={s.num}
+                ref={bs3CardsRef}
                 style={{
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  backdropFilter: "blur(12px)",
-                  padding: "clamp(20px,2.5vw,36px) clamp(24px,3vw,48px)",
-                  textAlign: "center",
-                  minWidth: "clamp(110px,14vw,160px)",
-                  transition: "opacity 0.55s ease, transform 0.55s cubic-bezier(0.16,1,0.3,1)",
+                  position: "absolute", zIndex: 3,
+                  bottom: "10%", left: "50%", transform: "translateX(-50%)",
+                  display: "flex", gap: "clamp(16px,3vw,48px)",
+                  flexWrap: "wrap", justifyContent: "center",
                 }}
               >
-                <p className="text-white font-extralight" style={{ fontSize: "clamp(1.6rem,3.5vw,3rem)", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.num}</p>
-                <p className="text-white/50 tracking-[0.2em] uppercase" style={{ fontSize: "9px", marginTop: "8px" }}>{s.label}</p>
+                {[
+                  { num: "1952", label: "창립" },
+                  { num: "120", label: "개국" },
+                  { num: "9,850", label: "임직원" },
+                  { num: "2,441M€", label: "매출" },
+                ].map((s) => (
+                  <div
+                    key={s.num}
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                      backdropFilter: "blur(14px)",
+                      padding: "clamp(20px,2.5vw,36px) clamp(24px,3vw,48px)",
+                      textAlign: "center",
+                      minWidth: "clamp(110px,14vw,160px)",
+                    }}
+                  >
+                    <p className="text-white font-extralight" style={{ fontSize: "clamp(1.6rem,3.5vw,3rem)", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.num}</p>
+                    <p className="text-white/50 tracking-[0.2em] uppercase" style={{ fontSize: "9px", marginTop: "8px" }}>{s.label}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* ── PHILOSOPHY ── */}
-        <section ref={philosophyRef} className="py-28 md:py-40 max-w-7xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-            <div>
-              <SlideLeft>
-                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
-                <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
-              </SlideLeft>
-              <ExpandLine delay={80} className="w-10 h-px bg-zinc-200 mb-8" />
-              <Reveal delay={120}>
-                <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
-                  삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
-                </p>
-              </Reveal>
-            </div>
-            <div>
-              {VALUES.map((v, i) => (
-                <Reveal key={v.num} delay={i * 80}>
-                  <div className="value-row border-t border-zinc-100 group cursor-pointer" onClick={() => setOpenValue(openValue === i ? null : i)}>
-                    <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
-                      <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-200 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
-                      <div className="col-span-8 md:col-span-7">
-                        <h3 className="text-xl md:text-2xl font-light group-hover:text-zinc-600 transition-colors">{v.title}</h3>
-                      </div>
-                      <div className="col-span-2 md:col-span-4 text-right">
-                        <span className="text-zinc-200 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
-                      </div>
+              {/* ── Phase 4: philosophy overlay ── */}
+              <div ref={bs4PhilRef} style={{ position: "absolute", inset: 0, zIndex: 4, backgroundColor: "#ffffff", overflowY: "auto" }}>
+                <div className="py-28 md:py-40 max-w-7xl mx-auto px-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+                    {/* Left */}
+                    <div ref={bs4LeftRef}>
+                      <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Our Philosophy</p>
+                      <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
+                      <div className="w-10 h-px bg-zinc-200 mb-8" />
+                      <p className="text-sm text-zinc-400 leading-8" style={{ fontWeight: 300 }}>
+                        삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
+                      </p>
                     </div>
-                    <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
-                      <p className="text-sm text-zinc-400 leading-relaxed pb-8 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
+                    {/* Right */}
+                    <div ref={bs4RightRef}>
+                      {VALUES.map((v, i) => (
+                        <div key={v.num} className="value-row border-t border-zinc-100 group cursor-pointer" onClick={() => setOpenValue(openValue === i ? null : i)}>
+                          <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
+                            <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-200 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
+                            <div className="col-span-8 md:col-span-7">
+                              <h3 className="text-xl md:text-2xl font-light group-hover:text-zinc-600 transition-colors">{v.title}</h3>
+                            </div>
+                            <div className="col-span-2 md:col-span-4 text-right">
+                              <span className="text-zinc-200 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
+                            </div>
+                          </div>
+                          <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
+                            <p className="text-sm text-zinc-400 leading-relaxed pb-8 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border-t border-zinc-100" />
                     </div>
                   </div>
-                </Reveal>
-              ))}
-              <div className="border-t border-zinc-100" />
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* ── SERVICES STRIP ── */}
         <section className="py-16 bg-zinc-50 border-y border-zinc-100">
