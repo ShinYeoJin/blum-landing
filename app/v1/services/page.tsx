@@ -101,13 +101,23 @@ function ServicePanel({
   hasActive,
   onEnter,
   onLeave,
+  isFirst,
+  isLast,
 }: {
   svc: (typeof SERVICES)[0];
   isActive: boolean;
   hasActive: boolean;
   onEnter: () => void;
   onLeave: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
+  const radius = isFirst
+    ? "16px 0 0 16px"
+    : isLast
+    ? "0 16px 16px 0"
+    : "0";
+
   return (
     <div
       onMouseEnter={onEnter}
@@ -119,6 +129,7 @@ function ServicePanel({
         overflow: "hidden",
         cursor: "pointer",
         minWidth: 0,
+        borderRadius: radius,
       }}
     >
       {/* Background image */}
@@ -316,16 +327,17 @@ export default function V1Services() {
       ══════════════════════════════════════════ */}
       <section
         style={{
-          marginTop: "35vh",
+          marginTop: "28vh",       /* 35vh × 0.8 = 28vh  (20% 감소) */
           height: "75vh",
           minHeight: 480,
           display: "flex",
           overflow: "hidden",
-          paddingLeft: "12%",
-          paddingRight: "12%",
+          borderRadius: "16px",
+          paddingLeft: "22%",      /* 12% + 10% */
+          paddingRight: "22%",     /* 12% + 10% */
         }}
       >
-        {SERVICES.map((svc) => (
+        {SERVICES.map((svc, i) => (
           <ServicePanel
             key={svc.id}
             svc={svc}
@@ -333,6 +345,8 @@ export default function V1Services() {
             hasActive={activeId !== null}
             onEnter={() => setActiveId(svc.id)}
             onLeave={() => setActiveId(null)}
+            isFirst={i === 0}
+            isLast={i === SERVICES.length - 1}
           />
         ))}
       </section>
