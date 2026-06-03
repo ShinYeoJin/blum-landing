@@ -19,7 +19,6 @@ const MENU = [
   },
   { label: "서비스", href: "/v1/services", children: [] },
   { label: "기업 소개", href: "/v1/company", children: [] },
-  { label: "Contact Us", href: "/v1/contact", children: [] },
 ];
 
 const SUB_PAGES = ["/v1/products", "/v1/services", "/v1/company", "/v1/contact"];
@@ -50,8 +49,9 @@ function ContactButton({ textColor, borderColor }: { textColor: string; borderCo
       className={!isSub ? "hover:bg-zinc-900 hover:text-white" : ""}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => window.scrollTo(0, 0)}
     >
-      문의하기
+      Contact Us
     </Link>
   );
 }
@@ -130,6 +130,7 @@ export default function V1Nav() {
                   href={item.href}
                   className="block px-5 py-2 text-xs tracking-[0.15em] uppercase transition-all duration-200 relative group"
                   style={{ color: textColor, textDecoration: "none" }}
+                  onClick={() => window.scrollTo(0, 0)}
                 >
                   {item.label}
                   {/* Underline indicator */}
@@ -209,7 +210,7 @@ export default function V1Nav() {
                   href={item.href}
                   className="block px-8 py-3.5 text-xs tracking-[0.15em] uppercase border-b"
                   style={{ color: "#18181b", textDecoration: "none", borderColor: "rgba(24,24,27,0.05)" }}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => { setMobileOpen(false); window.scrollTo(0, 0); }}
                 >
                   {item.label}
                 </Link>
