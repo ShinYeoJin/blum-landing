@@ -204,6 +204,9 @@ export default function V3Services() {
               backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
               color: "#f0f0f0",
               display: "flex",
+              /* start fully below viewport — JS update() will correct on scroll */
+              transform: "translateY(100vh)",
+              willChange: "transform",
             }}
           >
             {/* Image side */}
