@@ -57,11 +57,44 @@ const CATEGORIES = [
 ];
 
 export default function V1Products() {
-  const introRef  = useRef<HTMLDivElement>(null);
+  /* Section 1: hero */
+  const heroRef   = useRef<HTMLElement>(null);
+
+  /* Section 2: pin container + layers */
+  const pinRef    = useRef<HTMLDivElement>(null);
   const singleRef = useRef<HTMLDivElement>(null);
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
+  /* ── Section 1: Intersection Observer text reveal ── */
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const items = hero.querySelectorAll<HTMLElement>(".h-item");
+    items.forEach((el) => {
+      el.style.opacity   = "0";
+      el.style.transform = "translateY(52px)";
+      el.style.transition = "";
+    });
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        items.forEach((el, i) => {
+          el.style.transition = `opacity 0.9s ease ${i * 140}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 140}ms`;
+          el.style.opacity    = "1";
+          el.style.transform  = "translateY(0)";
+        });
+        io.disconnect();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(hero);
+    return () => io.disconnect();
+  }, []);
+
+  /* ── Section 2: GSAP ScrollTrigger pin + scrub ── */
   useEffect(() => {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
@@ -71,44 +104,48 @@ export default function V1Products() {
       gsap.registerPlugin(ScrollTrigger);
 
       ctx = gsap.context(() => {
-        const intro  = introRef.current;
+        const pin    = pinRef.current;
         const single = singleRef.current;
-        if (!intro || !single) return;
+        if (!pin || !single) return;
 
         const cells = Array.from({ length: 6 }, (_, i) => cellRefs.current[i]).filter(Boolean) as HTMLDivElement[];
         const cards = Array.from({ length: 6 }, (_, i) => cardRefs.current[i]).filter(Boolean) as HTMLAnchorElement[];
 
-        /* ── Initial states ── */
-        gsap.set(cells, { opacity: 0, scale: 1.12 });
+        /* Initial hidden states */
+        gsap.set(cells, { opacity: 0, scale: 1.1 });
         gsap.set(cards, { opacity: 0, y: 56 });
 
         /*
-          Timeline total ≈ 3.2 units.
-          Pin end: "+=300%" → each unit ≈ 1 screen of scroll.
-          Phase 1 hold   : 0   → 1.0  (first screen, box image stays)
-          Phase 1→2 trans: 1.0 → 1.9  (box shrinks, grid appears)
-          Phase 2 hold   : 1.9 → 2.2
-          Phase 2→3 trans: 2.2 → 3.2  (grid fades, cards rise)
+          end: "+=200%" = 2 viewport-heights of scroll.
+          Timeline total forced to 2.0 so that:
+            progress 0→1 (first screen)  = Phase 1→2 transition
+            progress 1→2 (second screen) = Phase 2→3 transition
         */
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: intro,
-            start:   "top top",
-            end:     "+=300%",
-            pin:     true,
-            scrub:   1,
+            trigger:    pin,
+            start:      "top top",
+            end:        "+=200%",
+            pin:        true,
+            scrub:      1,
             pinSpacing: true,
           },
         });
 
         tl
-          /* Phase 1→2 */
-          .to(single, { scale: 0.35, opacity: 0, duration: 0.7, ease: "power2.in" }, 1.0)
-          .to(cells,  { opacity: 1, scale: 1, duration: 0.55, stagger: 0.08, ease: "power2.out" }, 1.1)
+          /* ── Phase 1 → 2 (scroll 0 % – 100 %)
+             Box image shrinks to nothing while grid stagger-fades in.   */
+          .to(single, { scale: 0, opacity: 0, duration: 0.7, ease: "power2.in" }, 0)
+          .to(cells,  { opacity: 1, scale: 1, duration: 0.4, stagger: 0.1, ease: "power2.out" }, 0)
 
-          /* Phase 2→3 */
-          .to(cells, { opacity: 0, scale: 0.94, duration: 0.35 }, 2.2)
-          .to(cards, { opacity: 1, y: 0, duration: 0.5, stagger: 0.09, ease: "power3.out" }, 2.3);
+          /* ── Phase 2 → 3 (scroll 100 % – 200 %)
+             Grid fades while cards rise in.
+             Absolute position "1" locks this to the second screen.      */
+          .to(cells, { opacity: 0, scale: 0.95, duration: 0.3 }, 1)
+          .to(cards, { opacity: 1, y: 0, duration: 0.35, stagger: 0.15, ease: "power3.out" }, 1)
+
+          /* Pad timeline to exactly 2.0 so the 200 % end aligns cleanly */
+          .to({}, { duration: 0.01 }, 1.99);
 
         ScrollTrigger.refresh();
       });
@@ -118,16 +155,46 @@ export default function V1Products() {
     return () => ctx?.revert();
   }, []);
 
+  /* ── JSX ── */
   return (
     <div style={{ backgroundColor: "#ffffff", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
-      {/* ═══════════════════════════════════════════════════
-          Pinned intro — all 3 phases happen inside this div.
-          GSAP ScrollTrigger pins it and scrubs the timeline
-          over 300% of scroll distance.
-      ═══════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════
+          SECTION 1 — Hero title (100 vh, white)
+          Intersection Observer triggers sequential reveal.
+      ════════════════════════════════════════════════ */}
+      <section
+        ref={heroRef}
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#ffffff",
+          padding: "0 32px",
+        }}
+      >
+        <div style={{ textAlign: "center", maxWidth: 600 }}>
+          <p className="h-item" style={{ fontSize: 11, letterSpacing: "0.45em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 24 }}>
+            Products
+          </p>
+          <h1 className="h-item" style={{ fontSize: "clamp(36px, 5.5vw, 72px)", fontWeight: 300, letterSpacing: "-0.02em", color: "#18181b", marginBottom: 28, lineHeight: 1.1 }}>
+            제품 카테고리
+          </h1>
+          <div className="h-item" style={{ width: 40, height: 1, backgroundColor: "#d4d4d8", margin: "0 auto 28px" }} />
+          <p className="h-item" style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8 }}>
+            blum의 모든 피팅 솔루션은 기능성과 디자인의 균형을 최우선으로 설계됩니다.
+            <br />주방과 가구를 더 아름답고 편리하게.
+          </p>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════
+          SECTION 2 — Pin container (GSAP ScrollTrigger)
+          One fixed screen, 3 phases driven by scrub.
+      ════════════════════════════════════════════════ */}
       <div
-        ref={introRef}
+        ref={pinRef}
         style={{
           height: "100vh",
           position: "relative",
@@ -136,7 +203,7 @@ export default function V1Products() {
         }}
       >
 
-        {/* ── PHASE 1: Single box image ─────────────────── */}
+        {/* ── Phase 1: Single box image ── */}
         <div
           ref={singleRef}
           style={{
@@ -147,16 +214,10 @@ export default function V1Products() {
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#ffffff",
+            pointerEvents: "none",
           }}
         >
-          <div
-            style={{
-              width: "60%",
-              height: "60vh",
-              overflow: "hidden",
-              boxShadow: "0 16px 56px rgba(0,0,0,0.12)",
-            }}
-          >
+          <div style={{ width: "60%", height: "60vh", overflow: "hidden", boxShadow: "0 16px 56px rgba(0,0,0,0.11)" }}>
             <img
               src={CATEGORIES[1].img}
               alt="박스 시스템"
@@ -166,7 +227,7 @@ export default function V1Products() {
           </div>
         </div>
 
-        {/* ── PHASE 2: 6-image grid ─────────────────────── */}
+        {/* ── Phase 2: 6-image grid (no text, wide gap) ── */}
         <div
           style={{
             position: "absolute",
@@ -176,8 +237,8 @@ export default function V1Products() {
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gridTemplateRows: "repeat(2, 1fr)",
-            gap: "8vh 10vw",
-            padding: "5vh 5vw",
+            gap: "3rem",
+            padding: "3rem",
             boxSizing: "border-box",
           }}
         >
@@ -197,34 +258,34 @@ export default function V1Products() {
           ))}
         </div>
 
-        {/* ── PHASE 3: Product cards ────────────────────── */}
+        {/* ── Phase 3: Product cards ── */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             zIndex: 1,
             backgroundColor: "#ffffff",
-            overflowY: "hidden",
-            padding: "40px 32px 32px",
+            padding: "36px 28px 28px",
             boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
           {/* Label */}
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
             <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa" }}>
               All Products
             </p>
             <div style={{ width: 32, height: 1, backgroundColor: "#e4e4e7", margin: "10px auto 0" }} />
           </div>
 
-          {/* Card grid */}
+          {/* 3 × 2 card grid */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
               gap: 1,
               backgroundColor: "#f4f4f5",
-              height: "calc(100% - 68px)",
+              height: "calc(100% - 58px)",
             }}
           >
             {CATEGORIES.map((cat, i) => (
@@ -233,16 +294,10 @@ export default function V1Products() {
                 href={cat.href}
                 ref={(el) => { cardRefs.current[i] = el; }}
                 className="group"
-                style={{
-                  textDecoration: "none",
-                  backgroundColor: "#ffffff",
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                }}
+                style={{ textDecoration: "none", backgroundColor: "#ffffff", display: "flex", flexDirection: "column", overflow: "hidden" }}
               >
                 {/* Image */}
-                <div style={{ flex: "0 0 auto", overflow: "hidden", height: "42%" }}>
+                <div style={{ flex: "0 0 44%", overflow: "hidden" }}>
                   <img
                     src={cat.img}
                     alt={cat.name}
@@ -252,27 +307,24 @@ export default function V1Products() {
                   />
                 </div>
                 {/* Text */}
-                <div style={{ flex: "1 1 auto", padding: "14px 16px 12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div style={{ flex: "1 1 auto", padding: "12px 14px 10px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div>
-                    <p style={{ fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 4 }}>
+                    <p style={{ fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 3 }}>
                       {cat.en}
                     </p>
                     <h2
                       className="transition-colors group-hover:text-zinc-400"
-                      style={{ fontSize: 14, fontWeight: 300, color: "#18181b", marginBottom: 6 }}
+                      style={{ fontSize: 13, fontWeight: 300, color: "#18181b", marginBottom: 5, lineHeight: 1.3 }}
                     >
                       {cat.name}
                     </h2>
-                    <p style={{ fontSize: 10, color: "#71717a", lineHeight: 1.55 }}>{cat.desc}</p>
+                    <p style={{ fontSize: 10, color: "#71717a", lineHeight: 1.5 }}>{cat.desc}</p>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6 }}>
                     <span style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "#18181b" }}>
                       자세히 보기
                     </span>
-                    <span
-                      className="inline-block transition-transform group-hover:translate-x-1"
-                      style={{ color: "#d4d4d8", fontSize: 11 }}
-                    >
+                    <span className="inline-block transition-transform group-hover:translate-x-1" style={{ color: "#d4d4d8", fontSize: 11 }}>
                       →
                     </span>
                   </div>
