@@ -19,7 +19,6 @@ const MENU = [
   },
   { label: "SERVICES", href: "/v3/services", children: [] },
   { label: "COMPANY", href: "/v3/company", children: [] },
-  { label: "CONTACT", href: "/v3/contact", children: [] },
 ];
 
 const RED = "#c8102e";
