@@ -190,20 +190,9 @@ export default function V1() {
   const aboutB2Ref         = useRef<HTMLParagraphElement>(null);
   const aboutLinkRef       = useRef<HTMLAnchorElement>(null);
 
-  /* ── Brand + Philosophy wheel-sequence refs ─────────────────── */
-  const bsSentinelRef   = useRef<HTMLDivElement>(null);   // IO trigger
-  const bsWrapRef       = useRef<HTMLDivElement>(null);   // fixed 100vh host
-  const bsImgLayerRef   = useRef<HTMLDivElement>(null);   // step 1 image layer
-  const bsPanelRef      = useRef<HTMLDivElement>(null);   // beige panel
-  const bsPhilContentRef= useRef<HTMLDivElement>(null);   // phil content inside panel
+  /* ── Brand / Philosophy simple-scroll refs ──────────────────── */
   const bsPhilLeftRef   = useRef<HTMLDivElement>(null);
   const bsPhilRightRef  = useRef<HTMLDivElement>(null);
-  const bsStepRef       = useRef<number>(0);
-  const bsActiveRef     = useRef<boolean>(false);
-  const bsDebounceRef   = useRef<boolean>(false);
-  const bsCooldownRef   = useRef<boolean>(false);  // blocks re-entry right after deactivate
-  const bsSpacerRef     = useRef<HTMLDivElement>(null); // zone spacer (keeps services below)
-  const bsServicesRef   = useRef<HTMLElement>(null);   // services section anchor
 
   /* ── Pre-hide before first paint ────────────────────────────── */
   useLayoutEffect(() => {
@@ -374,209 +363,42 @@ export default function V1() {
     return () => kills.forEach((fn) => fn());
   }, []);
 
-  /* ── Brand + Philosophy: wheel-driven 3-step sequence ─────────── */
+  /* ── Philosophy items: Intersection Observer fade-in ───────────── */
   useEffect(() => {
-    const sentinel = bsSentinelRef.current;
-    const spacer   = bsSpacerRef.current;
-    const wrap     = bsWrapRef.current;
-    const imgLayer = bsImgLayerRef.current;
-    const panel    = bsPanelRef.current;
-    const philCont = bsPhilContentRef.current;
-    const philL    = bsPhilLeftRef.current;
-    const philR    = bsPhilRightRef.current;
-    const svcEl    = bsServicesRef.current;
-    if (!sentinel || !spacer || !wrap || !imgLayer || !panel || !philCont || !philL || !philR || !svcEl) return;
+    const philL = bsPhilLeftRef.current;
+    const philR = bsPhilRightRef.current;
+    if (!philL || !philR) return;
 
-    /* ── Initial visual states ── */
-    wrap.style.display        = "none";
-    panel.style.transform     = "translateX(100%)";
-    panel.style.transition    = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
-    imgLayer.style.transition = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
-    philCont.style.opacity    = "0";
-    philCont.style.transition = "opacity 0.6s ease";
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target as HTMLElement;
+          el.style.opacity   = "1";
+          el.style.transform = "translateY(0)";
+          obs.unobserve(el);
+        });
+      },
+      { threshold: 0.15 }
+    );
+
     [philL, philR].forEach((el) => {
       el.style.opacity    = "0";
-      el.style.transform  = "translateY(40px)";
-      el.style.transition = "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)";
+      el.style.transform  = "translateY(30px)";
+      el.style.transition = "opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1)";
+      obs.observe(el);
     });
 
-    /* absolute document top — measured once after layout settles */
-    let _zoneTop = 0;
-    let _svcTop  = 0;
-    const measurePositions = () => {
-      _zoneTop = sentinel.getBoundingClientRect().top + window.scrollY;
-      _svcTop  = svcEl.getBoundingClientRect().top    + window.scrollY;
-    };
-    measurePositions();
-    /* re-measure on resize */
-    const onResize = () => measurePositions();
-    window.addEventListener("resize", onResize);
-    const zoneTop = () => _zoneTop;
-    const svcTop  = () => _svcTop;
+    /* also observe individual value-row items for staggered fade */
+    const rows = philR.querySelectorAll<HTMLElement>(".bs-value-row");
+    rows.forEach((row, i) => {
+      row.style.opacity    = "0";
+      row.style.transform  = "translateY(20px)";
+      row.style.transition = `opacity 0.6s ease ${i * 100}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 100}ms`;
+      obs.observe(row);
+    });
 
-    /* ── Visual step renderer ── */
-    const goToStep = (step: number) => {
-      bsStepRef.current  = step;
-      wrap.style.display = "block";
-
-      if (step === 1) {
-        imgLayer.style.transform = "translateX(0)";
-        panel.style.transform    = "translateX(100%)";
-        philCont.style.opacity   = "0";
-        [philL, philR].forEach((el) => {
-          el.style.opacity   = "0";
-          el.style.transform = "translateY(40px)";
-        });
-        return;
-      }
-      if (step === 2) {
-        imgLayer.style.transform = "translateX(-30%)";
-        panel.style.transform    = "translateX(0)";
-        philCont.style.opacity   = "0";
-        [philL, philR].forEach((el) => {
-          el.style.opacity   = "0";
-          el.style.transform = "translateY(40px)";
-        });
-        return;
-      }
-      if (step === 3) {
-        imgLayer.style.transform = "translateX(-30%)";
-        panel.style.transform    = "translateX(0)";
-        philCont.style.opacity   = "1";
-        philL.style.opacity      = "1";
-        philL.style.transform    = "translateY(0)";
-        setTimeout(() => {
-          philR.style.opacity    = "1";
-          philR.style.transform  = "translateY(0)";
-          philR.style.transition = "opacity 0.6s ease 150ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 150ms";
-        }, 0);
-        return;
-      }
-    };
-
-    /* ── Reset all visuals (called before hiding wrap) ── */
-    const resetVisuals = () => {
-      wrap.style.display       = "none";
-      imgLayer.style.transform = "translateX(0)";
-      panel.style.transform    = "translateX(100%)";
-      philCont.style.opacity   = "0";
-      [philL, philR].forEach((el) => {
-        el.style.opacity   = "0";
-        el.style.transform = "translateY(40px)";
-      });
-    };
-
-    /* ── Set cooldown to block scroll-listener re-entry for 1.2s ── */
-    const setCooldown = () => {
-      bsCooldownRef.current = true;
-      setTimeout(() => { bsCooldownRef.current = false; }, 1200);
-    };
-
-    /* ── Activate at given step: show wrap, lock scroll to zone top ── */
-    const activate = (step: number) => {
-      if (bsActiveRef.current || bsCooldownRef.current) return;
-      bsActiveRef.current   = true;
-      bsDebounceRef.current = false;
-      window.scrollTo({ top: zoneTop(), behavior: "instant" });
-      goToStep(step);
-    };
-
-    /* ── Forward exit: hide wrap, jump scroll to services top ── */
-    const deactivateFwd = () => {
-      bsActiveRef.current = false;
-      bsStepRef.current   = 0;
-      resetVisuals();
-      setCooldown();
-      /* re-measure to get exact services offsetTop at deactivation time */
-      measurePositions();
-      window.scrollTo({ top: _svcTop, behavior: "instant" });
-    };
-
-    /* ── Backward exit: hide wrap, jump scroll above zone ── */
-    const deactivateBwd = () => {
-      bsActiveRef.current = false;
-      bsStepRef.current   = 0;
-      resetVisuals();
-      setCooldown();
-      /* land just above sentinel so products fills viewport */
-      const top = Math.max(0, zoneTop() - window.innerHeight + 80);
-      window.scrollTo({ top, behavior: "instant" });
-    };
-
-    /* ── Wheel handler ── */
-    const DELTA_THRESHOLD = 30; /* ignore tiny/accidental scrolls */
-
-    const onWheel = (e: WheelEvent) => {
-      if (!bsActiveRef.current) {
-        /* Only respond to intentional scrolls */
-        if (Math.abs(e.deltaY) < DELTA_THRESHOLD) return;
-
-        /* Forward entry: sentinel has just scrolled to viewport top */
-        if (e.deltaY > 0) {
-          const rect = sentinel.getBoundingClientRect();
-          if (rect.top <= 1 && rect.top > -20) {
-            e.preventDefault();
-            activate(1);
-          }
-          return;
-        }
-        /* Backward re-entry from services: services top near viewport top */
-        if (e.deltaY < 0) {
-          const svcRect = svcEl.getBoundingClientRect();
-          if (svcRect.top >= 0 && svcRect.top < 40) {
-            e.preventDefault();
-            activate(3);
-          }
-          return;
-        }
-        return;
-      }
-
-      /* Sequence is active — consume all wheel events */
-      e.preventDefault();
-
-      /* Ignore tiny scrolls and fire only after debounce */
-      if (Math.abs(e.deltaY) < DELTA_THRESHOLD) return;
-      if (bsDebounceRef.current) return;
-      bsDebounceRef.current = true;
-      setTimeout(() => { bsDebounceRef.current = false; }, 1000);
-
-      const step = bsStepRef.current;
-      if (e.deltaY > 0) {
-        /* Forward: step 3 needs one more explicit scroll to exit */
-        if (step < 3) goToStep(step + 1);
-        else          deactivateFwd();
-      } else {
-        /* Backward: exit only after beige panel has fully exited (step 1 → bwd) */
-        if (step > 1) goToStep(step - 1);
-        else          deactivateBwd();
-      }
-    };
-
-    /* ── Scroll listener: handle scrollbar-drag re-entry from services ── */
-    let lastSY = window.scrollY;
-    const onScroll = () => {
-      if (bsActiveRef.current || bsCooldownRef.current) return;
-      const sy  = window.scrollY;
-      const dir = sy < lastSY ? "up" : "down";
-      lastSY = sy;
-      if (dir !== "up") return;
-
-      /* Re-enter zone from below: user dragged scrollbar into zone */
-      const zt  = zoneTop();
-      const svt = svcTop();
-      if (sy >= zt && sy < svt) {
-        activate(3);
-      }
-    };
-
-    window.addEventListener("wheel",  onWheel,  { passive: false });
-    window.addEventListener("scroll", onScroll, { passive: true  });
-    return () => {
-      window.removeEventListener("wheel",  onWheel);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
+    return () => obs.disconnect();
   }, []);
 
   return (
@@ -954,123 +776,103 @@ export default function V1() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            BRAND + PHILOSOPHY WHEEL SEQUENCE
-            sentinel: sits in normal flow to mark entry point
-            bsWrapRef: position:fixed 100vh host (toggled on/off)
-            STEP 1 — fullscreen brand image + text
-            STEP 2 — beige panel slides in from right
-            STEP 3 — philosophy content fades into beige panel
+            섹션 1: 브랜드 이미지 (100vh)
         ══════════════════════════════════════════════════════════════ */}
-
-        {/* Sentinel: marks scroll position where sequence begins */}
-        <div ref={bsSentinelRef} style={{ height: "1px" }} />
-
-        {/* Fixed 100vh host — display toggled by JS */}
-        <div ref={bsWrapRef} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, overflow: "hidden" }}>
-
-          {/* STEP 1 — brand image layer */}
-          <div
-            ref={bsImgLayerRef}
-            style={{ position: "absolute", inset: 0, willChange: "transform" }}
-          >
-            <img
-              src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-              alt="blum showcase"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
-              }}
-            />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.68) 0%, rgba(9,9,11,0.18) 65%)" }} />
-            {/* Text overlay always visible on step 1 */}
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
-              <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
-                <p className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">Brand Showcase</p>
-                <p className="text-white font-extralight leading-tight" style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em" }}>
-                  세계가 인정한<br />오스트리아의 기술
-                </p>
-                <div className="mt-6">
-                  <Link
-                    href="/v1/company"
-                    className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
-                    style={{ textDecoration: "none" }}
-                  >
-                    브랜드 알아보기
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* STEP 2 & 3 — beige panel (slides in from right) */}
-          <div
-            ref={bsPanelRef}
-            style={{
-              position: "absolute", inset: 0,
-              backgroundColor: "#F5F0E8",
-              willChange: "transform",
-              overflowY: "auto",
+        <section style={{ position: "relative", height: "100vh", overflow: "hidden" }}>
+          <img
+            src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
+            alt="blum showcase"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`;
             }}
-          >
-            {/* Philosophy content (fades in on step 3) */}
-            <div ref={bsPhilContentRef} style={{ minHeight: "100vh" }}>
-              <div className="py-28 md:py-40 max-w-7xl mx-auto px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-                  {/* Left */}
-                  <div
-                    ref={bsPhilLeftRef}
-                    style={{ position: "sticky", top: "30vh", height: "fit-content", alignSelf: "flex-start" }}
-                    className="hidden md:block"
-                  >
-                    <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
-                    <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
-                    <div className="w-10 h-px bg-zinc-300 mb-8" />
-                    <p className="text-sm text-zinc-500 leading-8" style={{ fontWeight: 300 }}>
-                      삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
-                    </p>
-                  </div>
-                  {/* Left mobile */}
-                  <div className="block md:hidden">
-                    <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
-                    <h2 className="text-3xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
-                    <div className="w-10 h-px bg-zinc-300 mb-8" />
-                    <p className="text-sm text-zinc-500 leading-8" style={{ fontWeight: 300 }}>
-                      삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
-                    </p>
-                  </div>
-                  {/* Right */}
-                  <div ref={bsPhilRightRef}>
-                    {VALUES.map((v, i) => (
-                      <div key={v.num} className="value-row border-t border-zinc-200 group cursor-pointer" onClick={() => setOpenValue(openValue === i ? null : i)}>
-                        <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
-                          <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-300 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
-                          <div className="col-span-8 md:col-span-7">
-                            <h3 className="text-xl md:text-2xl font-light text-zinc-700 group-hover:text-zinc-500 transition-colors">{v.title}</h3>
-                          </div>
-                          <div className="col-span-2 md:col-span-4 text-right">
-                            <span className="text-zinc-300 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
-                          </div>
-                        </div>
-                        <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
-                          <p className="text-sm text-zinc-500 leading-relaxed pb-8 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="border-t border-zinc-200" />
-                  </div>
-                </div>
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.68) 0%, rgba(9,9,11,0.18) 65%)" }} />
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
+            <div className="max-w-7xl mx-auto px-8 pb-16 w-full">
+              <p className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">Brand Showcase</p>
+              <p className="text-white font-extralight leading-tight" style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em" }}>
+                세계가 인정한<br />오스트리아의 기술
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/v1/company"
+                  className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
+                  style={{ textDecoration: "none" }}
+                >
+                  브랜드 알아보기
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </Link>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
+        {/* ══════════════════════════════════════════════════════════════
+            섹션 2: 베이지 패널 (100vh, 빈 화면)
+        ══════════════════════════════════════════════════════════════ */}
+        <section style={{ height: "100vh", backgroundColor: "#F5F0E8" }} />
 
-        {/* Spacer: gives real document height so services never sits at sentinel position */}
-        <div ref={bsSpacerRef} style={{ height: "100vh" }} />
+        {/* ══════════════════════════════════════════════════════════════
+            섹션 3: 철학 섹션 (auto height, 베이지 배경)
+        ══════════════════════════════════════════════════════════════ */}
+        <section style={{ backgroundColor: "#F5F0E8" }}>
+          <div className="py-28 md:py-40 max-w-7xl mx-auto px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
+
+              {/* Left: sticky on desktop */}
+              <div
+                ref={bsPhilLeftRef}
+                className="hidden md:block"
+                style={{ position: "sticky", top: "30vh", height: "fit-content", alignSelf: "flex-start" }}
+              >
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
+                <h2 className="text-3xl md:text-5xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
+                <div className="w-10 h-px bg-zinc-300 mb-8" />
+                <p className="text-sm text-zinc-500 leading-8" style={{ fontWeight: 300 }}>
+                  삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
+                </p>
+              </div>
+              {/* Left mobile */}
+              <div className="block md:hidden">
+                <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
+                <h2 className="text-3xl font-extralight mb-6" style={{ letterSpacing: "-0.02em" }}>blum이 추구하는 것</h2>
+                <div className="w-10 h-px bg-zinc-300 mb-8" />
+                <p className="text-sm text-zinc-500 leading-8" style={{ fontWeight: 300 }}>
+                  삶의 질, 영감, 그리고 신뢰 — blum의 세 가지 핵심 가치. 고객의 질문이 혁신의 원동력이 되고, 자연 자원을 미래 세대를 위해 보존합니다.
+                </p>
+              </div>
+
+              {/* Right: value accordion items */}
+              <div ref={bsPhilRightRef}>
+                {VALUES.map((v, i) => (
+                  <div
+                    key={v.num}
+                    className="bs-value-row value-row border-t border-zinc-200 group cursor-pointer"
+                    onClick={() => setOpenValue(openValue === i ? null : i)}
+                  >
+                    <div className="py-8 md:py-10 grid grid-cols-12 gap-6 items-start">
+                      <span className="col-span-2 md:col-span-1 text-[9px] text-zinc-300 tracking-widest value-num transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
+                      <div className="col-span-8 md:col-span-7">
+                        <h3 className="text-xl md:text-2xl font-light text-zinc-700 group-hover:text-zinc-500 transition-colors">{v.title}</h3>
+                      </div>
+                      <div className="col-span-2 md:col-span-4 text-right">
+                        <span className="text-zinc-300 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
+                      <p className="text-sm text-zinc-500 leading-relaxed pb-8 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t border-zinc-200" />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── SERVICES STRIP ── */}
-        <section ref={bsServicesRef} className="py-16 bg-zinc-50 border-y border-zinc-100">
+        <section className="py-16 bg-zinc-50 border-y border-zinc-100">
           <div className="max-w-7xl mx-auto px-8">
             <SlideLeft>
               <div className="mb-12">
