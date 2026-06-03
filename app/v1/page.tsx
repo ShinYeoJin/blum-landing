@@ -372,31 +372,26 @@ export default function V1() {
     return () => kills.forEach((fn) => fn());
   }, []);
 
-  /* ── Brand snap-sequence: IO animations + exit handler ──────────── */
+  /* ── Brand snap: wheel-driven beige panel + section overlap guard ── */
   useEffect(() => {
-    const snap       = snapRef.current;
+    const snapEl     = snapRef.current;
     const step1Text  = snapStep1TextRef.current;
     const beigePanel = snapBeigePanelRef.current;
-    const svcEl      = snapServicesRef.current;
-    if (!snap || !step1Text || !beigePanel) return;
+    const svcEl      = snapServicesRef.current as HTMLElement | null;
+    if (!snapEl || !step1Text || !beigePanel) return;
 
-    /* ── Step 1 text: hidden initially, fades in via IO ── */
+    /* Initial states */
     step1Text.style.opacity    = "0";
     step1Text.style.transform  = "translateY(30px)";
     step1Text.style.transition = "opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1)";
 
-    /* ── Step 2 beige panel: starts off-screen right ── */
     beigePanel.style.transform  = "translateX(100%)";
     beigePanel.style.transition = "transform 0.8s cubic-bezier(0.76,0,0.24,1)";
 
-    /* ── Step 2 philosophy items: hidden initially ── */
     const philItems = beigePanel.querySelectorAll<HTMLElement>(".snap-phil-item");
-    philItems.forEach((el) => {
-      el.style.opacity    = "0";
-      el.style.transform  = "translateY(24px)";
-    });
+    philItems.forEach((el) => { el.style.opacity = "0"; el.style.transform = "translateY(24px)"; });
 
-    /* ── IO: Step 1 text ── */
+    /* IO: step 1 text fades in when brand section enters outer viewport */
     const io1 = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
       step1Text.style.opacity   = "1";
@@ -405,38 +400,71 @@ export default function V1() {
     }, { threshold: 0.3 });
     io1.observe(step1Text);
 
-    /* ── IO: Step 2 — trigger beige slide-in + staggered items ── */
-    const step2El = beigePanel.parentElement;
-    if (step2El) {
-      const io2 = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        /* slide panel in */
-        beigePanel.style.transform = "translateX(0)";
-        /* stagger philosophy items after panel starts sliding */
-        philItems.forEach((el, i) => {
-          el.style.transition = `opacity 0.6s ease ${350 + i * 150}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${350 + i * 150}ms`;
-          el.style.opacity    = "1";
-          el.style.transform  = "translateY(0)";
-        });
-        io2.disconnect();
-      }, { threshold: 0.35 });
-      io2.observe(step2El);
-    }
+    /* Panel state */
+    let panelOpen = false;
+    let busy      = false;
 
-    /* ── Exit: wheel-down at last snap step → services ── */
-    const onWheel = (e: WheelEvent) => {
-      if (!svcEl || e.deltaY <= 30) return;
-      const atEnd = snap.scrollTop >= snap.scrollHeight - snap.clientHeight - 8;
-      if (!atEnd) return;
-      e.preventDefault();
-      const top = svcEl.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top, behavior: "smooth" });
+    const openPanel = () => {
+      panelOpen = true;
+      beigePanel.style.transform = "translateX(0)";
+      philItems.forEach((el, i) => {
+        el.style.transition = `opacity 0.6s ease ${350 + i * 150}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${350 + i * 150}ms`;
+        el.style.opacity = "1"; el.style.transform = "translateY(0)";
+      });
     };
-    snap.addEventListener("wheel", onWheel, { passive: false });
+    const closePanel = () => {
+      panelOpen = false;
+      beigePanel.style.transform = "translateX(100%)";
+      philItems.forEach((el) => { el.style.opacity = "0"; el.style.transform = "translateY(24px)"; });
+    };
+
+    /* Wheel handler on brand snap: controls panel + exit to services */
+    const onSnapWheel = (e: WheelEvent) => {
+      if (busy) { e.preventDefault(); return; }
+      if (e.deltaY > 30) {
+        e.preventDefault();
+        if (!panelOpen) {
+          busy = true; openPanel();
+          setTimeout(() => { busy = false; }, 900);
+        } else if (svcEl) {
+          busy = true;
+          window.scrollTo({ top: svcEl.offsetTop, behavior: "smooth" });
+          setTimeout(() => { busy = false; }, 900);
+        }
+      } else if (e.deltaY < -30) {
+        e.preventDefault();
+        if (panelOpen) {
+          busy = true; closePanel();
+          setTimeout(() => { busy = false; }, 900);
+        }
+      }
+    };
+    snapEl.addEventListener("wheel", onSnapWheel, { passive: false });
+
+    /* ── Window-level: prevent brand+services partial overlap ── */
+    let winBusy = false;
+    const snapToEl = (el: HTMLElement) => {
+      winBusy = true;
+      window.scrollTo({ top: el.offsetTop, behavior: "smooth" });
+      setTimeout(() => { winBusy = false; }, 900);
+    };
+    const onWindowWheel = (e: WheelEvent) => {
+      if (winBusy) { e.preventDefault(); return; }
+      const vh = window.innerHeight;
+      const brandTop = snapEl.getBoundingClientRect().top;
+      /* Between brand and services: both partially visible */
+      if (brandTop < -10 && brandTop > -(vh - 10) && svcEl) {
+        e.preventDefault();
+        if (e.deltaY > 0) snapToEl(svcEl);
+        else snapToEl(snapEl);
+      }
+    };
+    window.addEventListener("wheel", onWindowWheel, { passive: false });
 
     return () => {
       io1.disconnect();
-      snap.removeEventListener("wheel", onWheel);
+      snapEl.removeEventListener("wheel", onSnapWheel);
+      window.removeEventListener("wheel", onWindowWheel);
     };
   }, []);
 
@@ -897,100 +925,89 @@ export default function V1() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            BRAND SNAP SEQUENCE  (CSS scroll-snap, 2 × 100vh)
-            Step 1: fullscreen image + text overlay (IO fade-in)
-            Step 2: image left 50% + beige panel right 50% slides in
-            Exit:   wheel-down at last snap → services section
+            BRAND SECTION  (단일 100vh, beige panel = absolute 오버레이)
+            이미지 + 텍스트 위에 beige 패널이 오른쪽에서 슬라이드인
+            wheel-down: 패널 열기 → 한 번 더 → services 이동
+            wheel-up:   패널 닫기
         ══════════════════════════════════════════════════════════════ */}
         <div
           ref={snapRef}
-          style={{
-            height: "100vh",
-            overflowY: "scroll",
-            scrollSnapType: "y mandatory",
-            scrollbarWidth: "none",
-          } as React.CSSProperties}
-          className="[&::-webkit-scrollbar]:hidden"
+          style={{ height: "100vh", position: "relative", overflow: "hidden" }}
         >
+          {/* 배경 이미지 */}
+          <img
+            src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
+            alt="blum showcase"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`; }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.68) 0%, rgba(9,9,11,0.18) 65%)" }} />
 
-          {/* ── Step 1: fullscreen image + text overlay ── */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-            <img
-              src={`${BASE}/images/560/258/4214413/corporate/media/bilder/services/services-overview/keyvisual-services_4:3.jpg`}
-              alt="blum showcase"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => { (e.target as HTMLImageElement).src = `${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`; }}
-            />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(9,9,11,0.68) 0%, rgba(9,9,11,0.18) 65%)" }} />
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
-              <div ref={snapStep1TextRef} className="max-w-7xl mx-auto px-8 pb-16 w-full">
-                <p className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">Brand Showcase</p>
-                <p className="text-white font-extralight leading-tight" style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em" }}>
-                  세계가 인정한<br />오스트리아의 기술
-                </p>
-                <div className="mt-6">
-                  <Link
-                    href="/v1/company"
-                    className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
-                    style={{ textDecoration: "none" }}
-                  >
-                    브랜드 알아보기
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
-                </div>
+          {/* 텍스트 오버레이 */}
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end" }}>
+            <div ref={snapStep1TextRef} className="max-w-7xl mx-auto px-8 pb-16 w-full">
+              <p className="text-[9px] tracking-[0.45em] uppercase text-white/40 mb-4">Brand Showcase</p>
+              <p className="text-white font-extralight leading-tight" style={{ fontSize: "clamp(2rem,5vw,4.5rem)", letterSpacing: "-0.02em" }}>
+                세계가 인정한<br />오스트리아의 기술
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/v1/company"
+                  className="inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors group"
+                  style={{ textDecoration: "none" }}
+                >
+                  브랜드 알아보기
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* ── Step 2: fullscreen beige panel slides in from right ── */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-            {/* Beige panel: covers full screen, slides in from right */}
-            <div
-              ref={snapBeigePanelRef}
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "#F5F0E8",
-                overflowY: "auto",
-                scrollbarWidth: "none",
-              } as React.CSSProperties}
-              className="[&::-webkit-scrollbar]:hidden"
-            >
-              <div className="px-12 py-20">
-                <p className="snap-phil-item text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
-                <h2 className="snap-phil-item text-3xl md:text-4xl font-extralight mb-5" style={{ letterSpacing: "-0.02em" }}>
-                  blum이 추구하는 것
-                </h2>
-                <div className="snap-phil-item w-10 h-px bg-zinc-300 mb-6" />
-                {VALUES.map((v, i) => (
-                  <div
-                    key={v.num}
-                    className="snap-phil-item value-row border-t border-zinc-200 group cursor-pointer"
-                    onClick={() => setOpenValue(openValue === i ? null : i)}
-                  >
-                    <div className="py-6 grid grid-cols-12 gap-4 items-start">
-                      <span className="col-span-2 text-[9px] text-zinc-300 tracking-widest transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
-                      <div className="col-span-8">
-                        <h3 className="text-lg md:text-xl font-light text-zinc-700 group-hover:text-zinc-500 transition-colors">{v.title}</h3>
-                      </div>
-                      <div className="col-span-2 text-right">
-                        <span className="text-zinc-300 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
-                      </div>
+          {/* 베이지 패널: absolute 오버레이, 오른쪽에서 슬라이드인 */}
+          <div
+            ref={snapBeigePanelRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#F5F0E8",
+              overflowY: "auto",
+              scrollbarWidth: "none",
+            } as React.CSSProperties}
+            className="[&::-webkit-scrollbar]:hidden"
+          >
+            <div className="px-12 py-20">
+              <p className="snap-phil-item text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Our Philosophy</p>
+              <h2 className="snap-phil-item text-3xl md:text-4xl font-extralight mb-5" style={{ letterSpacing: "-0.02em" }}>
+                blum이 추구하는 것
+              </h2>
+              <div className="snap-phil-item w-10 h-px bg-zinc-300 mb-6" />
+              {VALUES.map((v, i) => (
+                <div
+                  key={v.num}
+                  className="snap-phil-item value-row border-t border-zinc-200 group cursor-pointer"
+                  onClick={() => setOpenValue(openValue === i ? null : i)}
+                >
+                  <div className="py-6 grid grid-cols-12 gap-4 items-start">
+                    <span className="col-span-2 text-[9px] text-zinc-300 tracking-widest transition-colors group-hover:text-zinc-500 mt-1">{v.num}</span>
+                    <div className="col-span-8">
+                      <h3 className="text-lg md:text-xl font-light text-zinc-700 group-hover:text-zinc-500 transition-colors">{v.title}</h3>
                     </div>
-                    <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
-                      <p className="text-sm text-zinc-500 leading-relaxed pb-6 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
+                    <div className="col-span-2 text-right">
+                      <span className="text-zinc-300 text-sm group-hover:text-zinc-500 transition-colors inline-block">{openValue === i ? "−" : "+"}</span>
                     </div>
                   </div>
-                ))}
-                <div className="snap-phil-item border-t border-zinc-200" />
-              </div>
+                  <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openValue === i ? "200px" : "0px", opacity: openValue === i ? 1 : 0 }}>
+                    <p className="text-sm text-zinc-500 leading-relaxed pb-6 pl-8" style={{ fontWeight: 300 }}>{v.body}</p>
+                  </div>
+                </div>
+              ))}
+              <div className="snap-phil-item border-t border-zinc-200" />
             </div>
           </div>
-
-        </div>{/* end snap container */}
+        </div>{/* end brand section */}
 
         {/* ══════════════════════════════════════════════════════════════
             SERVICES SNAP SEQUENCE  (CSS scroll-snap, 3 × 100vh)
