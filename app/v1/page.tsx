@@ -542,7 +542,12 @@ export default function V1() {
           on top of both sticky sections as it scrolls into view.
           overflow-x: hidden is safe here (not an ancestor of sticky).
       ══════════════════════════════════════════════════════════════ */}
-      <div style={{ position: "relative", zIndex: 30, backgroundColor: "#ffffff" }} className="overflow-x-hidden">
+      {/*
+        overflow-x: hidden을 이 wrapper에 두면 overflow-y가 auto로 강제되어
+        새 스크롤 컨테이너가 생성되고 position: sticky 가 동작하지 않는다.
+        대신 overflow-x 클리핑이 필요한 각 섹션에 직접 적용한다.
+      */}
+      <div style={{ position: "relative", zIndex: 30, backgroundColor: "#ffffff" }}>
 
         {/* ── MARQUEE ── */}
         <div className="overflow-hidden border-b border-zinc-100 py-4 bg-white">
@@ -608,36 +613,74 @@ export default function V1() {
         */}
         <section id="products" className="py-28 md:py-40 bg-white">
           <div className="max-w-7xl mx-auto px-8">
-            <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-start">
+            {/*
+              Mobile: flex-col (normal flow)
+              Desktop: flex-row with sticky left sidebar
+              부모에 overflow 없음 → position: sticky 정상 동작
+            */}
+            <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: "4rem" }}
+                 className="flex-col md:flex-row">
 
-              {/* Left — sticky sidebar (수직 중앙 고정) */}
-              <div className="md:w-80 shrink-0">
-                <div className="md:sticky" style={{ top: "calc(50vh - 9rem)" }}>
-                  <SlideLeft>
-                    <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
-                    <h2 className="text-3xl md:text-4xl font-extralight mb-4" style={{ letterSpacing: "-0.02em" }}>
-                      Signature<br />Systems
-                    </h2>
-                  </SlideLeft>
-                  <ExpandLine delay={80} className="w-8 h-px bg-zinc-200 my-6" />
-                  <Reveal delay={120}>
-                    <p className="text-sm text-zinc-400 leading-8 mb-8" style={{ fontWeight: 300 }}>
-                      blum의 대표 제품 라인. 힌지부터 리프트 시스템까지, 모든 움직임에는 blum의 정밀함이 담겨 있습니다.
-                    </p>
-                    <Link
-                      href="/v1/products"
-                      className="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group"
-                      style={{ textDecoration: "none" }}
-                    >
-                      전체 제품 보기
-                      <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                    </Link>
-                  </Reveal>
-                </div>
+              {/* Left — sticky sidebar: 스크롤 내려도 화면에 고정 */}
+              <div
+                className="hidden md:block"
+                style={{
+                  width: "35%",
+                  flexShrink: 0,
+                  position: "sticky",
+                  top: "30vh",
+                  height: "fit-content",
+                  alignSelf: "flex-start",
+                }}
+              >
+                <SlideLeft>
+                  <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
+                  <h2 className="text-3xl md:text-4xl font-extralight mb-4" style={{ letterSpacing: "-0.02em" }}>
+                    Signature<br />Systems
+                  </h2>
+                </SlideLeft>
+                <ExpandLine delay={80} className="w-8 h-px bg-zinc-200 my-6" />
+                <Reveal delay={120}>
+                  <p className="text-sm text-zinc-400 leading-8 mb-8" style={{ fontWeight: 300 }}>
+                    blum의 대표 제품 라인. 힌지부터 리프트 시스템까지, 모든 움직임에는 blum의 정밀함이 담겨 있습니다.
+                  </p>
+                  <Link
+                    href="/v1/products"
+                    className="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group"
+                    style={{ textDecoration: "none" }}
+                  >
+                    전체 제품 보기
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </Link>
+                </Reveal>
               </div>
 
-              {/* Right — asymmetric grid; GSAP stagger handles entry */}
-              <div className="flex-1 min-w-0">
+              {/* Mobile only: left header (normal flow) */}
+              <div className="block md:hidden mb-12">
+                <SlideLeft>
+                  <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
+                  <h2 className="text-3xl font-extralight mb-4" style={{ letterSpacing: "-0.02em" }}>
+                    Signature<br />Systems
+                  </h2>
+                </SlideLeft>
+                <ExpandLine delay={80} className="w-8 h-px bg-zinc-200 my-6" />
+                <Reveal delay={120}>
+                  <p className="text-sm text-zinc-400 leading-8 mb-8" style={{ fontWeight: 300 }}>
+                    blum의 대표 제품 라인. 힌지부터 리프트 시스템까지, 모든 움직임에는 blum의 정밀함이 담겨 있습니다.
+                  </p>
+                  <Link
+                    href="/v1/products"
+                    className="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-zinc-400 hover:text-zinc-900 transition-colors group"
+                    style={{ textDecoration: "none" }}
+                  >
+                    전체 제품 보기
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                  </Link>
+                </Reveal>
+              </div>
+
+              {/* Right — product cards (일반 스크롤, GSAP 개별 애니메이션) */}
+              <div style={{ width: "65%", minWidth: 0 }} className="w-full md:w-auto">
                 <div className="grid grid-cols-2 gap-3">
 
                   <Link href={PRODUCTS[0].href} className="product-card col-span-2 group block overflow-hidden bg-zinc-50" style={{ textDecoration: "none" }}>
