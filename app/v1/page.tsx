@@ -400,10 +400,19 @@ export default function V1() {
       el.style.transition = "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)";
     });
 
-    /* absolute document top of sentinel */
-    const zoneTop = () => sentinel.getBoundingClientRect().top + window.scrollY;
-    /* absolute document top of services section */
-    const svcTop  = () => svcEl.getBoundingClientRect().top  + window.scrollY;
+    /* absolute document top — measured once after layout settles */
+    let _zoneTop = 0;
+    let _svcTop  = 0;
+    const measurePositions = () => {
+      _zoneTop = sentinel.getBoundingClientRect().top + window.scrollY;
+      _svcTop  = svcEl.getBoundingClientRect().top    + window.scrollY;
+    };
+    measurePositions();
+    /* re-measure on resize */
+    const onResize = () => measurePositions();
+    window.addEventListener("resize", onResize);
+    const zoneTop = () => _zoneTop;
+    const svcTop  = () => _svcTop;
 
     /* ── Visual step renderer ── */
     const goToStep = (step: number) => {
@@ -478,7 +487,9 @@ export default function V1() {
       bsStepRef.current   = 0;
       resetVisuals();
       setCooldown();
-      window.scrollTo({ top: svcTop(), behavior: "instant" });
+      /* re-measure to get exact services offsetTop at deactivation time */
+      measurePositions();
+      window.scrollTo({ top: _svcTop, behavior: "instant" });
     };
 
     /* ── Backward exit: hide wrap, jump scroll above zone ── */
@@ -493,8 +504,13 @@ export default function V1() {
     };
 
     /* ── Wheel handler ── */
+    const DELTA_THRESHOLD = 30; /* ignore tiny/accidental scrolls */
+
     const onWheel = (e: WheelEvent) => {
       if (!bsActiveRef.current) {
+        /* Only respond to intentional scrolls */
+        if (Math.abs(e.deltaY) < DELTA_THRESHOLD) return;
+
         /* Forward entry: sentinel has just scrolled to viewport top */
         if (e.deltaY > 0) {
           const rect = sentinel.getBoundingClientRect();
@@ -516,11 +532,14 @@ export default function V1() {
         return;
       }
 
-      /* Sequence is active — consume event */
+      /* Sequence is active — consume all wheel events */
       e.preventDefault();
+
+      /* Ignore tiny scrolls and fire only after debounce */
+      if (Math.abs(e.deltaY) < DELTA_THRESHOLD) return;
       if (bsDebounceRef.current) return;
       bsDebounceRef.current = true;
-      setTimeout(() => { bsDebounceRef.current = false; }, 800);
+      setTimeout(() => { bsDebounceRef.current = false; }, 1000);
 
       const step = bsStepRef.current;
       if (e.deltaY > 0) {
@@ -556,6 +575,7 @@ export default function V1() {
     return () => {
       window.removeEventListener("wheel",  onWheel);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
