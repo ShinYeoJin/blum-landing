@@ -428,7 +428,9 @@ export default function V1() {
           setTimeout(() => { busy = false; }, 900);
         } else if (svcEl) {
           busy = true;
-          window.scrollTo({ top: svcEl.offsetTop, behavior: "smooth" });
+          /* getBoundingClientRect gives correct absolute position */
+          const top = svcEl.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top, behavior: "smooth" });
           setTimeout(() => { busy = false; }, 900);
         }
       } else if (e.deltaY < -30) {
@@ -441,30 +443,9 @@ export default function V1() {
     };
     snapEl.addEventListener("wheel", onSnapWheel, { passive: false });
 
-    /* ── Window-level: prevent brand+services partial overlap ── */
-    let winBusy = false;
-    const snapToEl = (el: HTMLElement) => {
-      winBusy = true;
-      window.scrollTo({ top: el.offsetTop, behavior: "smooth" });
-      setTimeout(() => { winBusy = false; }, 900);
-    };
-    const onWindowWheel = (e: WheelEvent) => {
-      if (winBusy) { e.preventDefault(); return; }
-      const vh = window.innerHeight;
-      const brandTop = snapEl.getBoundingClientRect().top;
-      /* Between brand and services: both partially visible */
-      if (brandTop < -10 && brandTop > -(vh - 10) && svcEl) {
-        e.preventDefault();
-        if (e.deltaY > 0) snapToEl(svcEl);
-        else snapToEl(snapEl);
-      }
-    };
-    window.addEventListener("wheel", onWindowWheel, { passive: false });
-
     return () => {
       io1.disconnect();
       snapEl.removeEventListener("wheel", onSnapWheel);
-      window.removeEventListener("wheel", onWindowWheel);
     };
   }, []);
 
@@ -544,9 +525,26 @@ export default function V1() {
     };
 
     container.addEventListener("scroll", onSvcScroll, { passive: true });
+
+    /* Wheel-up at services snap 1 top → scroll back to brand section */
+    const brandEl = snapRef.current as HTMLElement | null;
+    let svcWheelBusy = false;
+    const onSvcWheel = (e: WheelEvent) => {
+      if (svcWheelBusy || !brandEl) return;
+      if (e.deltaY >= -30) return;           // only upward flick
+      if (container.scrollTop > 20) return;  // only when at snap 1 top
+      e.preventDefault();
+      svcWheelBusy = true;
+      const top = brandEl.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: "smooth" });
+      setTimeout(() => { svcWheelBusy = false; }, 900);
+    };
+    container.addEventListener("wheel", onSvcWheel, { passive: false });
+
     return () => {
       titleIO?.disconnect();
       container.removeEventListener("scroll", onSvcScroll);
+      container.removeEventListener("wheel", onSvcWheel);
     };
   }, []);
 
