@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -66,14 +66,6 @@ export default function V1Products() {
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  /* block all scroll until GSAP has initialized, then re-enable */
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.style.overflowY = "hidden";
-    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 600);
-    return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
-  }, []);
-
   /* replay hero animation when nav "제품" is clicked while already on this page */
   useEffect(() => {
     const replay = () => { window.scrollTo(0, 0); setAnimKey((k) => k + 1); };
@@ -86,10 +78,6 @@ export default function V1Products() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
-      window.scrollTo(0, 0);
-      await new Promise<void>((r) => setTimeout(r, 50));
-      if (window.scrollY !== 0) window.scrollTo(0, 0);
-
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
@@ -144,8 +132,14 @@ export default function V1Products() {
       });
     };
 
-    init();
-    return () => ctx?.revert();
+    const pin = pinRef.current;
+    if (!pin) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (!entry.isIntersecting) return; io.disconnect(); init(); },
+      { rootMargin: "0px 0px 300px 0px", threshold: 0 },
+    );
+    io.observe(pin);
+    return () => { io.disconnect(); ctx?.revert(); };
   }, []);
 
   /* ── JSX ── */

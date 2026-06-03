@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useLayoutEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -77,10 +77,6 @@ function PhotoSequence() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
-      window.scrollTo(0, 0);
-      await new Promise<void>((r) => setTimeout(r, 50));
-      if (window.scrollY !== 0) window.scrollTo(0, 0);
-
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
@@ -133,8 +129,14 @@ function PhotoSequence() {
       });
     };
 
-    init();
-    return () => ctx?.revert();
+    const pin = pinRef.current;
+    if (!pin) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (!entry.isIntersecting) return; io.disconnect(); init(); },
+      { rootMargin: "0px 0px 300px 0px", threshold: 0 },
+    );
+    io.observe(pin);
+    return () => { io.disconnect(); ctx?.revert(); };
   }, []);
 
   const imgStyle: React.CSSProperties = {
@@ -282,10 +284,6 @@ function HeroSection() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
-      window.scrollTo(0, 0);
-      await new Promise<void>((r) => setTimeout(r, 50));
-      if (window.scrollY !== 0) window.scrollTo(0, 0);
-
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
@@ -311,8 +309,14 @@ function HeroSection() {
       });
     };
 
-    init();
-    return () => ctx?.revert();
+    const pin = pinRef.current;
+    if (!pin) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (!entry.isIntersecting) return; io.disconnect(); init(); },
+      { rootMargin: "0px 0px 300px 0px", threshold: 0 },
+    );
+    io.observe(pin);
+    return () => { io.disconnect(); ctx?.revert(); };
   }, []);
 
   return (
@@ -368,13 +372,6 @@ function HeroSection() {
    PAGE
 ══════════════════════════════════════════════════════════ */
 export default function V1Company() {
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-    document.documentElement.style.overflowY = "hidden";
-    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 600);
-    return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
-  }, []);
-
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
