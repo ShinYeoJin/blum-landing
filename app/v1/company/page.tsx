@@ -85,16 +85,16 @@ function PhotoSequence() {
         const pin = pinRef.current;
         if (!pin) return;
 
-        const p1  = pin.querySelector<HTMLElement>(".photo-1");
-        const p2  = pin.querySelector<HTMLElement>(".photo-2");
-        const p3  = pin.querySelector<HTMLElement>(".photo-3");
-        const tm  = pin.querySelector<HTMLElement>(".text-management");
-        const ts  = pin.querySelector<HTMLElement>(".text-sustainability");
-        const ta  = pin.querySelector<HTMLElement>(".text-about");
+        const p1 = pin.querySelector<HTMLElement>(".photo-1");
+        const p2 = pin.querySelector<HTMLElement>(".photo-2");
+        const p3 = pin.querySelector<HTMLElement>(".photo-3");
+        const tm = pin.querySelector<HTMLElement>(".text-management");
+        const ts = pin.querySelector<HTMLElement>(".text-sustainability");
+        const ta = pin.querySelector<HTMLElement>(".text-about");
         if (!p1 || !p2 || !p3 || !tm || !ts || !ta) return;
 
-        /* Initial states — texts hidden */
-        gsap.set([tm, ts, ta], { opacity: 0, y: 60 });
+        /* texts start hidden, shifted right */
+        gsap.set([tm, ts, ta], { opacity: 0, x: 50 });
 
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -107,21 +107,21 @@ function PhotoSequence() {
           },
         });
 
-        /* ── PHASE 1 → 2: p3 expands left, management text appears ── */
+        /* ── PHASE 1→2: photo3 moves left and expands, management text in ── */
         tl
-          .to([p1, p2], { opacity: 0, duration: 1 }, 0)
-          .to(p3,  { x: "-25vw", width: "50%", duration: 1 }, 0)
-          .to(tm,  { y: 0, opacity: 1, duration: 1 }, 0.5)
+          .to([p1, p2], { opacity: 0, duration: 0.6 }, 0)
+          .to(p3, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 0)
+          .to(tm, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 0.6)
 
-        /* ── PHASE 2 → 3: swap to p2 + sustainability ── */
-          .to([p3, tm], { opacity: 0, duration: 1 }, 1.5)
-          .to(p2, { opacity: 1, x: "-25vw", width: "50%", duration: 1 }, 1.5)
-          .to(ts, { y: 0, opacity: 1, duration: 1 }, 2)
+        /* ── PHASE 2→3: photo3+management out, photo2 moves left, sustainability in ── */
+          .to([p3, tm], { opacity: 0, duration: 0.6 }, 1.5)
+          .to(p2, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 1.5)
+          .to(ts, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 2.1)
 
-        /* ── PHASE 3 → 4: swap to p1 + about ── */
-          .to([p2, ts], { opacity: 0, duration: 1 }, 3)
-          .to(p1, { opacity: 1, x: "-25vw", width: "50%", duration: 1 }, 3)
-          .to(ta, { y: 0, opacity: 1, duration: 1 }, 3.5)
+        /* ── PHASE 3→4: photo2+sustainability out, photo1 expands in place, about in ── */
+          .to([p2, ts], { opacity: 0, duration: 0.6 }, 3)
+          .to(p1, { width: "48%", duration: 1, ease: "power2.inOut" }, 3)
+          .to(ta, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 3.6)
 
           .to({}, { duration: 0.01 }, 3.99);
 
@@ -134,29 +134,23 @@ function PhotoSequence() {
   }, []);
 
   const imgStyle: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  };
-
-  /* shared text panel styles */
-  const textPanel: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: "45%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    padding: "0 64px",
-    backgroundColor: "#ffffff",
-    pointerEvents: "none",
+    width: "100%", height: "100%", objectFit: "cover", display: "block",
   };
 
   const divider: React.CSSProperties = {
     width: 36, height: 1, backgroundColor: "#d4d4d8", margin: "20px 0",
+  };
+
+  /* all 3 text panels share the same absolute position — shown one at a time */
+  const textBase: React.CSSProperties = {
+    position: "absolute",
+    left: "53%",
+    top: "20vh",
+    width: "44%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    pointerEvents: "none",
   };
 
   return (
@@ -170,51 +164,61 @@ function PhotoSequence() {
         backgroundColor: "#f4f4f5",
       }}
     >
-      {/* ── Phase 1: 3-photo grid layer ── */}
+      {/* photo-1: left: 2%, width: 30% initially */}
       <div
+        className="photo-1"
         style={{
           position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px",
-          gap: "2rem",
-          pointerEvents: "none",
+          left: "2%",
+          top: "15vh",
+          width: "30%",
+          height: "70vh",
+          overflow: "hidden",
+          borderRadius: 12,
         }}
       >
-        {/* photo-1 */}
-        <div
-          className="photo-1"
-          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
-        >
-          <img src={PHOTO1} alt="blum workplace" style={imgStyle}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        </div>
-
-        {/* photo-2 */}
-        <div
-          className="photo-2"
-          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
-        >
-          <img src={PHOTO2} alt="지속가능성" style={imgStyle}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        </div>
-
-        {/* photo-3 */}
-        <div
-          className="photo-3"
-          style={{ flex: "1 0 0", height: 400, overflow: "hidden", position: "relative" }}
-        >
-          <img src={PHOTO3} alt="경영진" style={imgStyle}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        </div>
+        <img src={PHOTO1} alt="blum workplace" style={imgStyle}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
       </div>
 
-      {/* ── Text: management ── */}
-      <div className="text-management" style={textPanel}>
+      {/* photo-2: left: 35%, width: 30% initially */}
+      <div
+        className="photo-2"
+        style={{
+          position: "absolute",
+          left: "35%",
+          top: "15vh",
+          width: "30%",
+          height: "70vh",
+          overflow: "hidden",
+          borderRadius: 12,
+        }}
+      >
+        <img src={PHOTO2} alt="지속가능성" style={imgStyle}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+      </div>
+
+      {/* photo-3: left: 68%, width: 30% initially */}
+      <div
+        className="photo-3"
+        style={{
+          position: "absolute",
+          left: "68%",
+          top: "15vh",
+          width: "30%",
+          height: "70vh",
+          overflow: "hidden",
+          borderRadius: 12,
+        }}
+      >
+        <img src={PHOTO3} alt="경영진" style={imgStyle}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+      </div>
+
+      {/* text-management */}
+      <div className="text-management" style={textBase}>
         <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Leadership</p>
-        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35, marginBottom: 6 }}>
+        <h2 style={{ fontSize: "clamp(22px, 2.6vw, 34px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35, marginBottom: 6 }}>
           Philipp &amp; Martin Blum
         </h2>
         <p style={{ fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "#a1a1aa" }}>공동 경영진</p>
@@ -222,15 +226,15 @@ function PhotoSequence() {
         <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.85, marginBottom: 20 }}>
           창업자 Julius Blum의 후손인 두 형제가 blum을 이끌고 있습니다. 가족 기업의 전통을 이어받아 품질과 혁신, 지속가능성을 핵심 가치로 삼고 있습니다.
         </p>
-        <blockquote style={{ fontSize: "clamp(14px, 1.6vw, 19px)", fontWeight: 300, fontStyle: "italic", color: "#18181b", lineHeight: 1.6, borderLeft: "2px solid #d4d4d8", paddingLeft: 20, margin: 0 }}>
+        <blockquote style={{ fontSize: "clamp(13px, 1.5vw, 18px)", fontWeight: 300, fontStyle: "italic", color: "#18181b", lineHeight: 1.65, borderLeft: "2px solid #d4d4d8", paddingLeft: 20, margin: 0 }}>
           "당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다."
         </blockquote>
       </div>
 
-      {/* ── Text: sustainability ── */}
-      <div className="text-sustainability" style={textPanel}>
+      {/* text-sustainability */}
+      <div className="text-sustainability" style={textBase}>
         <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>Sustainability</p>
-        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
+        <h2 style={{ fontSize: "clamp(22px, 2.6vw, 34px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
           지속가능한 미래를<br />함께 만듭니다
         </h2>
         <div style={divider} />
@@ -247,10 +251,10 @@ function PhotoSequence() {
         </ul>
       </div>
 
-      {/* ── Text: about blum ── */}
-      <div className="text-about" style={textPanel}>
+      {/* text-about */}
+      <div className="text-about" style={textBase}>
         <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 20 }}>About Blum</p>
-        <h2 style={{ fontSize: "clamp(22px, 2.8vw, 36px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
+        <h2 style={{ fontSize: "clamp(22px, 2.6vw, 34px)", fontWeight: 300, color: "#18181b", lineHeight: 1.35 }}>
           편리함을 높이고 삶의 질을<br />향상시키는 가구 피팅 제조사
         </h2>
         <div style={divider} />
