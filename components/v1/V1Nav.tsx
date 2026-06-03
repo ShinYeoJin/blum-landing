@@ -80,8 +80,17 @@ export default function V1Nav() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  const isFirstNav = useRef(true);
+
   useEffect(() => { setMobileOpen(false); setOpen(null); }, [pathname]);
-  useLayoutEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useLayoutEffect(() => {
+    /* skip on initial mount — only fire on actual navigation */
+    if (isFirstNav.current) { isFirstNav.current = false; return; }
+    window.scrollTo(0, 0);
+    document.documentElement.style.overflowY = "hidden";
+    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 700);
+    return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
+  }, [pathname]);
 
   /* Hero pages have dark bg → white text; scrolled always black */
   const isHeroPage = pathname === "/v1";
