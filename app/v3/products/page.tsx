@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 
 const BASE = "https://www.blum.com";
@@ -93,8 +93,8 @@ const CATEGORIES = [
   },
 ];
 
-/* ── CTA reveal (slide from left, same as original BoldReveal) ── */
-function BoldReveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+/* ── CTA reveal ── */
+function BoldReveal({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -105,150 +105,139 @@ function BoldReveal({ children, delay = 0, className = "" }: { children: React.R
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className={className} style={{
+    <div ref={ref} style={{
       opacity: inView ? 1 : 0,
       transform: inView ? "none" : "translateX(-20px)",
-      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      transition: "opacity 0.6s ease, transform 0.6s ease",
     }}>
       {children}
     </div>
   );
 }
 
-/* ── 3-D flip card ── */
-function FlipCard({ cat, hovered, onEnter, onLeave }: {
+/* ── Single card display ── */
+function CardDisplay({
+  cat,
+  phase,       // "idle" | "exit-fwd" | "exit-back" | "enter-fwd" | "enter-back"
+}: {
   cat: typeof CATEGORIES[0];
-  hovered: boolean;
-  onEnter: () => void;
-  onLeave: () => void;
+  phase: string;
 }) {
-  const cardRef  = useRef<HTMLDivElement>(null);
-  const textRef  = useRef<HTMLDivElement>(null);
-  const [flipped, setFlipped]   = useState(false);
-  const [textIn,  setTextIn]    = useState(false);
-  const triggered = useRef(false);
+  const imgRotate =
+    phase === "exit-fwd"   ? "rotateY(90deg)"  :
+    phase === "exit-back"  ? "rotateY(-90deg)" :
+    phase === "enter-fwd"  ? "rotateY(0deg)"   :
+    phase === "enter-back" ? "rotateY(0deg)"   :
+    "rotateY(0deg)";
 
-  useEffect(() => {
-    const card = cardRef.current;
-    const text = textRef.current;
-    if (!card || !text) return;
+  const imgRotateInitial =
+    phase === "enter-fwd"  ? "rotateY(-90deg)" :
+    phase === "enter-back" ? "rotateY(90deg)"  :
+    undefined;
 
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting || triggered.current) return;
-        triggered.current = true;
-        /* flip image */
-        setFlipped(true);
-        /* text slides up slightly after */
-        setTimeout(() => setTextIn(true), 400);
-        obs.disconnect();
-      },
-      { threshold: 0.25 },
-    );
-    obs.observe(card);
-    return () => obs.disconnect();
-  }, []);
-
-  const featuredImg = cat.imgs[cat.imgIndex];
+  const textY =
+    phase === "exit-fwd" || phase === "exit-back" ? "10px" : "0px";
+  const textOpacity =
+    phase === "exit-fwd" || phase === "exit-back" ? "0" : "1";
 
   return (
-    <Link
-      href={cat.href}
-      className="group block"
-      style={{ textDecoration: "none", backgroundColor: "#0a0a0a" }}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-    >
-      {/* 3-D flip container */}
-      <div
-        ref={cardRef}
-        style={{
-          perspective: "800px",
-          aspectRatio: "4/3",
-          overflow: "hidden",
-          backgroundColor: "#111",
-          position: "relative",
-        }}
-      >
-        {/* back face (placeholder colour) */}
+    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 48px", boxSizing: "border-box" }}>
+      <div style={{ display: "flex", gap: "80px", alignItems: "center", width: "100%", maxWidth: 1100 }}>
+
+        {/* Image — 3-D flip */}
+        <div style={{ flex: "0 0 52%", perspective: "1000px", overflow: "hidden" }}>
+          <img
+            key={cat.id + phase}
+            src={cat.imgs[cat.imgIndex]}
+            alt={cat.name}
+            style={{
+              width: "100%",
+              aspectRatio: "4/3",
+              objectFit: "cover",
+              display: "block",
+              transform: imgRotate,
+              animation: imgRotateInitial
+                ? `flipIn 0.55s cubic-bezier(0.4,0,0.2,1) forwards`
+                : phase === "exit-fwd" || phase === "exit-back"
+                ? `flipOut${phase === "exit-back" ? "Back" : ""} 0.45s cubic-bezier(0.4,0,0.2,1) forwards`
+                : "none",
+            }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
+
+        {/* Text */}
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "#1a1a1a",
-            backfaceVisibility: "hidden",
+            flex: "1 1 0",
+            opacity:    textOpacity,
+            transform:  `translateY(${textY})`,
+            transition: "opacity 0.45s ease, transform 0.45s ease",
           }}
-        />
-        {/* front face — featured image */}
-        <img
-          src={featuredImg}
-          alt={cat.name}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-            backfaceVisibility: "hidden",
-            transform: flipped ? "rotateY(0deg)" : "rotateY(-90deg)",
-            transition: "transform 0.7s cubic-bezier(0.4,0,0.2,1)",
-            transformOrigin: "center center",
-          }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-        {/* subtle hover scale on top */}
-        <div
-          className="group-hover:scale-105"
-          style={{
-            position: "absolute",
-            inset: 0,
-            transition: "transform 0.6s ease",
-          }}
-        />
+        >
+          <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: RED, fontWeight: 900, marginBottom: 8 }}>
+            {cat.num} / {CATEGORIES.length.toString().padStart(2, "0")}
+          </p>
+          <p style={{ fontSize: 11, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(240,240,240,0.3)", fontWeight: 900, marginBottom: 16 }}>
+            {cat.en}
+          </p>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 900, textTransform: "uppercase", color: "#ffffff", lineHeight: 1.1, marginBottom: 24 }}>
+            {cat.name}
+          </h2>
+          <div style={{ width: 48, height: 3, backgroundColor: RED, marginBottom: 24 }} />
+          <p style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400, maxWidth: 360, marginBottom: 36 }}>
+            {cat.desc}
+          </p>
+          <Link
+            href={cat.href}
+            style={{
+              display: "inline-block",
+              fontSize: 11,
+              letterSpacing: "0.3em",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              padding: "14px 32px",
+              backgroundColor: RED,
+              color: "#fff",
+              textDecoration: "none",
+            }}
+          >
+            VIEW →
+          </Link>
+        </div>
       </div>
 
-      {/* Text */}
-      <div
-        ref={textRef}
-        style={{
-          padding: "24px",
-          opacity:   textIn ? 1 : 0,
-          transform: textIn ? "translateY(0)" : "translateY(40px)",
-          transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: hovered ? RED : "rgba(200,16,46,0.4)" }}>{cat.num}</span>
-          <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: hovered ? RED : "rgba(240,240,240,0.25)" }}>{cat.en}</span>
-        </div>
-        <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: "uppercase", marginBottom: 8, color: hovered ? "#fff" : "rgba(240,240,240,0.7)", transition: "color 0.3s" }}>
-          {cat.name}
-        </h2>
-        <p style={{ fontSize: 12, lineHeight: 1.6, color: "rgba(240,240,240,0.35)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-          {cat.desc}
-        </p>
-        <div style={{ marginTop: 16 }}>
-          <span style={{ fontSize: 10, letterSpacing: "0.2em", fontWeight: 900, color: hovered ? RED : "rgba(240,240,240,0.2)", transition: "color 0.3s" }}>
-            VIEW →
-          </span>
-        </div>
+      {/* Progress dots */}
+      <div style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8 }}>
+        {CATEGORIES.map((c, i) => (
+          <div key={c.id} style={{ width: i === CATEGORIES.indexOf(cat) ? 20 : 6, height: 6, backgroundColor: i === CATEGORIES.indexOf(cat) ? RED : "rgba(240,240,240,0.2)", transition: "width 0.3s, background-color 0.3s" }} />
+        ))}
       </div>
-    </Link>
+    </div>
   );
 }
 
 export default function V3Products() {
-  const heroRef = useRef<HTMLElement>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const heroRef    = useRef<HTMLElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  /* Hero slide-up on mount */
+  /* Hero opacity driven by scroll */
+  const [heroOpacity, setHeroOpacity] = useState(1);
+  const [heroY,       setHeroY]       = useState(0);
+
+  /* Card state */
+  const [cardIndex,  setCardIndex]  = useState(0);
+  const [cardPhase,  setCardPhase]  = useState<string>("idle");
+  const pendingIndex = useRef<number | null>(null);
+  const animating    = useRef(false);
+  const lastIndex    = useRef(0);
+
+  /* Hero mount slide-up */
   useEffect(() => {
     const el = heroRef.current;
     if (!el) return;
     el.style.opacity   = "0";
     el.style.transform = "translateY(60px)";
-    /* next frame so initial state is painted first */
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         el.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
@@ -258,50 +247,170 @@ export default function V3Products() {
     });
   }, []);
 
+  /* Flip to a new card index */
+  const flipTo = useCallback((next: number) => {
+    if (animating.current) {
+      pendingIndex.current = next;
+      return;
+    }
+    const prev = lastIndex.current;
+    if (next === prev) return;
+
+    const dir = next > prev ? "fwd" : "back";
+    animating.current = true;
+
+    /* exit current */
+    setCardPhase(`exit-${dir}`);
+
+    setTimeout(() => {
+      /* swap card, start enter */
+      lastIndex.current = next;
+      setCardIndex(next);
+      setCardPhase(`enter-${dir}`);
+
+      setTimeout(() => {
+        setCardPhase("idle");
+        animating.current = false;
+        /* flush pending */
+        if (pendingIndex.current !== null && pendingIndex.current !== lastIndex.current) {
+          const p = pendingIndex.current;
+          pendingIndex.current = null;
+          flipTo(p);
+        }
+      }, 560);
+    }, 460);
+  }, []);
+
+  /* Scroll handler */
+  useEffect(() => {
+    const onScroll = () => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+      const y = window.scrollY;
+
+      /* hero fade — over first 40vh */
+      const heroFadeEnd = window.innerHeight * 0.4;
+      const op = Math.max(0, 1 - y / heroFadeEnd);
+      const ty = Math.min(y * 0.5, window.innerHeight * 0.3);
+      setHeroOpacity(op);
+      setHeroY(-ty);
+
+      /* card section */
+      const rect      = wrapper.getBoundingClientRect();
+      const wTop      = y + rect.top;
+      const wHeight   = wrapper.offsetHeight - window.innerHeight;
+      const progress  = Math.max(0, Math.min(1, (y - wTop) / wHeight));
+      const idx       = Math.min(CATEGORIES.length - 1, Math.floor(progress * CATEGORIES.length));
+      flipTo(idx);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [flipTo]);
+
   return (
-    <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
+    <>
+      {/* Keyframes injected once */}
+      <style>{`
+        @keyframes flipIn {
+          from { transform: rotateY(-90deg); }
+          to   { transform: rotateY(0deg);  }
+        }
+        @keyframes flipInBack {
+          from { transform: rotateY(90deg); }
+          to   { transform: rotateY(0deg);  }
+        }
+        @keyframes flipOut {
+          from { transform: rotateY(0deg);  }
+          to   { transform: rotateY(90deg); }
+        }
+        @keyframes flipOutBack {
+          from { transform: rotateY(0deg);   }
+          to   { transform: rotateY(-90deg); }
+        }
+      `}</style>
 
-      {/* Hero */}
-      <section ref={heroRef} className="pt-36 pb-16 px-6 max-w-7xl mx-auto">
-        <p className="text-[10px] tracking-[0.4em] uppercase mb-4 font-black" style={{ color: RED }}>Products</p>
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-none mb-6 uppercase">
-          제품<br />
-          <span style={{ color: RED }}>라인업</span>
-        </h1>
-        <div style={{ width: "60px", height: "3px", backgroundColor: RED, marginBottom: "24px" }} />
-        <p className="text-sm max-w-lg leading-relaxed" style={{ color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-          blum의 피팅 시스템은 단순한 하드웨어가 아닙니다.
-          120개국에서 검증된 혁신 기술로 가구의 가능성을 다시 정의합니다.
-        </p>
-      </section>
+      <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
 
-      {/* Grid */}
-      <section className="max-w-7xl mx-auto px-6 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px" style={{ backgroundColor: "rgba(240,240,240,0.04)" }}>
-          {CATEGORIES.map((cat) => (
-            <FlipCard
-              key={cat.id}
-              cat={cat}
-              hovered={hovered === cat.id}
-              onEnter={() => setHovered(cat.id)}
-              onLeave={() => setHovered(null)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* CTA band */}
-      <BoldReveal>
-        <section className="py-20 px-6 text-center border-t" style={{ borderColor: "rgba(200,16,46,0.2)", backgroundColor: "#0a0a0a" }}>
-          <p className="text-[10px] tracking-[0.4em] uppercase font-black mb-4" style={{ color: RED }}>CONTACT US</p>
-          <h2 className="text-3xl font-black uppercase mb-8">제품 상담 문의</h2>
-          <Link href="/v3/contact"
-            className="inline-block px-10 py-4 text-[11px] tracking-[0.3em] uppercase font-black transition-opacity hover:opacity-80"
-            style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}>
-            지금 문의하기
-          </Link>
+        {/* ── HERO — sticky, fades out on scroll ── */}
+        <section
+          ref={heroRef}
+          style={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "0 24px 80px",
+            zIndex: 10,
+            opacity: heroOpacity,
+            transform: `translateY(${heroY}px)`,
+            pointerEvents: heroOpacity < 0.1 ? "none" : "auto",
+          }}
+        >
+          <div className="max-w-7xl w-full mx-auto">
+            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>Products</p>
+            <h1 style={{ fontSize: "clamp(52px, 10vw, 120px)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, textTransform: "uppercase", marginBottom: 24 }}>
+              제품<br /><span style={{ color: RED }}>라인업</span>
+            </h1>
+            <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 24 }} />
+            <p style={{ fontSize: 14, maxWidth: 480, lineHeight: 1.7, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+              blum의 피팅 시스템은 단순한 하드웨어가 아닙니다.<br />
+              120개국에서 검증된 혁신 기술로 가구의 가능성을 다시 정의합니다.
+            </p>
+          </div>
         </section>
-      </BoldReveal>
-    </div>
+
+        {/* ── CARD SECTION — sticky scroll ── */}
+        <div
+          ref={wrapperRef}
+          style={{
+            height: `${(CATEGORIES.length + 1) * 100}vh`,  /* 700vh — 1 screen per card + 1 buffer */
+            position: "relative",
+            marginTop: "-100vh",                             /* overlap hero's sticky space */
+          }}
+        >
+          <div
+            style={{
+              position: "sticky",
+              top: 0,
+              height: "100vh",
+              backgroundColor: "#000000",
+              overflow: "hidden",
+            }}
+          >
+            <CardDisplay cat={CATEGORIES[cardIndex]} phase={cardPhase} />
+          </div>
+        </div>
+
+        {/* ── CTA ── */}
+        <BoldReveal>
+          <section style={{ padding: "80px 24px", textAlign: "center", borderTop: "1px solid rgba(200,16,46,0.2)", backgroundColor: "#0a0a0a" }}>
+            <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>CONTACT US</p>
+            <h2 style={{ fontSize: 32, fontWeight: 900, textTransform: "uppercase", marginBottom: 32 }}>제품 상담 문의</h2>
+            <Link
+              href="/v3/contact"
+              style={{
+                display: "inline-block",
+                padding: "16px 40px",
+                fontSize: 11,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                fontWeight: 900,
+                backgroundColor: RED,
+                color: "#fff",
+                textDecoration: "none",
+                opacity: 1,
+                transition: "opacity 0.2s",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.8"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
+            >
+              지금 문의하기
+            </Link>
+          </section>
+        </BoldReveal>
+      </div>
+    </>
   );
 }
