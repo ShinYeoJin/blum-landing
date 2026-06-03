@@ -201,6 +201,7 @@ export default function V1() {
   const bsStepRef       = useRef<number>(0);
   const bsActiveRef     = useRef<boolean>(false);
   const bsDebounceRef   = useRef<boolean>(false);
+  const bsSpacerRef     = useRef<HTMLDivElement>(null); // zone spacer (keeps services below)
   const bsServicesRef   = useRef<HTMLElement>(null);   // services section anchor
 
   /* ── Pre-hide before first paint ────────────────────────────── */
@@ -375,163 +376,163 @@ export default function V1() {
   /* ── Brand + Philosophy: wheel-driven 3-step sequence ─────────── */
   useEffect(() => {
     const sentinel = bsSentinelRef.current;
+    const spacer   = bsSpacerRef.current;
     const wrap     = bsWrapRef.current;
     const imgLayer = bsImgLayerRef.current;
     const panel    = bsPanelRef.current;
     const philCont = bsPhilContentRef.current;
     const philL    = bsPhilLeftRef.current;
     const philR    = bsPhilRightRef.current;
-    if (!sentinel || !wrap || !imgLayer || !panel || !philCont || !philL || !philR) return;
+    const svcEl    = bsServicesRef.current;
+    if (!sentinel || !spacer || !wrap || !imgLayer || !panel || !philCont || !philL || !philR || !svcEl) return;
 
-    /* Set initial states */
-    wrap.style.position     = "fixed";
-    wrap.style.top          = "0";
-    wrap.style.left         = "0";
-    wrap.style.right        = "0";
-    wrap.style.bottom       = "0";
-    wrap.style.zIndex       = "50";
-    wrap.style.display      = "none";  /* hidden until sequence activates */
-
+    /* ── Initial visual states ── */
+    wrap.style.display           = "none";
     panel.style.transform        = "translateX(100%)";
     panel.style.transition       = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
+    imgLayer.style.transition    = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
     philCont.style.opacity       = "0";
     philCont.style.transition    = "opacity 0.6s ease";
     [philL, philR].forEach((el) => {
-      el.style.opacity   = "0";
-      el.style.transform = "translateY(40px)";
-      el.style.transition= "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)";
+      el.style.opacity    = "0";
+      el.style.transform  = "translateY(40px)";
+      el.style.transition = "opacity 0.6s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1)";
     });
 
+    /* Absolute top of the zone in document (px) */
+    const zoneTop = () => sentinel.getBoundingClientRect().top + window.scrollY;
+
+    /* ── Visual step renderer ── */
     const goToStep = (step: number) => {
       bsStepRef.current = step;
+      wrap.style.display = "block";
 
       if (step === 1) {
-        /* show wrap, image visible, panel offscreen */
-        wrap.style.display           = "block";
-        imgLayer.style.transform     = "translateX(0)";
-        imgLayer.style.transition    = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
-        panel.style.transform        = "translateX(100%)";
-        philCont.style.opacity       = "0";
-        [philL, philR].forEach((el) => {
-          el.style.opacity   = "0";
-          el.style.transform = "translateY(40px)";
-        });
+        imgLayer.style.transform  = "translateX(0)";
+        panel.style.transform     = "translateX(100%)";
+        philCont.style.opacity    = "0";
+        [philL, philR].forEach((el) => { el.style.opacity = "0"; el.style.transform = "translateY(40px)"; });
         return;
       }
-
       if (step === 2) {
-        /* beige panel slides in, image slides left */
-        wrap.style.display           = "block";
-        imgLayer.style.transform     = "translateX(-30%)";
-        imgLayer.style.transition    = "transform 0.7s cubic-bezier(0.76,0,0.24,1)";
-        panel.style.transform        = "translateX(0)";
-        philCont.style.opacity       = "0";
-        [philL, philR].forEach((el) => {
-          el.style.opacity   = "0";
-          el.style.transform = "translateY(40px)";
-        });
+        imgLayer.style.transform  = "translateX(-30%)";
+        panel.style.transform     = "translateX(0)";
+        philCont.style.opacity    = "0";
+        [philL, philR].forEach((el) => { el.style.opacity = "0"; el.style.transform = "translateY(40px)"; });
         return;
       }
-
       if (step === 3) {
-        /* philosophy content fades in */
-        panel.style.transform    = "translateX(0)";
-        philCont.style.opacity   = "1";
-        philL.style.opacity      = "1";
-        philL.style.transform    = "translateY(0)";
+        imgLayer.style.transform  = "translateX(-30%)";
+        panel.style.transform     = "translateX(0)";
+        philCont.style.opacity    = "1";
+        philL.style.opacity       = "1";
+        philL.style.transform     = "translateY(0)";
         setTimeout(() => {
-          philR.style.opacity    = "1";
-          philR.style.transform  = "translateY(0)";
-          philR.style.transition = "opacity 0.6s ease 150ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 150ms";
+          philR.style.opacity     = "1";
+          philR.style.transform   = "translateY(0)";
+          philR.style.transition  = "opacity 0.6s ease 150ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) 150ms";
         }, 0);
         return;
       }
     };
 
-    /* Activate: called when sentinel enters viewport from above */
-    const activate = () => {
+    /* ── Activate at a given step, lock scroll to zone top ── */
+    const activate = (step = 1) => {
       if (bsActiveRef.current) return;
-      bsActiveRef.current = true;
-      /* Scroll position: lock at sentinel top */
-      const sy = sentinel.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: sy, behavior: "instant" });
-      goToStep(1);
+      bsActiveRef.current  = true;
+      bsDebounceRef.current = false;
+      window.scrollTo({ top: zoneTop(), behavior: "instant" });
+      goToStep(step);
     };
 
-    /* Deactivate: release fixed wrap, restore normal scroll */
-    const deactivate = (goForward: boolean) => {
-      bsActiveRef.current = false;
-      bsStepRef.current   = 0;
-      wrap.style.display  = "none";
+    /* ── Reset visual state (called by both deactivate paths) ── */
+    const resetVisuals = () => {
+      wrap.style.display        = "none";
       imgLayer.style.transform  = "translateX(0)";
       panel.style.transform     = "translateX(100%)";
       philCont.style.opacity    = "0";
-      [philL, philR].forEach((el) => {
-        el.style.opacity   = "0";
-        el.style.transform = "translateY(40px)";
-      });
-      if (goForward) {
-        /* scroll so services section top aligns with viewport top */
-        const svc = bsServicesRef.current;
-        if (svc) {
-          const top = svc.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({ top, behavior: "instant" });
-        } else {
-          const sy = sentinel.getBoundingClientRect().top + window.scrollY + 2;
-          window.scrollTo({ top: sy, behavior: "instant" });
-        }
-      }
+      [philL, philR].forEach((el) => { el.style.opacity = "0"; el.style.transform = "translateY(40px)"; });
     };
 
-    const onWheel = (e: WheelEvent) => {
-      const step = bsStepRef.current;
+    /* ── Deactivate forward: hide wrap, jump to services ── */
+    const deactivateFwd = () => {
+      bsActiveRef.current = false;
+      bsStepRef.current   = 0;
+      resetVisuals();
+      const svcTop = svcEl.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: svcTop, behavior: "instant" });
+    };
 
-      /* Not in sequence — check if we should enter */
+    /* ── Deactivate backward: hide wrap, jump just above zone ── */
+    const deactivateBwd = () => {
+      bsActiveRef.current = false;
+      bsStepRef.current   = 0;
+      resetVisuals();
+      /* scroll to just above sentinel so products section fills viewport */
+      const top = Math.max(0, zoneTop() - window.innerHeight + 80);
+      window.scrollTo({ top, behavior: "instant" });
+    };
+
+    /* ── Wheel handler ── */
+    const onWheel = (e: WheelEvent) => {
+      /* Not active — check entry conditions */
       if (!bsActiveRef.current) {
-        const rect = sentinel.getBoundingClientRect();
-        /* Entering forward: sentinel just scrolled into view */
-        if (e.deltaY > 0 && rect.top <= 0 && rect.top > -10) {
+        const rect  = sentinel.getBoundingClientRect();
+        const svcRect = svcEl.getBoundingClientRect();
+
+        /* Forward entry: sentinel at top of viewport */
+        if (e.deltaY > 0 && rect.top <= 1 && rect.top > -20) {
           e.preventDefault();
-          activate();
+          activate(1);
+          return;
+        }
+        /* Backward re-entry from services: services section just came into view */
+        if (e.deltaY < 0 && svcRect.top >= 0 && svcRect.top < 40) {
+          e.preventDefault();
+          activate(3);
+          return;
         }
         return;
       }
 
-      /* In sequence — consume event */
+      /* Active — consume all wheel events */
       e.preventDefault();
       if (bsDebounceRef.current) return;
       bsDebounceRef.current = true;
       setTimeout(() => { bsDebounceRef.current = false; }, 800);
 
+      const step = bsStepRef.current;
       if (e.deltaY > 0) {
-        /* Forward */
-        if (step === 1) { goToStep(2); return; }
-        if (step === 2) { goToStep(3); return; }
-        if (step === 3) { deactivate(true); return; }
+        if (step < 3) { goToStep(step + 1); }
+        else          { deactivateFwd(); }
       } else {
-        /* Backward */
-        if (step === 3) { goToStep(2); return; }
-        if (step === 2) { goToStep(1); return; }
-        if (step === 1) { deactivate(false); return; }
+        if (step > 1) { goToStep(step - 1); }
+        else          { deactivateBwd(); }
       }
     };
 
-    /* IO: trigger activation when sentinel top hits viewport top */
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting && entry.boundingClientRect.top < 0 && !bsActiveRef.current) {
-          /* Scrolled past sentinel without wheel capture — activate at step 1 */
-          activate();
-        }
-      },
-      { threshold: 0 }
-    );
-    io.observe(sentinel);
+    /* ── Scroll listener: re-entry from services when user drags scrollbar ── */
+    let lastSY = window.scrollY;
+    const onScroll = () => {
+      if (bsActiveRef.current) return;
+      const sy  = window.scrollY;
+      const dir = sy < lastSY ? "up" : "down";
+      lastSY    = sy;
+      if (dir !== "up") return;
 
-    window.addEventListener("wheel", onWheel, { passive: false });
+      const zt  = sentinel.getBoundingClientRect().top + window.scrollY;
+      const svcTop = svcEl.getBoundingClientRect().top + window.scrollY;
+      /* Entered zone from below (scrolled up from services into zone) */
+      if (sy >= zt && sy < svcTop) {
+        activate(3);
+      }
+    };
+
+    window.addEventListener("wheel",  onWheel,  { passive: false });
+    window.addEventListener("scroll", onScroll, { passive: true  });
     return () => {
-      io.disconnect();
-      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("wheel",  onWheel);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
@@ -1021,6 +1022,9 @@ export default function V1() {
           </div>
         </div>
 
+
+        {/* Spacer: gives real document height so services never sits at sentinel position */}
+        <div ref={bsSpacerRef} style={{ height: "100vh" }} />
 
         {/* ── SERVICES STRIP ── */}
         <section ref={bsServicesRef} className="py-16 bg-zinc-50 border-y border-zinc-100">
