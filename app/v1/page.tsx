@@ -425,13 +425,18 @@ export default function V1() {
         e.preventDefault();
         if (!panelOpen) {
           busy = true; openPanel();
-          setTimeout(() => { busy = false; }, 900);
+          /* last phil-item animates at 350 + 6×150 + 600 = 1850ms */
+          setTimeout(() => { busy = false; }, 2000);
         } else if (svcEl) {
           busy = true;
-          /* getBoundingClientRect gives correct absolute position */
+          svcEl.scrollTop = 0; // reset to snap 1 so CTA section is never visible
           const top = svcEl.getBoundingClientRect().top + window.scrollY;
           window.scrollTo({ top, behavior: "smooth" });
-          setTimeout(() => { busy = false; }, 900);
+          setTimeout(() => {
+            const corrected = svcEl!.getBoundingClientRect().top + window.scrollY;
+            if (Math.abs(window.scrollY - corrected) > 2) window.scrollTo({ top: corrected });
+            busy = false;
+          }, 950);
         }
       } else if (e.deltaY < -30) {
         e.preventDefault();
