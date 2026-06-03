@@ -74,10 +74,19 @@ export default function V2Footer() {
         <div className="mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 border-t"
           style={{ borderColor: "rgba(138,106,74,0.2)" }}>
           <span className="text-[10px]" style={{ color: "rgba(138,106,74,0.5)" }}>© 2025 Julius Blum GmbH. All rights reserved.</span>
-          <div className="flex gap-5">
-            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]].map(([l, h]) => (
+          <div className="flex items-center gap-5">
+            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]].map(([l, h]) => (
               <Link key={l} href={h} className="text-[10px] hover:opacity-80 transition-opacity" style={{ color: "rgba(138,106,74,0.5)", textDecoration: "none" }}>{l}</Link>
             ))}
+            <a
+              href="https://blum-landing.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] tracking-widest uppercase px-3 py-1.5 border hover:opacity-80 transition-opacity"
+              style={{ color: "rgba(138,106,74,0.7)", borderColor: "rgba(138,106,74,0.3)", textDecoration: "none" }}
+            >
+              공식 사이트
+            </a>
           </div>
         </div>
       </div>

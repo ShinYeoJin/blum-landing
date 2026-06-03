@@ -100,6 +100,12 @@ export default function V1Nav() {
 
   return (
     <>
+      <style>{`
+        .v1-nav-link .v1-hover-line { transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+        .v1-nav-link:hover .v1-hover-line { transform: scaleX(1); }
+        .v1-nav-link { transition: opacity 0.2s ease; }
+        .v1-nav-link:hover { opacity: 0.65; }
+      `}</style>
       {/* Wrapper — slides up/down as a unit */}
       <div style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 70,
@@ -138,7 +144,7 @@ export default function V1Nav() {
               >
                 <Link
                   href={item.href}
-                  className="block px-5 py-2 text-xs tracking-[0.15em] uppercase transition-all duration-200 relative group"
+                  className="v1-nav-link block px-5 py-2 text-xs tracking-[0.15em] uppercase relative"
                   style={{ color: textColor, textDecoration: "none" }}
                   onClick={() => {
                     window.scrollTo(0, 0);
@@ -146,7 +152,7 @@ export default function V1Nav() {
                   }}
                 >
                   {item.label}
-                  {/* Underline indicator */}
+                  {/* Active underline */}
                   <span
                     className="absolute bottom-0 left-5 right-5 h-px transition-all duration-300"
                     style={{
@@ -155,9 +161,10 @@ export default function V1Nav() {
                       transformOrigin: "left",
                     }}
                   />
+                  {/* Hover underline */}
                   <span
-                    className="absolute bottom-0 left-5 right-5 h-px transition-all duration-300 group-hover:scale-x-100"
-                    style={{ backgroundColor: textColor, transform: "scaleX(0)", transformOrigin: "left" }}
+                    className="v1-hover-line absolute bottom-0 left-5 right-5 h-px"
+                    style={{ backgroundColor: textColor }}
                   />
                 </Link>
 

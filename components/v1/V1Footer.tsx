@@ -99,11 +99,20 @@ export default function V1Footer() {
         >
           <span className="text-[10px]" style={{ color: "#d4d4d8" }}>© 2025 Julius Blum GmbH. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            {[["V1 — 미니멀", "/v1"], ["V2 — 감성", "/v2"], ["V3 — 볼드", "/v3"]].map(([l, h]) => (
+            {[["V1 — 미니멀", "/v1"], ["V2 — 감성", "/v2"], ["V3 — 볼드", "/v3"], ["V4 — 시네마틱", "/v4"]].map(([l, h]) => (
               <Link key={l} href={h} className="text-[10px] hover:text-zinc-600 transition-colors" style={{ color: "#d4d4d8", textDecoration: "none" }}>
                 {l}
               </Link>
             ))}
+            <a
+              href="https://blum-landing.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] tracking-widest uppercase px-3 py-1.5 border hover:bg-zinc-900 hover:text-white transition-colors"
+              style={{ color: "#18181b", borderColor: "rgba(24,24,27,0.3)", textDecoration: "none" }}
+            >
+              공식 사이트
+            </a>
           </div>
         </div>
       </div>

@@ -1062,10 +1062,18 @@ export default function V4() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <span className="v4-font-serif" style={{ fontSize: "16px", fontWeight: 300, color: `${GOLD}66`, letterSpacing: "0.2em" }}>blum</span>
           <span style={{ fontSize: "11px", color: `${CREAM}33` }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
-          <div style={{ display: "flex", gap: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]] as [string, string][]).map(([l, h]) => (
               <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}99` : `${CREAM}33`, textDecoration: "none" }}>{l}</Link>
             ))}
+            <a
+              href="https://blum-landing.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: `${GOLD}99`, border: `1px solid ${GOLD}33`, padding: "6px 12px", textDecoration: "none" }}
+            >
+              공식 사이트
+            </a>
           </div>
         </div>
       </footer>
