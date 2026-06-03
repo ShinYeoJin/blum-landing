@@ -173,8 +173,9 @@ export default function V1() {
   const g7Ref              = useRef<HTMLImageElement>(null);
   const g8Ref              = useRef<HTMLImageElement>(null);
   const g9Ref              = useRef<HTMLImageElement>(null);
-  const featuredLayerRef   = useRef<HTMLDivElement>(null);
-  const featuredImgRef     = useRef<HTMLDivElement>(null);
+  const heroPinRef         = useRef<HTMLElement>(null);
+  const spotlightRef       = useRef<HTMLDivElement>(null);
+  const spotlightOverRef   = useRef<HTMLDivElement>(null);
   const aboutLayerRef      = useRef<HTMLDivElement>(null);
   const aboutLblRef        = useRef<HTMLParagraphElement>(null);
   const aboutH2Ref         = useRef<HTMLHeadingElement>(null);
@@ -204,29 +205,57 @@ export default function V1() {
 
       /* ═══════════════════════════════════════════════════════════
          HERO → BRAND TRANSITION  (ScrollTrigger scrub)
-         Outer 400vh container is the trigger.
-         Inner 100vh sticky section holds all animation layers.
 
-         Phase 1 (scroll 0→100vh):  hero shrinks 1→0.85, grid appears
-         Phase 2 (scroll 100→200vh): grid → featured image expands 1→1.2
-         Phase 3 (scroll 200→300vh): text overlay fades in
+         STEP 1 (0→1):  Hero scale 1→0.7 + fade, grid appears
+         STEP 2 (1→2):  Spotlight appears at g1 position, expands
+                        to fullscreen; other grid images fade out
+         STEP 3 (2→3):  Text overlay appears
+
+         Spotlight = g1 image cloned as position:absolute inside
+         sticky section. getBoundingClientRect() gives the grid
+         cell's viewport coords → used as GSAP from-values so the
+         expansion starts exactly from the grid cell.
          ═══════════════════════════════════════════════════════════ */
-      const outer = transitionOuterRef.current;
-      if (outer) {
-        /* initial states */
+      const outer   = transitionOuterRef.current;
+      const pinEl   = heroPinRef.current;
+      const g1El    = g1Ref.current;
+      const spl     = spotlightRef.current;
+      const splOver = spotlightOverRef.current;
+
+      if (outer && pinEl && g1El && spl) {
+        /* ── Measure g1 position relative to sticky section ── */
+        const pinRect = pinEl.getBoundingClientRect();
+        const g1Rect  = g1El.getBoundingClientRect();
+        const startTop    = g1Rect.top    - pinRect.top;
+        const startLeft   = g1Rect.left   - pinRect.left;
+        const startWidth  = g1Rect.width;
+        const startHeight = g1Rect.height;
+
+        /* ── Initial hidden states ── */
         gsap.set(gridLayerRef.current, { opacity: 0 });
         gsap.set(
           [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
            g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
           { opacity: 0, scale: 0.94 }
         );
-        gsap.set(featuredLayerRef.current, { opacity: 0 });
-        gsap.set(featuredImgRef.current,   { scale: 1.0 });
+        /* Spotlight starts at the g1 grid-cell position, invisible */
+        gsap.set(spl, {
+          top: startTop, left: startLeft,
+          width: startWidth, height: startHeight,
+          opacity: 0,
+        });
+        if (splOver) gsap.set(splOver, { opacity: 0 });
+
         gsap.set(aboutLayerRef.current, { opacity: 0 });
         ([aboutLblRef, aboutH2Ref, aboutB1Ref, aboutB2Ref, aboutLinkRef] as React.RefObject<HTMLElement>[]).forEach(
           (r) => { if (r.current) gsap.set(r.current, { opacity: 0, y: 40 }); }
         );
         if (aboutLineRef.current) gsap.set(aboutLineRef.current, { scaleX: 0, transformOrigin: "left" });
+
+        const allImgs   = [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
+                           g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current];
+        const otherImgs = [g2Ref.current, g3Ref.current, g4Ref.current,
+                           g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current];
 
         const tl = gsap.timeline({
           scrollTrigger: {
@@ -237,36 +266,37 @@ export default function V1() {
           },
         });
 
-        /* Phase 1 — hero shrinks, text fades, masonry grid images pop in */
+        /* ── STEP 1: Hero shrinks, grid appears ── */
         tl
-          .to(heroLayerRef.current,  { scale: 0.85, duration: 1 }, 0)
-          .to(heroTextRef.current,   { opacity: 0, y: -24, duration: 0.55 }, 0)
-          .to(scrollIndicRef.current,{ opacity: 0, duration: 0.35 }, 0)
-          .to(gridLayerRef.current,  { opacity: 1, duration: 0.5 }, 0.25)
-          .to(
-            [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
-             g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
-            { opacity: 1, scale: 1, stagger: 0.1, duration: 0.7 }, 0.35
-          )
+          .to(heroLayerRef.current,   { scale: 0.7, opacity: 0, duration: 1 }, 0)
+          .to(heroTextRef.current,    { opacity: 0, y: -24, duration: 0.55 }, 0)
+          .to(scrollIndicRef.current, { opacity: 0, duration: 0.35 }, 0)
+          .to(gridLayerRef.current,   { opacity: 1, duration: 0.5 }, 0.25)
+          .to(allImgs, { opacity: 1, scale: 1, stagger: 0.1, duration: 0.7 }, 0.35)
 
-        /* Phase 2 — grid fades out, featured image reveals and zooms 1.0 → 1.3 */
-          .to(
-            [g1Ref.current, g2Ref.current, g3Ref.current, g4Ref.current,
-             g5Ref.current, g6Ref.current, g7Ref.current, g8Ref.current, g9Ref.current],
-            { opacity: 0, stagger: 0.07, duration: 0.45 }, 1.15
-          )
-          .to(gridLayerRef.current,     { opacity: 0, duration: 0.45 }, 1.25)
-          .to(featuredLayerRef.current, { opacity: 1, duration: 0.6 }, 1.35)
-          .to(featuredImgRef.current,   { scale: 1.3, duration: 1.6, ease: "power1.inOut" }, 1.35)
+        /* ── STEP 2: Feature image (g1) expands to fullscreen ── */
+          /* 2a — spotlight appears flush over g1's grid cell */
+          .to(spl, { opacity: 1, duration: 0.12 }, 1.35)
+          /* 2b — other grid images fade; g1 fades under spotlight */
+          .to(otherImgs, { opacity: 0, stagger: 0.06, duration: 0.45 }, 1.4)
+          .to(g1Ref.current, { opacity: 0, duration: 0.25 }, 1.48)
+          /* 2c — spotlight expands from g1 cell → full viewport */
+          .to(spl, {
+            top: 0, left: 0, width: "100%", height: "100%",
+            duration: 1.15, ease: "power2.inOut",
+          }, 1.4)
+          .to(gridLayerRef.current, { opacity: 0, duration: 0.3 }, 1.65)
+          /* 2d — dark overlay fades in during expansion */
+          .to(splOver, { opacity: 0.62, duration: 0.9 }, 1.75)
 
-        /* Phase 3 — text overlay appears */
-          .to(aboutLayerRef.current, { opacity: 1, duration: 0.45 }, 2.2)
-          .to(aboutLblRef.current,   { opacity: 1, y: 0, duration: 0.55 }, 2.3)
-          .to(aboutH2Ref.current,    { opacity: 1, y: 0, duration: 0.65 }, 2.45)
-          .to(aboutLineRef.current,  { scaleX: 1,        duration: 0.45 }, 2.65)
-          .to(aboutB1Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.7)
-          .to(aboutB2Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.85)
-          .to(aboutLinkRef.current,  { opacity: 1, y: 0, duration: 0.55 }, 3.0);
+        /* ── STEP 3: Text overlay ── */
+          .to(aboutLayerRef.current, { opacity: 1, duration: 0.45 }, 2.25)
+          .to(aboutLblRef.current,   { opacity: 1, y: 0, duration: 0.55 }, 2.35)
+          .to(aboutH2Ref.current,    { opacity: 1, y: 0, duration: 0.65 }, 2.5)
+          .to(aboutLineRef.current,  { scaleX: 1,        duration: 0.45 }, 2.7)
+          .to(aboutB1Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.75)
+          .to(aboutB2Ref.current,    { opacity: 1, y: 0, duration: 0.55 }, 2.9)
+          .to(aboutLinkRef.current,  { opacity: 1, y: 0, duration: 0.55 }, 3.05);
 
         kills.push(() => { tl.scrollTrigger?.kill(); tl.kill(); });
       }
@@ -327,6 +357,7 @@ export default function V1() {
       <div ref={transitionOuterRef} style={{ position: "relative", zIndex: 10 }}>
         <div style={{ height: "400vh" }}>
           <section
+            ref={heroPinRef}
             style={{
               position: "sticky", top: 0,
               height: "100vh", minHeight: 600,
@@ -384,26 +415,20 @@ export default function V1() {
               </div>
             </div>
 
-            {/* ── Layer C: Featured fullscreen image (scale 1.0 → 1.3, phase 2) ── */}
-            {/* Outer container clips the zoomed image; text overlay stays outside */}
+            {/* ── Layer C: Spotlight — g1 image, expands from grid cell → fullscreen ── */}
+            {/* GSAP animates top/left/width/height from g1's bounding rect to 0/0/100%/100% */}
             <div
-              ref={featuredLayerRef}
-              style={{ position: "absolute", inset: 0, zIndex: 3, overflow: "hidden" }}
+              ref={spotlightRef}
+              style={{ position: "absolute", zIndex: 3, overflow: "hidden" }}
             >
-              {/* Inner image wrapper — GSAP scales THIS (1.0 → 1.3) */}
-              <div
-                ref={featuredImgRef}
-                style={{ position: "absolute", inset: 0, transformOrigin: "center", willChange: "transform" }}
-              >
-                <img
-                  src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
-                  alt="blum factory"
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
-                />
-              </div>
-              {/* Dark overlay — NOT scaled, stays in place */}
-              <div style={{ position: "absolute", inset: 0, backgroundColor: "#000000", opacity: 0.62 }} />
+              <img
+                src={`${BASE}/images/560/258/4214766/corporate/media/bilder/unternehmen/ME177281_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`}
+                alt="blum factory"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.backgroundColor = "#1a1a1a"; }}
+              />
+              {/* Dark overlay fades in as spotlight expands */}
+              <div ref={spotlightOverRef} style={{ position: "absolute", inset: 0, backgroundColor: "#000000" }} />
             </div>
 
             {/* ── Layer D: Text overlay (phase 3) ── */}
