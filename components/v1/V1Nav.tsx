@@ -130,7 +130,10 @@ export default function V1Nav() {
                   href={item.href}
                   className="block px-5 py-2 text-xs tracking-[0.15em] uppercase transition-all duration-200 relative group"
                   style={{ color: textColor, textDecoration: "none" }}
-                  onClick={() => window.scrollTo(0, 0)}
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    if (item.href === "/v1/products") window.dispatchEvent(new Event("v1-products-enter"));
+                  }}
                 >
                   {item.label}
                   {/* Underline indicator */}

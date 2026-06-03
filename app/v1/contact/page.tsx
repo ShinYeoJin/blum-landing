@@ -236,8 +236,16 @@ export default function V1Contact() {
               href="https://e-services.blum.com/main/"
               target="_blank"
               rel="noopener noreferrer"
-              className="whitespace-nowrap text-xs tracking-[0.2em] uppercase px-6 py-3 border border-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
-              style={{ color: "#18181b", textDecoration: "none" }}
+              className="whitespace-nowrap text-xs tracking-[0.2em] uppercase px-6 py-3 border"
+              style={{ color: "#ffffff", backgroundColor: "#18181b", borderColor: "#18181b", textDecoration: "none", transition: "background-color 0.3s ease, color 0.3s ease" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#ffffff";
+                (e.currentTarget as HTMLAnchorElement).style.color = "#18181b";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#18181b";
+                (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff";
+              }}
             >
               E-Services 접속
             </a>

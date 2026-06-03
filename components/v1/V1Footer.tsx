@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function V1Footer() {
@@ -75,8 +77,16 @@ export default function V1Footer() {
             </p>
             <Link
               href="/contact"
-              className="inline-block mt-4 text-[10px] tracking-widest uppercase px-5 py-2.5 border transition-colors hover:bg-zinc-900 hover:text-white hover:border-zinc-900"
-              style={{ color: "#18181b", borderColor: "rgba(24,24,27,0.2)", textDecoration: "none" }}
+              className="inline-block mt-4 text-[10px] tracking-widest uppercase px-5 py-2.5 border"
+              style={{ color: "#ffffff", backgroundColor: "#18181b", borderColor: "#18181b", textDecoration: "none", transition: "background-color 0.3s ease, color 0.3s ease" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#ffffff";
+                (e.currentTarget as HTMLAnchorElement).style.color = "#18181b";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#18181b";
+                (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff";
+              }}
             >
               문의하기
             </Link>

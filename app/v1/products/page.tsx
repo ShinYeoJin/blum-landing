@@ -66,32 +66,30 @@ export default function V1Products() {
   const cellRefs  = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs  = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  /* ── Section 1: Intersection Observer text reveal ── */
+  /* ── Section 1: hero text reveal (plays on mount + on nav re-entry) ── */
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
 
-    const items = hero.querySelectorAll<HTMLElement>(".h-item");
-    items.forEach((el) => {
-      el.style.opacity   = "0";
-      el.style.transform = "translateY(52px)";
-      el.style.transition = "";
-    });
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
+    const playHero = () => {
+      const items = hero.querySelectorAll<HTMLElement>(".h-item");
+      items.forEach((el) => {
+        el.style.transition = "";
+        el.style.opacity    = "0";
+        el.style.transform  = "translateY(52px)";
+      });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
         items.forEach((el, i) => {
           el.style.transition = `opacity 0.9s ease ${i * 140}ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 140}ms`;
           el.style.opacity    = "1";
           el.style.transform  = "translateY(0)";
         });
-        io.disconnect();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(hero);
-    return () => io.disconnect();
+      }));
+    };
+
+    playHero();
+    window.addEventListener("v1-products-enter", playHero);
+    return () => window.removeEventListener("v1-products-enter", playHero);
   }, []);
 
   /* ── Section 2: GSAP ScrollTrigger pin + scrub ── */
