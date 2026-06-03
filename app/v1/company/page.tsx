@@ -93,7 +93,7 @@ function PhotoSequence() {
         const ta = pin.querySelector<HTMLElement>(".text-about");
         if (!p1 || !p2 || !p3 || !tm || !ts || !ta) return;
 
-        /* texts start hidden, shifted right */
+        /* texts start hidden, shifted right — photos stay at opacity:1 (CSS) */
         gsap.set([tm, ts, ta], { opacity: 0, x: 50 });
 
         const tl = gsap.timeline({
@@ -107,25 +107,25 @@ function PhotoSequence() {
           },
         });
 
-        /* ── PHASE 1→2: photo3 moves left+expands, management text in ── */
+        /* ── PHASE 1→2 (t 0.2–1.8): p1,p2 fade; p3 moves left+expands; mgmt text ── */
         tl
-          .to([p1, p2], { opacity: 0, duration: 0.6 }, 0)
-          .to(p3, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 0)
-          .to(tm, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 0.7)
+          .to([p1, p2], { opacity: 0, duration: 0.6 }, 0.2)
+          .to(p3, { left: "2%", width: "48%", duration: 1, ease: "power2.inOut" }, 0.2)
+          .to(tm, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 0.9)
 
-        /* ── PHASE 2→3: previous out → photo2 set+appear, sustainability text in ── */
-          .to([p3, tm], { opacity: 0, duration: 0.5 }, 1.6)
-          .set(p2, { opacity: 1, left: "2%", width: "48%" }, 2.1)
-          .from(p2, { opacity: 0, duration: 0.5, ease: "power2.out" }, 2.1)
-          .to(ts, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 2.4)
+        /* ── PHASE 2→3 (t 2.0–3.2): p3+mgmt out; p2 snaps into place+fades in; sust text ── */
+          .to([p3, tm], { opacity: 0, duration: 0.5 }, 2.0)
+          .set(p2, { left: "2%", width: "48%" }, 2.5)
+          .to(p2,  { opacity: 1, duration: 0.5, ease: "power2.out" }, 2.5)
+          .to(ts,  { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 2.8)
 
-        /* ── PHASE 3→4: previous out → photo1 set+appear, about text in ── */
-          .to([p2, ts], { opacity: 0, duration: 0.5 }, 3.1)
-          .set(p1, { opacity: 1, left: "2%", width: "48%" }, 3.6)
-          .from(p1, { opacity: 0, duration: 0.5, ease: "power2.out" }, 3.6)
-          .to(ta, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 3.9)
+        /* ── PHASE 3→4 (t 3.5–4.8): p2+sust out; p1 snaps+fades in; about text ── */
+          .to([p2, ts], { opacity: 0, duration: 0.5 }, 3.5)
+          .set(p1, { left: "2%", width: "48%" }, 4.0)
+          .to(p1,  { opacity: 1, duration: 0.5, ease: "power2.out" }, 4.0)
+          .to(ta,  { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 4.3)
 
-          .to({}, { duration: 0.01 }, 4.5);
+          .to({}, { duration: 0.01 }, 4.99);
 
         ScrollTrigger.refresh();
       });
@@ -177,6 +177,7 @@ function PhotoSequence() {
           height: "70vh",
           overflow: "hidden",
           borderRadius: 12,
+          opacity: 1,
         }}
       >
         <img src={PHOTO1} alt="blum workplace" style={imgStyle}
@@ -194,6 +195,7 @@ function PhotoSequence() {
           height: "70vh",
           overflow: "hidden",
           borderRadius: 12,
+          opacity: 1,
         }}
       >
         <img src={PHOTO2} alt="지속가능성" style={imgStyle}
@@ -211,6 +213,7 @@ function PhotoSequence() {
           height: "70vh",
           overflow: "hidden",
           borderRadius: 12,
+          opacity: 1,
         }}
       >
         <img src={PHOTO3} alt="경영진" style={imgStyle}
