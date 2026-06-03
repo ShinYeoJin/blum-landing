@@ -116,16 +116,17 @@ export default function V1Products() {
         gsap.set(cards, { opacity: 0, y: 56 });
 
         /*
-          end: "+=200%" = 2 viewport-heights of scroll.
-          Timeline total forced to 2.0 so that:
-            progress 0→1 (first screen)  = Phase 1→2 transition
-            progress 1→2 (second screen) = Phase 2→3 transition
+          end: "+=300%" = 3 viewport-heights of scroll.
+          Timeline total = 3.0 so 1 unit = 1 screen:
+            t 0-1  (screen 1) = Phase 1→2 transition
+            t 1-2  (screen 2) = Phase 2 hold (grid fully visible)
+            t 2-3  (screen 3) = Phase 2→3 transition (cards appear)
         */
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger:    pin,
             start:      "top top",
-            end:        "+=200%",
+            end:        "+=300%",
             pin:        true,
             scrub:      1,
             pinSpacing: true,
@@ -133,19 +134,21 @@ export default function V1Products() {
         });
 
         tl
-          /* ── Phase 1 → 2 (scroll 0 % – 100 %)
-             Box image shrinks to nothing while grid stagger-fades in.   */
+          /* ── Phase 1 → 2 (screen 1, t 0-1)
+             Box image shrinks to nothing while grid stagger-fades in.  */
           .to(single, { scale: 0, opacity: 0, duration: 0.7, ease: "power2.in" }, 0)
           .to(cells,  { opacity: 1, scale: 1, duration: 0.4, stagger: 0.1, ease: "power2.out" }, 0)
 
-          /* ── Phase 2 → 3 (scroll 100 % – 200 %)
+          /* ── Phase 2 → 3 (screen 3, t 2-3)
              Grid fades while cards rise in.
-             Absolute position "1" locks this to the second screen.      */
-          .to(cells, { opacity: 0, scale: 0.95, duration: 0.3 }, 1)
-          .to(cards, { opacity: 1, y: 0, duration: 0.35, stagger: 0.15, ease: "power3.out" }, 1)
+             Absolute position "2" locks this to the third screen.
+             stagger 0.15 × 5 = 0.75, dur 0.35 → last card ends at 3.1
+             (slightly past 3 is fine — GSAP clamps at end)              */
+          .to(cells, { opacity: 0, scale: 0.95, duration: 0.3 }, 2)
+          .to(cards, { opacity: 1, y: 0, duration: 0.35, stagger: 0.15, ease: "power3.out" }, 2)
 
-          /* Pad timeline to exactly 2.0 so the 200 % end aligns cleanly */
-          .to({}, { duration: 0.01 }, 1.99);
+          /* Pad to exactly 3.0 */
+          .to({}, { duration: 0.01 }, 2.99);
 
         ScrollTrigger.refresh();
       });
@@ -233,7 +236,7 @@ export default function V1Products() {
             position: "absolute",
             inset: 0,
             zIndex: 2,
-            backgroundColor: "#ffffff",
+            /* NO backgroundColor here — when cells fade out, Phase 3 cards show through */
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gridTemplateRows: "repeat(2, 1fr)",
