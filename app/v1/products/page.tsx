@@ -84,9 +84,14 @@ export default function V1Products() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
+      window.scrollTo(0, 0);
+      await new Promise<void>((r) => setTimeout(r, 50));
+      if (window.scrollY !== 0) window.scrollTo(0, 0);
+
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
+      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin    = pinRef.current;
@@ -135,7 +140,6 @@ export default function V1Products() {
           /* Pad to exactly 3.0 */
           .to({}, { duration: 0.01 }, 2.99);
 
-        ScrollTrigger.refresh();
       });
     };
 

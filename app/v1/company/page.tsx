@@ -77,9 +77,14 @@ function PhotoSequence() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
+      window.scrollTo(0, 0);
+      await new Promise<void>((r) => setTimeout(r, 50));
+      if (window.scrollY !== 0) window.scrollTo(0, 0);
+
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
+      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin = pinRef.current;
@@ -126,8 +131,6 @@ function PhotoSequence() {
           .to(ta,  { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 4.3)
 
           .to({}, { duration: 0.01 }, 4.99);
-
-        ScrollTrigger.refresh();
       });
     };
 
@@ -280,9 +283,14 @@ function HeroSection() {
     let ctx: ReturnType<typeof import("gsap")["default"]["context"]> | undefined;
 
     const init = async () => {
+      window.scrollTo(0, 0);
+      await new Promise<void>((r) => setTimeout(r, 50));
+      if (window.scrollY !== 0) window.scrollTo(0, 0);
+
       const { gsap }          = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
       gsap.registerPlugin(ScrollTrigger);
+      ScrollTrigger.getAll().forEach((t) => t.kill());
 
       ctx = gsap.context(() => {
         const pin  = pinRef.current;
@@ -302,8 +310,6 @@ function HeroSection() {
           },
         })
           .to(text, { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, 0);
-
-        ScrollTrigger.refresh();
       });
     };
 

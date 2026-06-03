@@ -69,7 +69,7 @@ export default function V1Nav() {
     const fn = () => {
       const y = window.scrollY;
       setScrolled(y > 48);
-      if (y < 80) {
+      if (y < 80 || pathname === "/v1") {
         setHidden(false);
       } else {
         setHidden(y > lastY.current);
