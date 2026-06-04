@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
 
 const BASE = "https://www.blum.com";
 const RED = "#c8102e";
@@ -20,6 +19,21 @@ const STATS = [
   { num: 8,    unit: "개 공장",   label: "포어알베르크 생산 시설" },
   { num: 1952, unit: "년",        label: "브랜드 창립" },
 ];
+
+const N = 4;
+const GAP = 12; /* px gap between thumbnail cards */
+
+/* ── Gallery scroll timeline ──────────────────────────────────────
+   OFFSET = 0.5 : thumbnails fully visible before any card expands
+   SLOT   = 1.0 : each card gets 1 raw-unit of scroll
+     first 0.5 of slot  → card expands   (thumbnail → fullscreen)
+     second 0.5 of slot → card shrinks   (fullscreen → thumbnail)
+   Last card never shrinks.
+   max raw = 0.5 + 4 * 1.0 = 4.5  →  gallery height = 5.5 * 100vh = 550vh
+──────────────────────────────────────────────────────────────── */
+const OFFSET    = 0.5;
+const SLOT      = 1.0;
+const HALF      = 0.5;
 
 /* ── Count-up ── */
 function CountUp({ target, active }: { target: number; active: boolean }) {
@@ -40,7 +54,7 @@ function CountUp({ target, active }: { target: number; active: boolean }) {
   return <>{value.toLocaleString()}</>;
 }
 
-/* ── Hover-swap text (slide-up reveal) ── */
+/* ── Hover slide-up text (for h2) ── */
 function HoverText({ normal, hover, style }: { normal: string; hover: string; style?: React.CSSProperties }) {
   const [on, setOn] = useState(false);
   return (
@@ -52,26 +66,45 @@ function HoverText({ normal, hover, style }: { normal: string; hover: string; st
       <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>
         {normal}
       </span>
-      <span style={{
-        display: "block", position: "relative", marginTop: "-1em",
-        transition: "transform 0.28s ease",
-        transform: on ? "translateY(0)" : "translateY(100%)",
-        color: RED,
-      }}>
+      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)", color: RED }}>
         {hover}
       </span>
     </span>
   );
 }
 
+/* ── CTA button with two-line slide-up ── */
+function CtaBtn() {
+  const [on, setOn] = useState(false);
+  return (
+    <a
+      href="/v3/contact"
+      style={{
+        display: "inline-flex", alignItems: "center",
+        height: 50, padding: "0 40px",
+        fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 900,
+        backgroundColor: RED, color: "#fff", textDecoration: "none",
+        overflow: "hidden", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+      }}
+      onMouseEnter={() => setOn(true)}
+      onMouseLeave={() => setOn(false)}
+    >
+      <span style={{ display: "flex", flexDirection: "column", transition: "transform 0.28s ease", transform: on ? "translateY(-50%)" : "translateY(0)" }}>
+        <span style={{ display: "block", lineHeight: "50px" }}>CONTACT US</span>
+        <span style={{ display: "block", lineHeight: "50px" }}>LET&apos;S CONNECT</span>
+      </span>
+    </a>
+  );
+}
+
 export default function V3Company() {
   const heroTextRef = useRef<HTMLDivElement>(null);
   const galleryRef  = useRef<HTMLDivElement>(null);
+  const stickyRef   = useRef<HTMLDivElement>(null);
   const cardRefs    = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
   const textRefs    = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
 
   const [statsActive, setStatsActive] = useState(false);
-  const [ctaHovered,  setCtaHovered]  = useState(false);
 
   /* ── Hero slide-in ── */
   useEffect(() => {
@@ -84,42 +117,41 @@ export default function V3Company() {
     }));
   }, []);
 
-  /* ── Scroll: expanding card gallery ── */
+  /* ── Scroll: two-phase expanding card gallery ── */
   useEffect(() => {
     let raf = 0;
-
-    /*
-      Gallery: 600vh wrapper → 500vh scrollable → raw 0…5 (1 raw unit = 1 viewport)
-      OFFSET = 0.5: thumbnails fully visible for first 50vh of gallery scroll
-      Card i expand phase : raw [0.5+i, 1.5+i]
-      Card i shrink phase : raw [1.5+i, 2.5+i]   (last card: no shrink)
-      Position formula    : left = i*25*(1-net)%, width = (25+75*net)%
-      zIndex formula      : 10 + i + round(net*10)   (higher-i wins ties)
-      Text fade-in        : opacity = max(0, (net-0.7)/0.3)
-    */
-    const OFFSET = 0.5;
 
     const update = () => {
       const y       = window.scrollY;
       const vh      = window.innerHeight;
       const gallery = galleryRef.current;
-      if (!gallery) return;
+      const sticky  = stickyRef.current;
+      if (!gallery || !sticky) return;
 
-      const raw = Math.max(0, (y - gallery.offsetTop) / vh);
+      const raw        = Math.max(0, (y - gallery.offsetTop) / vh);
+      const containerW = sticky.clientWidth || window.innerWidth;
+
+      /* Gap-aware thumbnail geometry */
+      const thumbWPx  = (containerW - (N - 1) * GAP) / N;
+      const thumbWPct = thumbWPx / containerW * 100;
+      const thumbLPct = (i: number) => i * (thumbWPx + GAP) / containerW * 100;
 
       let statsNet = 0;
 
       cardRefs.current.forEach((el, i) => {
         if (!el) return;
 
-        const expand = Math.max(0, Math.min(1, raw - (OFFSET + i)));
-        const shrink = i < 3
-          ? Math.max(0, Math.min(1, raw - (OFFSET + i + 1)))
-          : 0;
-        const net = expand - shrink; // 0 → 1 → 0
+        const expandStart = OFFSET + i * SLOT;
+        const expandEnd   = expandStart + HALF;
+        const shrinkStart = expandEnd;
+        const shrinkEnd   = shrinkStart + HALF;
 
-        el.style.left   = `${(i * 25 * (1 - net)).toFixed(3)}%`;
-        el.style.width  = `${(25 + 75 * net).toFixed(3)}%`;
+        const expand = Math.max(0, Math.min(1, (raw - expandStart) / HALF));
+        const shrink = i < N - 1 ? Math.max(0, Math.min(1, (raw - shrinkStart) / HALF)) : 0;
+        const net    = expand - shrink; /* 0 → 1 → 0 */
+
+        el.style.left   = `${(thumbLPct(i) * (1 - net)).toFixed(3)}%`;
+        el.style.width  = `${(thumbWPct + (100 - thumbWPct) * net).toFixed(3)}%`;
         el.style.zIndex = String(10 + i + Math.round(net * 10));
 
         const textEl = textRefs.current[i];
@@ -136,13 +168,17 @@ export default function V3Company() {
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   const setCardRef = (i: number) => (el: HTMLDivElement | null) => { cardRefs.current[i] = el; };
   const setTextRef = (i: number) => (el: HTMLDivElement | null) => { textRefs.current[i] = el; };
 
-  /* shared overlay text base style */
   const textBase = (right: boolean): React.CSSProperties => ({
     position: "absolute",
     bottom: 56,
@@ -182,13 +218,12 @@ export default function V3Company() {
         </div>
       </section>
 
-      {/* ══ CARD GALLERY: 600vh ══
-          Cards start as 4 equal thumbnails (25% each).
-          Each expands to fullscreen in turn as user scrolls,
-          then shrinks back as the next card expands.
+      {/* ══ CARD GALLERY: 550vh ══
+          Two-phase per card: expand (0→0.5 slot) then shrink (0.5→1.0 slot).
+          Gap of 12px between thumbnail cards; gap closes as card expands.
       ══ */}
-      <div ref={galleryRef} style={{ height: "600vh", position: "relative" }}>
-        <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", backgroundColor: "#000" }}>
+      <div ref={galleryRef} style={{ height: "550vh", position: "relative" }}>
+        <div ref={stickyRef} style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", backgroundColor: "#000" }}>
 
           {/* ── CARD 0 — About Blum | text right-bottom ── */}
           <div ref={setCardRef(0)} style={{
@@ -228,7 +263,7 @@ export default function V3Company() {
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
             <div style={{ position: "absolute", top: 20, left: 20, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>02</div>
             <div ref={setTextRef(1)} style={textBase(false)}>
-              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>Facts & Figures</p>
+              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>Facts &amp; Figures</p>
               <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>
                 숫자로 보는 BLUM
               </h2>
@@ -269,14 +304,14 @@ export default function V3Company() {
               <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>경영진</h2>
               <div style={{ width: 36, height: 3, backgroundColor: RED, marginBottom: 16, marginLeft: "auto" }} />
               <p style={{ fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: "#f0f0f0", marginBottom: 4 }}>
-                Philipp & Martin Blum
+                Philipp &amp; Martin Blum
               </p>
               <p style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: RED, textTransform: "uppercase", marginBottom: 16 }}>공동 경영진</p>
               <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 16 }}>
                 창업자 Julius Blum의 후손인 두 형제가 blum을 이끌고 있습니다. 가족 기업의 전통을 이어받아 품질과 혁신, 지속가능성을 핵심 가치로 삼고 있습니다.
               </p>
               <blockquote style={{ fontSize: 13, fontWeight: 900, color: "rgba(240,240,240,0.55)", lineHeight: 1.55, borderRight: `3px solid ${RED}`, paddingRight: 14, margin: 0 }}>
-                "당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다."
+                &ldquo;당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다.&rdquo;
               </blockquote>
             </div>
           </div>
@@ -315,33 +350,15 @@ export default function V3Company() {
         </div>{/* end sticky */}
       </div>{/* end gallery */}
 
-      {/* ══ CTA (수정 2: h2 hover text) ══ */}
+      {/* ══ CTA ══ */}
       <section style={{ padding: "80px 48px", textAlign: "center", borderTop: "1px solid rgba(200,16,46,0.2)", backgroundColor: "#0a0a0a" }}>
         <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>
           GET IN TOUCH
         </p>
-
-        {/* hover: "HOW CAN WE HELP YOU?" → "LET'S CONNECT" */}
-        <h2
-          style={{ fontSize: 32, fontWeight: 900, textTransform: "uppercase", marginBottom: 32, color: "#f0f0f0", lineHeight: 1 }}
-          onMouseEnter={() => setCtaHovered(true)}
-          onMouseLeave={() => setCtaHovered(false)}
-        >
+        <h2 style={{ fontSize: 32, fontWeight: 900, textTransform: "uppercase", marginBottom: 32, color: "#f0f0f0", lineHeight: 1 }}>
           <HoverText normal="HOW CAN WE HELP YOU?" hover="LET'S CONNECT" />
         </h2>
-
-        <Link
-          href="/v3/contact"
-          style={{
-            display: "inline-block", padding: "16px 40px",
-            fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 900,
-            backgroundColor: RED, color: "#fff", textDecoration: "none", transition: "opacity 0.2s",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.8"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
-        >
-          CONTACT US
-        </Link>
+        <CtaBtn />
       </section>
 
     </div>

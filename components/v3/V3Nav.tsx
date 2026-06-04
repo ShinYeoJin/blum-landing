@@ -28,13 +28,21 @@ function ContactBtn() {
   return (
     <a
       href="/v3/contact"
-      className="ml-4 px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-black"
-      style={{ backgroundColor: RED, color: "#fff", textDecoration: "none", display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}
+      className="ml-4"
+      style={{
+        backgroundColor: RED, color: "#fff", textDecoration: "none",
+        display: "inline-flex", alignItems: "center",
+        height: 34, padding: "0 20px",
+        fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 900,
+        overflow: "hidden",
+      }}
       onMouseEnter={() => setOn(true)}
       onMouseLeave={() => setOn(false)}
     >
-      <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>CONTACT</span>
-      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)" }}>LET'S CONNECT</span>
+      <span style={{ display: "flex", flexDirection: "column", transition: "transform 0.28s ease", transform: on ? "translateY(-50%)" : "translateY(0)" }}>
+        <span style={{ display: "block", lineHeight: "34px" }}>CONTACT</span>
+        <span style={{ display: "block", lineHeight: "34px" }}>LET&apos;S CONNECT</span>
+      </span>
     </a>
   );
 }

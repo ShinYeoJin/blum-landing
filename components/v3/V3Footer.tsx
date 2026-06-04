@@ -10,13 +10,20 @@ function ContactUsBtn() {
   return (
     <a
       href="/v3/contact"
-      className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black"
-      style={{ backgroundColor: RED, color: "#fff", textDecoration: "none", overflow: "hidden", verticalAlign: "bottom" }}
+      style={{
+        backgroundColor: RED, color: "#fff", textDecoration: "none",
+        display: "inline-flex", alignItems: "center",
+        height: 42, padding: "0 20px", marginTop: 20,
+        fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 900,
+        overflow: "hidden", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+      }}
       onMouseEnter={() => setOn(true)}
       onMouseLeave={() => setOn(false)}
     >
-      <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>CONTACT US</span>
-      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)" }}>LET'S CONNECT</span>
+      <span style={{ display: "flex", flexDirection: "column", transition: "transform 0.28s ease", transform: on ? "translateY(-50%)" : "translateY(0)" }}>
+        <span style={{ display: "block", lineHeight: "42px" }}>CONTACT US</span>
+        <span style={{ display: "block", lineHeight: "42px" }}>LET&apos;S CONNECT</span>
+      </span>
     </a>
   );
 }
