@@ -116,29 +116,25 @@ function BoldReveal({ children }: { children: React.ReactNode }) {
 }
 
 /* ── Single card display ── */
+/* rotType: 0=Y+ 1=Y- 2=X+ 3=X- (randomised per transition) */
+const ROT_OUT  = ["flipOutY",  "flipOutYN",  "flipOutX",  "flipOutXN"];
+const ROT_IN   = ["flipInY",   "flipInYN",   "flipInX",   "flipInXN"];
+const ROT_INIT = ["rotateY(-90deg)", "rotateY(90deg)", "rotateX(-90deg)", "rotateX(90deg)"];
+
 function CardDisplay({
   cat,
   phase,       // "idle" | "exit-fwd" | "exit-back" | "enter-fwd" | "enter-back"
+  rotType,     // 0-3, randomised on each transition
 }: {
   cat: typeof CATEGORIES[0];
   phase: string;
+  rotType: number;
 }) {
-  const imgRotate =
-    phase === "exit-fwd"   ? "rotateY(90deg)"  :
-    phase === "exit-back"  ? "rotateY(-90deg)" :
-    phase === "enter-fwd"  ? "rotateY(0deg)"   :
-    phase === "enter-back" ? "rotateY(0deg)"   :
-    "rotateY(0deg)";
+  const isExit  = phase === "exit-fwd"  || phase === "exit-back";
+  const isEnter = phase === "enter-fwd" || phase === "enter-back";
 
-  const imgRotateInitial =
-    phase === "enter-fwd"  ? "rotateY(-90deg)" :
-    phase === "enter-back" ? "rotateY(90deg)"  :
-    undefined;
-
-  const textY =
-    phase === "exit-fwd" || phase === "exit-back" ? "10px" : "0px";
-  const textOpacity =
-    phase === "exit-fwd" || phase === "exit-back" ? "0" : "1";
+  const textY       = isExit ? "10px" : "0px";
+  const textOpacity = isExit ? "0"    : "1";
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 48px", boxSizing: "border-box" }}>
@@ -155,12 +151,14 @@ function CardDisplay({
               aspectRatio: "4/3",
               objectFit: "cover",
               display: "block",
-              transform: imgRotate,
-              animation: imgRotateInitial
-                ? `flipIn 0.55s cubic-bezier(0.4,0,0.2,1) forwards`
-                : phase === "exit-fwd" || phase === "exit-back"
-                ? `flipOut${phase === "exit-back" ? "Back" : ""} 0.45s cubic-bezier(0.4,0,0.2,1) forwards`
+              transform: isEnter ? "none" : "none",
+              animation: isEnter
+                ? `${ROT_IN[rotType]} 0.55s cubic-bezier(0.4,0,0.2,1) forwards`
+                : isExit
+                ? `${ROT_OUT[rotType]} 0.45s cubic-bezier(0.4,0,0.2,1) forwards`
                 : "none",
+              /* entering image starts at the rotated position before animating in */
+              ...(isEnter ? { transform: ROT_INIT[rotType] } : {}),
             }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
@@ -228,6 +226,7 @@ export default function V3Products() {
   /* Card state */
   const [cardIndex,  setCardIndex]  = useState(0);
   const [cardPhase,  setCardPhase]  = useState<string>("idle");
+  const [rotType,    setRotType]    = useState(0);   /* 0=Y+ 1=Y- 2=X+ 3=X- */
   const pendingIndex = useRef<number | null>(null);
   const animating    = useRef(false);
   const lastIndex    = useRef(0);
@@ -258,6 +257,9 @@ export default function V3Products() {
 
     const dir = next > prev ? "fwd" : "back";
     animating.current = true;
+
+    /* pick a random rotation axis/direction for this transition */
+    setRotType(Math.floor(Math.random() * 4));
 
     /* exit current */
     setCardPhase(`exit-${dir}`);
@@ -310,24 +312,16 @@ export default function V3Products() {
 
   return (
     <>
-      {/* Keyframes injected once */}
+      {/* Keyframes injected once — Y+, Y-, X+, X- variants */}
       <style>{`
-        @keyframes flipIn {
-          from { transform: rotateY(-90deg); }
-          to   { transform: rotateY(0deg);  }
-        }
-        @keyframes flipInBack {
-          from { transform: rotateY(90deg); }
-          to   { transform: rotateY(0deg);  }
-        }
-        @keyframes flipOut {
-          from { transform: rotateY(0deg);  }
-          to   { transform: rotateY(90deg); }
-        }
-        @keyframes flipOutBack {
-          from { transform: rotateY(0deg);   }
-          to   { transform: rotateY(-90deg); }
-        }
+        @keyframes flipOutY  { from { transform: rotateY(0deg);   } to { transform: rotateY(90deg);   } }
+        @keyframes flipInY   { from { transform: rotateY(-90deg); } to { transform: rotateY(0deg);    } }
+        @keyframes flipOutYN { from { transform: rotateY(0deg);   } to { transform: rotateY(-90deg);  } }
+        @keyframes flipInYN  { from { transform: rotateY(90deg);  } to { transform: rotateY(0deg);    } }
+        @keyframes flipOutX  { from { transform: rotateX(0deg);   } to { transform: rotateX(90deg);   } }
+        @keyframes flipInX   { from { transform: rotateX(-90deg); } to { transform: rotateX(0deg);    } }
+        @keyframes flipOutXN { from { transform: rotateX(0deg);   } to { transform: rotateX(-90deg);  } }
+        @keyframes flipInXN  { from { transform: rotateX(90deg);  } to { transform: rotateX(0deg);    } }
       `}</style>
 
       <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
@@ -382,7 +376,7 @@ export default function V3Products() {
               overflow: "hidden",
             }}
           >
-            <CardDisplay cat={CATEGORIES[cardIndex]} phase={cardPhase} />
+            <CardDisplay cat={CATEGORIES[cardIndex]} phase={cardPhase} rotType={rotType} />
           </div>
         </div>
 
