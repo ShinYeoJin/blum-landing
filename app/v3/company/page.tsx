@@ -260,7 +260,12 @@ export default function V3Company() {
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               <div style={{ position: "absolute", inset: 0, background: overlay }} />
               <div style={{ position: "absolute", top: 16, left: 16, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>02</div>
-              <div ref={setTextRef(1)} style={textBase(false)}>
+              <div ref={setTextRef(1)} style={{
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                padding: "0 48px", opacity: 0, willChange: "opacity",
+                fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif", textAlign: "center",
+              }}>
                 <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>Facts &amp; Figures</p>
                 <h2 style={{ fontSize: "clamp(18px, 2.2vw, 32px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 14, color: "#f0f0f0" }}>
                   숫자로 보는 BLUM
