@@ -27,6 +27,12 @@ function BoldReveal({ children, delay = 0, className = "" }: { children: React.R
   );
 }
 
+const SCROLL_STATS = [
+  { value: "120+",   label: "국가 판매" },
+  { value: "9,850명", label: "전 세계 임직원" },
+  { value: "1952",   label: "브랜드 창립" },
+];
+
 const SYSTEMS = [
   { code: "AV", name: "AVENTOS", label: "리프트 시스템", headline: "위로 열다", desc: "높이가 높은 캐비닛과 상부장을 훌륭하게 무대에 올려보세요.", variants: "HKi · HF top · HS top · HL top · HK top · HK-S · HK-XS", col: "md:col-span-5", aspect: "aspect-[3/4]", img: `${BASE}/images/560/258/4210767/corporate/media/bilder/produkte/klappensysteme/aventos-top/me96878552_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
   { code: "LB", name: "LEGRABOX", label: "박스 시스템", headline: "안으로 담다", desc: "슬림한 서랍면(12.8mm), 최대 하중 40kg 및 70kg 지지.", variants: "pure · free · special edition · individual", col: "md:col-span-7", aspect: "aspect-[4/3]", img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg` },
@@ -47,6 +53,103 @@ export default function V3() {
   useEffect(() => {
     const id = setInterval(() => setActiveIdx((i) => (i + 1) % SYSTEMS.length), 2200);
     return () => clearInterval(id);
+  }, []);
+
+  /* ── Scroll stats animation refs ── */
+  const statsWrapRef = useRef<HTMLDivElement>(null);
+  const statsItemRefs = useRef<(HTMLDivElement | null)[]>([null, null, null]);
+  const statsNumRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
+  const statsLblRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
+
+  useEffect(() => {
+    let raf = 0;
+
+    const update = () => {
+      const y   = window.scrollY;
+      const vh  = window.innerHeight;
+      const wrap = statsWrapRef.current;
+      if (!wrap) return;
+
+      const raw = (y - wrap.offsetTop) / vh;
+      const cW  = wrap.clientWidth || window.innerWidth;
+
+      /* Size: items enter at sz_large, settle at sz_final */
+      const sz_large = Math.min(280, cW * 0.20);
+      const sz_final = Math.max(44,  cW * 0.058);
+
+      /* Final column centers */
+      const col = [cW * 0.20, cW * 0.50, cW * 0.80];
+      const cx  = cW * 0.50; /* entry x (center) */
+      const cy  = vh * 0.50; /* entry y (center) */
+
+      const cl01 = (v: number) => Math.max(0, Math.min(1, v));
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+      /* Label opacity: only in stage 4 */
+      const lblOp = cl01(raw - 3);
+
+      for (let i = 0; i < 3; i++) {
+        const el  = statsItemRefs.current[i];
+        const num = statsNumRefs.current[i];
+        const lbl = statsLblRefs.current[i];
+        if (!el || !num) continue;
+
+        /*
+          Item i timeline:
+            enter phase : raw [ i,   i+1 ] — slides up at center, opacity 0→1, sz_large
+            move  phase : raw [ i+1, i+2 ] — x center→col[i], size sz_large→sz_final
+            settled     : raw > i+2        — stays at col[i], sz_final
+        */
+        if (raw < i) {
+          /* Not entered yet — hide completely */
+          el.style.opacity = "0";
+          el.style.left = `${cx}px`;
+          el.style.top  = `${cy + 60}px`;
+          num.style.fontSize = `${sz_large}px`;
+          if (lbl) lbl.style.opacity = "0";
+          continue;
+        }
+
+        const p_enter = cl01(raw - i);
+        const p_move  = cl01(raw - (i + 1));
+
+        let x: number, yPos: number, size: number, opacity: number, slideY: number;
+
+        if (raw < i + 1) {
+          /* Enter phase */
+          x      = cx;
+          yPos   = cy;
+          slideY = lerp(60, 0, p_enter);
+          size   = sz_large;
+          opacity = p_enter;
+        } else {
+          /* Move → settled */
+          x      = lerp(cx, col[i], p_move);
+          yPos   = cy;
+          slideY = 0;
+          size   = lerp(sz_large, sz_final, p_move);
+          opacity = 1;
+        }
+
+        el.style.left      = `${x.toFixed(2)}px`;
+        el.style.top       = `${yPos.toFixed(2)}px`;
+        el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
+        el.style.opacity   = opacity.toFixed(4);
+        el.style.zIndex    = String(20 - i); /* entering item on top */
+        num.style.fontSize = `${size.toFixed(2)}px`;
+        if (lbl) lbl.style.opacity = lblOp.toFixed(4);
+      }
+    };
+
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
@@ -127,6 +230,72 @@ export default function V3() {
           </div>
         </div>
       </section>
+
+      {/* ── Scroll Stats Sequence ──
+          600vh wrapper → 500vh of scroll animation (raw 0→5).
+          raw 0→1 : "120+"   slides up, fills screen
+          raw 1→2 : "120+"   moves to col-0 + "9,850명" enters
+          raw 2→3 : "9,850명" moves to col-1 + "1952" enters
+          raw 3→4 : "1952"   moves to col-2, labels fade in
+          raw 4→5 : final state rests
+      ── */}
+      <div ref={statsWrapRef} style={{ height: "600vh", position: "relative" }}>
+        <div style={{
+          position: "sticky", top: 0, height: "100vh",
+          overflow: "hidden", backgroundColor: "#0a0a0a",
+        }}>
+          {/* Subtle red glow */}
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(200,16,46,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
+
+          {SCROLL_STATS.map((s, i) => (
+            <div
+              key={s.value}
+              ref={(el) => { statsItemRefs.current[i] = el; }}
+              style={{
+                position: "absolute",
+                /* initial values; JS will override every frame */
+                left: "50%", top: "50%",
+                transform: "translate(-50%, calc(-50% + 60px))",
+                opacity: 0,
+                textAlign: "center",
+                willChange: "left, top, transform, opacity",
+              }}
+            >
+              {/* Number */}
+              <div
+                ref={(el) => { statsNumRefs.current[i] = el; }}
+                style={{
+                  fontWeight: 900,
+                  whiteSpace: "nowrap",
+                  color: "#f0f0f0",
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                  fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                }}
+              >
+                {s.value}
+              </div>
+              {/* Label */}
+              <div
+                ref={(el) => { statsLblRefs.current[i] = el; }}
+                style={{
+                  opacity: 0,
+                  marginTop: 14,
+                  fontSize: 14,
+                  letterSpacing: "0.35em",
+                  textTransform: "uppercase",
+                  color: "rgba(240,240,240,0.55)",
+                  fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                  whiteSpace: "nowrap",
+                  textShadow: "0 2px 12px rgba(0,0,0,0.9)",
+                }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── Brand ── */}
       <section style={{ backgroundColor: "#111", padding: "80px 0 90px" }}>
