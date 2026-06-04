@@ -88,7 +88,7 @@ export default function V1Nav() {
     if (isFirstNav.current) { isFirstNav.current = false; return; }
     window.scrollTo(0, 0);
     document.documentElement.style.overflowY = "hidden";
-    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; }, 700);
+    const t = setTimeout(() => { document.documentElement.style.overflowY = ""; window.scrollTo(0, 0); }, 700);
     return () => { clearTimeout(t); document.documentElement.style.overflowY = ""; };
   }, [pathname]);
 
