@@ -20,20 +20,36 @@ const STATS = [
   { num: 1952, unit: "년",        label: "브랜드 창립" },
 ];
 
-const N = 4;
-const GAP = 12; /* px gap between thumbnail cards */
+/*
+  Gallery scroll timeline
+  ─────────────────────────────────────────────────────────────────
+  OFFSET  = 0.5  → thumbnails fully visible before animation begins
+  SLOT    = 1.0  → one scroll-viewport per card transition
+  HALF    = 0.5
 
-/* ── Gallery scroll timeline ──────────────────────────────────────
-   OFFSET = 0.5 : thumbnails fully visible before any card expands
-   SLOT   = 1.0 : each card gets 1 raw-unit of scroll
-     first 0.5 of slot  → card expands   (thumbnail → fullscreen)
-     second 0.5 of slot → card shrinks   (fullscreen → thumbnail)
-   Last card never shrinks.
-   max raw = 0.5 + 4 * 1.0 = 4.5  →  gallery height = 5.5 * 100vh = 550vh
-──────────────────────────────────────────────────────────────── */
-const OFFSET    = 0.5;
-const SLOT      = 1.0;
-const HALF      = 0.5;
+  Card i:
+    shrinkStart = OFFSET + i * SLOT          (card i starts shrinking)
+    shrinkEnd   = shrinkStart + HALF         (only for i < 3)
+    growStart   = shrinkStart - HALF         (only for i > 0)
+    growEnd     = shrinkStart                (only for i > 0)
+
+  Raw timeline:
+    card 0 active : raw  0    → 0.5
+    card 0 shrink : raw  0.5  → 1.0
+    card 1 grow   : raw  1.0  → 1.5
+    card 1 shrink : raw  1.5  → 2.0
+    card 2 grow   : raw  2.0  → 2.5
+    card 2 shrink : raw  2.5  → 3.0
+    card 3 grow   : raw  3.0  → 3.5
+    card 3 active : raw  3.5  → 4.0
+
+  Gallery height = (4.0 + 1) × 100vh = 500vh
+  ─────────────────────────────────────────────────────────────────
+*/
+const OFFSET = 0.5;
+const SLOT   = 1.0;
+const HALF   = 0.5;
+const N      = 4;
 
 /* ── Count-up ── */
 function CountUp({ target, active }: { target: number; active: boolean }) {
@@ -54,45 +70,25 @@ function CountUp({ target, active }: { target: number; active: boolean }) {
   return <>{value.toLocaleString()}</>;
 }
 
-/* ── Hover slide-up text (for h2) ── */
-function HoverText({ normal, hover, style }: { normal: string; hover: string; style?: React.CSSProperties }) {
-  const [on, setOn] = useState(false);
-  return (
-    <span
-      onMouseEnter={() => setOn(true)}
-      onMouseLeave={() => setOn(false)}
-      style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom", cursor: "default", ...style }}
-    >
-      <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>
-        {normal}
-      </span>
-      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)", color: RED }}>
-        {hover}
-      </span>
-    </span>
-  );
-}
-
-/* ── CTA button with two-line slide-up ── */
-function CtaBtn() {
+/* ── CTA heading: state-swap on hover, no dual DOM ── */
+function CtaHeading() {
   const [on, setOn] = useState(false);
   return (
     <a
       href="/v3/contact"
       style={{
-        display: "inline-flex", alignItems: "center",
-        height: 50, padding: "0 40px",
-        fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 900,
-        backgroundColor: RED, color: "#fff", textDecoration: "none",
-        overflow: "hidden", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+        display: "block",
+        fontSize: 32, fontWeight: 900,
+        textTransform: "uppercase", lineHeight: 1,
+        color: on ? RED : "#f0f0f0",
+        textDecoration: "none",
+        cursor: "pointer",
+        fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
       }}
       onMouseEnter={() => setOn(true)}
       onMouseLeave={() => setOn(false)}
     >
-      <span style={{ display: "flex", flexDirection: "column", transition: "transform 0.28s ease", transform: on ? "translateY(-50%)" : "translateY(0)" }}>
-        <span style={{ display: "block", lineHeight: "50px" }}>CONTACT US</span>
-        <span style={{ display: "block", lineHeight: "50px" }}>LET&apos;S CONNECT</span>
-      </span>
+      {on ? "LET'S CONNECT" : "HOW CAN WE HELP YOU?"}
     </a>
   );
 }
@@ -100,7 +96,6 @@ function CtaBtn() {
 export default function V3Company() {
   const heroTextRef = useRef<HTMLDivElement>(null);
   const galleryRef  = useRef<HTMLDivElement>(null);
-  const stickyRef   = useRef<HTMLDivElement>(null);
   const cardRefs    = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
   const textRefs    = useRef<(HTMLDivElement | null)[]>([null, null, null, null]);
 
@@ -117,7 +112,7 @@ export default function V3Company() {
     }));
   }, []);
 
-  /* ── Scroll: two-phase expanding card gallery ── */
+  /* ── Scroll: scale/opacity card gallery ── */
   useEffect(() => {
     let raf = 0;
 
@@ -125,41 +120,55 @@ export default function V3Company() {
       const y       = window.scrollY;
       const vh      = window.innerHeight;
       const gallery = galleryRef.current;
-      const sticky  = stickyRef.current;
-      if (!gallery || !sticky) return;
+      if (!gallery) return;
 
-      const raw        = Math.max(0, (y - gallery.offsetTop) / vh);
-      const containerW = sticky.clientWidth || window.innerWidth;
-
-      /* Gap-aware thumbnail geometry */
-      const thumbWPx  = (containerW - (N - 1) * GAP) / N;
-      const thumbWPct = thumbWPx / containerW * 100;
-      const thumbLPct = (i: number) => i * (thumbWPx + GAP) / containerW * 100;
+      const raw = Math.max(0, (y - gallery.offsetTop) / vh);
 
       let statsNet = 0;
 
       cardRefs.current.forEach((el, i) => {
         if (!el) return;
 
-        const expandStart = OFFSET + i * SLOT;
-        const expandEnd   = expandStart + HALF;
-        const shrinkStart = expandEnd;
+        const shrinkStart = OFFSET + i * SLOT;
         const shrinkEnd   = shrinkStart + HALF;
+        const growStart   = shrinkStart - HALF; /* = OFFSET + (i-1)*SLOT + HALF */
+        const growEnd     = shrinkStart;        /* same as shrinkStart */
 
-        const expand = Math.max(0, Math.min(1, (raw - expandStart) / HALF));
-        const shrink = i < N - 1 ? Math.max(0, Math.min(1, (raw - shrinkStart) / HALF)) : 0;
-        const net    = expand - shrink; /* 0 → 1 → 0 */
+        let scale: number, opacity: number;
 
-        el.style.left   = `${(thumbLPct(i) * (1 - net)).toFixed(3)}%`;
-        el.style.width  = `${(thumbWPct + (100 - thumbWPct) * net).toFixed(3)}%`;
-        el.style.zIndex = String(10 + i + Math.round(net * 10));
+        if (i === 0) {
+          /* Card 0 starts active, then shrinks */
+          if (raw < shrinkStart) {
+            scale = 1.0; opacity = 1.0;
+          } else if (raw < shrinkEnd) {
+            const t = (raw - shrinkStart) / HALF;
+            scale   = 1.0 - 0.3 * t;
+            opacity = 1.0 - 0.5 * t;
+          } else {
+            scale = 0.7; opacity = 0.5;
+          }
+        } else {
+          /* Cards 1-3: inactive → grow → (shrink for i<3) */
+          const tGrow   = Math.max(0, Math.min(1, (raw - growStart) / HALF));
+          const tShrink = i < N - 1
+            ? Math.max(0, Math.min(1, (raw - shrinkStart) / HALF))
+            : 0;
+          const net = tGrow - tShrink; /* 0 → 1 → 0  (or 0 → 1 for last card) */
+          scale   = 0.7 + 0.3 * net;
+          opacity = 0.5 + 0.5 * net;
 
-        const textEl = textRefs.current[i];
-        if (textEl) {
-          textEl.style.opacity = String(Math.max(0, (net - 0.7) / 0.3).toFixed(4));
+          if (i === 1) statsNet = net;
         }
 
-        if (i === 1) statsNet = net;
+        el.style.transform = `scale(${scale.toFixed(4)})`;
+        el.style.opacity   = String(opacity.toFixed(4));
+
+        /* Overlay text fades in only when card is nearly fully active */
+        const textEl = textRefs.current[i];
+        if (textEl) {
+          const tOp = Math.max(0, (scale - 0.88) / 0.12);
+          textEl.style.opacity = String(tOp.toFixed(4));
+        }
       });
 
       setStatsActive(statsNet > 0.5);
@@ -168,12 +177,7 @@ export default function V3Company() {
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", update);
-      cancelAnimationFrame(raf);
-    };
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, []);
 
   const setCardRef = (i: number) => (el: HTMLDivElement | null) => { cardRefs.current[i] = el; };
@@ -181,14 +185,24 @@ export default function V3Company() {
 
   const textBase = (right: boolean): React.CSSProperties => ({
     position: "absolute",
-    bottom: 56,
-    [right ? "right" : "left"]: 52,
-    maxWidth: 480,
+    bottom: 40,
+    [right ? "right" : "left"]: 36,
+    maxWidth: 400,
     opacity: 0,
     textAlign: right ? "right" : "left",
     willChange: "opacity",
     fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
   });
+
+  /* Shared card style */
+  const cardStyle: React.CSSProperties = {
+    flex: "1 1 0",
+    height: "55vh",
+    position: "relative",
+    overflow: "hidden",
+    willChange: "transform, opacity",
+    transformOrigin: "center center",
+  };
 
   return (
     <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
@@ -218,70 +232,66 @@ export default function V3Company() {
         </div>
       </section>
 
-      {/* ══ CARD GALLERY: 550vh ══
-          Two-phase per card: expand (0→0.5 slot) then shrink (0.5→1.0 slot).
-          Gap of 12px between thumbnail cards; gap closes as card expands.
+      {/* ══ CARD GALLERY: 500vh ══
+          4 cards in a flex row (55vh height each), 12px gap.
+          Active card: scale(1), opacity 1.
+          Inactive card: scale(0.7), opacity 0.5.
+          Two-phase per transition: current shrinks first, next grows after.
       ══ */}
-      <div ref={galleryRef} style={{ height: "550vh", position: "relative" }}>
-        <div ref={stickyRef} style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", backgroundColor: "#000" }}>
+      <div ref={galleryRef} style={{ height: "500vh", position: "relative" }}>
+        <div style={{
+          position: "sticky", top: 0, height: "100vh",
+          backgroundColor: "#000",
+          display: "flex", alignItems: "center",
+          padding: "0 24px", gap: 12,
+        }}>
 
           {/* ── CARD 0 — About Blum | text right-bottom ── */}
-          <div ref={setCardRef(0)} style={{
-            position: "absolute", top: 0, height: "100%",
-            left: "0%", width: "25%",
-            overflow: "hidden", willChange: "left, width",
-          }}>
+          <div ref={setCardRef(0)} style={cardStyle}>
             <img src={IMG_2} alt="blum workplace"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
-            <div style={{ position: "absolute", top: 20, left: 20, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>01</div>
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
+            <div style={{ position: "absolute", top: 16, left: 16, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>01</div>
             <div ref={setTextRef(0)} style={textBase(true)}>
-              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>About Blum</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>
+              <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>About Blum</p>
+              <h2 style={{ fontSize: "clamp(16px, 2vw, 28px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 12, color: "#f0f0f0" }}>
                 편리함을 높이고<br />삶의 질을 향상시키는
               </h2>
-              <div style={{ width: 36, height: 3, backgroundColor: RED, marginBottom: 16, marginLeft: "auto" }} />
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 12 }}>
+              <div style={{ width: 30, height: 2, backgroundColor: RED, marginBottom: 12, marginLeft: "auto" }} />
+              <p style={{ fontSize: 12, lineHeight: 1.75, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
                 Julius Blum GmbH는 고품질 주방 및 가구용 피팅을 제조하는 세계 최고의 제조업체 중 하나입니다. 오스트리아 포어알베르크에 본사를 두고, 전 세계 120개국 이상에 제품을 수출하고 있습니다.
-              </p>
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.35)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-                blum의 제품은 힌지, 서랍, 리프트 시스템 등 가구의 움직임과 관련된 모든 영역을 포괄합니다.
               </p>
             </div>
           </div>
 
           {/* ── CARD 1 — 숫자로 보는 BLUM | text left-bottom + count-up ── */}
-          <div ref={setCardRef(1)} style={{
-            position: "absolute", top: 0, height: "100%",
-            left: "25%", width: "25%",
-            overflow: "hidden", willChange: "left, width",
-          }}>
+          <div ref={setCardRef(1)} style={{ ...cardStyle, opacity: 0.5, transform: "scale(0.7)" }}>
             <img src={IMG_3} alt="blum factory"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
-            <div style={{ position: "absolute", top: 20, left: 20, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>02</div>
+            <div style={{ position: "absolute", top: 16, left: 16, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>02</div>
             <div ref={setTextRef(1)} style={textBase(false)}>
-              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>Facts &amp; Figures</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>
+              <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>Facts &amp; Figures</p>
+              <h2 style={{ fontSize: "clamp(16px, 2vw, 28px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 12, color: "#f0f0f0" }}>
                 숫자로 보는 BLUM
               </h2>
-              <div style={{ width: 36, height: 3, backgroundColor: RED, marginBottom: 20 }} />
+              <div style={{ width: 30, height: 2, backgroundColor: RED, marginBottom: 16 }} />
               <div style={{
                 display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px",
                 backgroundColor: "rgba(200,16,46,0.15)",
                 border: "1px solid rgba(200,16,46,0.15)",
-                maxWidth: 480,
+                maxWidth: 420,
               }}>
                 {STATS.map((s) => (
-                  <div key={s.label} style={{ padding: "14px 12px", backgroundColor: "rgba(0,0,0,0.7)", textAlign: "center" }}>
-                    <div style={{ fontSize: "clamp(18px, 1.8vw, 26px)", fontWeight: 900, color: "#f0f0f0", lineHeight: 1, marginBottom: 3 }}>
+                  <div key={s.label} style={{ padding: "12px 10px", backgroundColor: "rgba(0,0,0,0.7)", textAlign: "center" }}>
+                    <div style={{ fontSize: "clamp(14px, 1.5vw, 22px)", fontWeight: 900, color: "#f0f0f0", lineHeight: 1, marginBottom: 3 }}>
                       <CountUp target={s.num} active={statsActive} />
                       {s.unit === "개국+" ? "+" : ""}
                     </div>
-                    <div style={{ fontSize: 8, fontWeight: 900, color: RED, marginBottom: 4 }}>{s.unit === "개국+" ? "개국" : s.unit}</div>
-                    <div style={{ fontSize: 8, lineHeight: 1.4, color: "rgba(240,240,240,0.3)", fontFamily: "Arial, sans-serif" }}>{s.label}</div>
+                    <div style={{ fontSize: 7, fontWeight: 900, color: RED, marginBottom: 3 }}>{s.unit === "개국+" ? "개국" : s.unit}</div>
+                    <div style={{ fontSize: 7, lineHeight: 1.4, color: "rgba(240,240,240,0.3)", fontFamily: "Arial, sans-serif" }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -289,57 +299,46 @@ export default function V3Company() {
           </div>
 
           {/* ── CARD 2 — 경영진 | text right-bottom ── */}
-          <div ref={setCardRef(2)} style={{
-            position: "absolute", top: 0, height: "100%",
-            left: "50%", width: "25%",
-            overflow: "hidden", willChange: "left, width",
-          }}>
+          <div ref={setCardRef(2)} style={{ ...cardStyle, opacity: 0.5, transform: "scale(0.7)" }}>
             <img src={IMG_4} alt="Philipp & Martin Blum"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
-            <div style={{ position: "absolute", top: 20, left: 20, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>03</div>
+            <div style={{ position: "absolute", top: 16, left: 16, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>03</div>
             <div ref={setTextRef(2)} style={textBase(true)}>
-              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>Leadership</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>경영진</h2>
-              <div style={{ width: 36, height: 3, backgroundColor: RED, marginBottom: 16, marginLeft: "auto" }} />
-              <p style={{ fontSize: 12, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: "#f0f0f0", marginBottom: 4 }}>
+              <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>Leadership</p>
+              <h2 style={{ fontSize: "clamp(16px, 2vw, 28px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 12, color: "#f0f0f0" }}>경영진</h2>
+              <div style={{ width: 30, height: 2, backgroundColor: RED, marginBottom: 12, marginLeft: "auto" }} />
+              <p style={{ fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.08em", color: "#f0f0f0", marginBottom: 4 }}>
                 Philipp &amp; Martin Blum
               </p>
-              <p style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: RED, textTransform: "uppercase", marginBottom: 16 }}>공동 경영진</p>
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 16 }}>
+              <p style={{ fontSize: 8, letterSpacing: "0.3em", fontWeight: 900, color: RED, textTransform: "uppercase", marginBottom: 12 }}>공동 경영진</p>
+              <p style={{ fontSize: 12, lineHeight: 1.75, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
                 창업자 Julius Blum의 후손인 두 형제가 blum을 이끌고 있습니다. 가족 기업의 전통을 이어받아 품질과 혁신, 지속가능성을 핵심 가치로 삼고 있습니다.
               </p>
-              <blockquote style={{ fontSize: 13, fontWeight: 900, color: "rgba(240,240,240,0.55)", lineHeight: 1.55, borderRight: `3px solid ${RED}`, paddingRight: 14, margin: 0 }}>
-                &ldquo;당사는 끊임없이 움직여 더 나은 아이디어를 만듭니다.&rdquo;
-              </blockquote>
             </div>
           </div>
 
           {/* ── CARD 3 — 지속가능한 미래 | text left-bottom ── */}
-          <div ref={setCardRef(3)} style={{
-            position: "absolute", top: 0, height: "100%",
-            left: "75%", width: "25%",
-            overflow: "hidden", willChange: "left, width",
-          }}>
+          <div ref={setCardRef(3)} style={{ ...cardStyle, opacity: 0.5, transform: "scale(0.7)" }}>
             <img src={IMG_5} alt="blum sustainability"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 55%, transparent 100%)" }} />
-            <div style={{ position: "absolute", top: 20, left: 20, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>04</div>
+            <div style={{ position: "absolute", top: 16, left: 16, fontSize: 8, letterSpacing: "0.35em", color: RED, fontWeight: 900 }}>04</div>
             <div ref={setTextRef(3)} style={textBase(false)}>
-              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 12 }}>Sustainability</p>
-              <h2 style={{ fontSize: "clamp(20px, 2.4vw, 36px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 16, color: "#f0f0f0" }}>
+              <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>Sustainability</p>
+              <h2 style={{ fontSize: "clamp(16px, 2vw, 28px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 12, color: "#f0f0f0" }}>
                 지속가능한<br />미래
               </h2>
-              <div style={{ width: 36, height: 3, backgroundColor: RED, marginBottom: 16 }} />
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 20 }}>
+              <div style={{ width: 30, height: 2, backgroundColor: RED, marginBottom: 12 }} />
+              <p style={{ fontSize: 12, lineHeight: 1.75, color: "rgba(240,240,240,0.5)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 16 }}>
                 blum은 환경 친화적인 생산 방식, 친환경 물류, 에너지 효율화를 통해 지속가능한 비즈니스를 실현합니다.
               </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                 {["에너지 및 기후 보호", "순환 경제 및 자원 활용", "환경 친화적 운송", "직원 건강과 안전 최우선"].map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(240,240,240,0.6)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-                    <span style={{ width: 5, height: 5, backgroundColor: RED, flexShrink: 0, display: "inline-block" }} />
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(240,240,240,0.6)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+                    <span style={{ width: 4, height: 4, backgroundColor: RED, flexShrink: 0, display: "inline-block" }} />
                     {item}
                   </li>
                 ))}
@@ -352,13 +351,12 @@ export default function V3Company() {
 
       {/* ══ CTA ══ */}
       <section style={{ padding: "80px 48px", textAlign: "center", borderTop: "1px solid rgba(200,16,46,0.2)", backgroundColor: "#0a0a0a" }}>
-        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>
+        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 24 }}>
           GET IN TOUCH
         </p>
-        <h2 style={{ fontSize: 32, fontWeight: 900, textTransform: "uppercase", marginBottom: 32, color: "#f0f0f0", lineHeight: 1 }}>
-          <HoverText normal="HOW CAN WE HELP YOU?" hover="LET'S CONNECT" />
+        <h2 style={{ fontSize: 32, fontWeight: 900, lineHeight: 1, marginBottom: 0 }}>
+          <CtaHeading />
         </h2>
-        <CtaBtn />
       </section>
 
     </div>

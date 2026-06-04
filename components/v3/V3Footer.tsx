@@ -10,20 +10,12 @@ function ContactUsBtn() {
   return (
     <a
       href="/v3/contact"
-      style={{
-        backgroundColor: RED, color: "#fff", textDecoration: "none",
-        display: "inline-flex", alignItems: "center",
-        height: 42, padding: "0 20px", marginTop: 20,
-        fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 900,
-        overflow: "hidden", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-      }}
+      className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black"
+      style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}
       onMouseEnter={() => setOn(true)}
       onMouseLeave={() => setOn(false)}
     >
-      <span style={{ display: "flex", flexDirection: "column", transition: "transform 0.28s ease", transform: on ? "translateY(-50%)" : "translateY(0)" }}>
-        <span style={{ display: "block", lineHeight: "42px" }}>CONTACT US</span>
-        <span style={{ display: "block", lineHeight: "42px" }}>LET&apos;S CONNECT</span>
-      </span>
+      {on ? "LET'S CONNECT" : "CONTACT US"}
     </a>
   );
 }
