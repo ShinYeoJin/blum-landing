@@ -6,13 +6,17 @@ import BlumGSAP from "@/components/BlumGSAP";
 
 const BASE = "https://www.blum.com";
 
+/* ── BoldReveal: resets when out of view so re-scrolling re-animates ── */
 function BoldReveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold: 0.08 });
+    const obs = new IntersectionObserver(
+      ([e]) => { setInView(e.isIntersecting); },
+      { threshold: 0.08 }
+    );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -27,10 +31,58 @@ function BoldReveal({ children, delay = 0, className = "" }: { children: React.R
   );
 }
 
+/* ── ManifestoSlide: left→right slide, resets on scroll up ── */
+function ManifestoSlide({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { setInView(e.isIntersecting); },
+      { threshold: 0.08 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={className} style={{
+      opacity: inView ? 1 : 0,
+      transform: inView ? "translateX(0)" : "translateX(-120px)",
+      transition: `opacity 0.8s cubic-bezier(0.25,1,0.5,1) ${delay}ms, transform 0.8s cubic-bezier(0.25,1,0.5,1) ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+/* ── CTA hover buttons ── */
+function CTABtn({ href, variant, children }: { href: string; variant: "red" | "outline"; children: React.ReactNode }) {
+  const [on, setOn] = useState(false);
+  const base: React.CSSProperties = {
+    textDecoration: "none",
+    fontSize: "11px",
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+    padding: "16px 32px",
+    display: "inline-block",
+    transition: "background-color 0.25s ease, color 0.25s ease, transform 0.25s ease",
+  };
+  const style: React.CSSProperties =
+    variant === "red"
+      ? { ...base, backgroundColor: on ? "#e8213e" : "#c8102e", color: "#fff", transform: on ? "scale(1.05)" : "scale(1)" }
+      : { ...base, border: "1px solid rgba(240,240,240,0.15)", backgroundColor: on ? "#fff" : "transparent", color: on ? "#0a0a0a" : "#f0f0f0", transform: on ? "scale(1.05)" : "scale(1)" };
+  return (
+    <Link href={href} style={style} onMouseEnter={() => setOn(true)} onMouseLeave={() => setOn(false)}>
+      {children}
+    </Link>
+  );
+}
+
 const SCROLL_STATS = [
-  { value: "120+",   label: "국가 판매" },
+  { value: "120+",    label: "국가 판매" },
   { value: "9,850명", label: "전 세계 임직원" },
-  { value: "1952",   label: "브랜드 창립" },
+  { value: "1952",    label: "브랜드 창립" },
 ];
 
 const SYSTEMS = [
@@ -56,7 +108,7 @@ export default function V3() {
   }, []);
 
   /* ── Scroll stats animation refs ── */
-  const statsWrapRef = useRef<HTMLDivElement>(null);
+  const statsWrapRef  = useRef<HTMLDivElement>(null);
   const statsItemRefs = useRef<(HTMLDivElement | null)[]>([null, null, null]);
   const statsNumRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
   const statsLblRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
@@ -71,15 +123,9 @@ export default function V3() {
       if (!wrap) return;
       const rect = wrap.getBoundingClientRect();
       const top  = rect.top + window.scrollY;
-      /* Only accept measurement if the wrapper has a realistic position
-         (hero is ~100vh tall, so top must be at least 200px). */
-      if (top > 200) {
-        statsWrapTop.current = top;
-        measured = true;
-      }
+      if (top > 200) { statsWrapTop.current = top; measured = true; }
     };
 
-    /* Force all items to opacity 0 before first valid measurement */
     const hideAll = () => {
       for (let i = 0; i < 3; i++) {
         const el = statsItemRefs.current[i];
@@ -89,7 +135,6 @@ export default function V3() {
 
     const update = () => {
       if (!measured) { hideAll(); return; }
-
       const wrap = statsWrapRef.current;
       if (!wrap) return;
 
@@ -101,87 +146,58 @@ export default function V3() {
       const step = Math.min(3, Math.floor(scrollProgress / vh));
       const sp   = Math.max(0, Math.min(1, (scrollProgress - step * vh) / vh));
 
-      const lerp  = (a: number, b: number, t: number) => a + (b - a) * t;
-      const cy    = vh * 0.5;
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+      const cy   = vh * 0.5;
 
       const sz_full  = cW * 0.20;
       const sz_mid   = sz_full * 0.70;
       const sz_final = Math.max(48, cW * 0.09);
 
-      /* column centers */
       const col0 = cW / 6;
       const col1 = cW / 2;
       const col2 = (5 * cW) / 6;
 
-      /* ── item 0 ── */
+      /* item 0 */
       {
-        const el  = statsItemRefs.current[0];
-        const num = statsNumRefs.current[0];
-        const lbl = statsLblRefs.current[0];
+        const el = statsItemRefs.current[0]; const num = statsNumRefs.current[0]; const lbl = statsLblRefs.current[0];
         if (el && num) {
           let x: number, sz: number, op: number, slideY: number;
-          if (step === 0) {
-            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
-          } else if (step === 1) {
-            x = lerp(col1, col0, sp); sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0;
-          } else if (step === 2) {
-            x = lerp(col0, col0, sp); sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0;
-          } else {
-            x = col0; sz = sz_final; op = 1; slideY = 0;
-          }
-          el.style.left      = `${x.toFixed(2)}px`;
-          el.style.top       = `${cy.toFixed(2)}px`;
+          if (step === 0)      { x = col1; sz = sz_full;  op = sp; slideY = lerp(60, 0, sp); }
+          else if (step === 1) { x = lerp(col1, col0, sp); sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0; }
+          else if (step === 2) { x = col0; sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0; }
+          else                 { x = col0; sz = sz_final; op = 1; slideY = 0; }
+          el.style.left = `${x.toFixed(2)}px`; el.style.top = `${cy.toFixed(2)}px`;
           el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
-          el.style.opacity   = op.toFixed(4);
-          num.style.fontSize = `${sz.toFixed(2)}px`;
+          el.style.opacity = op.toFixed(4); num.style.fontSize = `${sz.toFixed(2)}px`;
           if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
         }
       }
-
-      /* ── item 1 ── */
+      /* item 1 */
       {
-        const el  = statsItemRefs.current[1];
-        const num = statsNumRefs.current[1];
-        const lbl = statsLblRefs.current[1];
+        const el = statsItemRefs.current[1]; const num = statsNumRefs.current[1]; const lbl = statsLblRefs.current[1];
         if (el && num) {
           let x: number, sz: number, op: number, slideY: number;
-          if (step === 0) {
-            x = col1; sz = sz_full; op = 0; slideY = 60;
-          } else if (step === 1) {
-            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
-          } else if (step === 2) {
-            x = col1; sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0;
-          } else {
-            x = lerp(col1, col1, sp); sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0;
-          }
-          el.style.left      = `${x.toFixed(2)}px`;
-          el.style.top       = `${cy.toFixed(2)}px`;
+          if (step === 0)      { x = col1; sz = sz_full; op = 0; slideY = 60; }
+          else if (step === 1) { x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp); }
+          else if (step === 2) { x = col1; sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0; }
+          else                 { x = col1; sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0; }
+          el.style.left = `${x.toFixed(2)}px`; el.style.top = `${cy.toFixed(2)}px`;
           el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
-          el.style.opacity   = op.toFixed(4);
-          num.style.fontSize = `${sz.toFixed(2)}px`;
+          el.style.opacity = op.toFixed(4); num.style.fontSize = `${sz.toFixed(2)}px`;
           if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
         }
       }
-
-      /* ── item 2 ── */
+      /* item 2 */
       {
-        const el  = statsItemRefs.current[2];
-        const num = statsNumRefs.current[2];
-        const lbl = statsLblRefs.current[2];
+        const el = statsItemRefs.current[2]; const num = statsNumRefs.current[2]; const lbl = statsLblRefs.current[2];
         if (el && num) {
           let x: number, sz: number, op: number, slideY: number;
-          if (step <= 1) {
-            x = col1; sz = sz_full; op = 0; slideY = 60;
-          } else if (step === 2) {
-            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
-          } else {
-            x = lerp(col1, col2, sp); sz = lerp(sz_full, sz_final, sp); op = 1; slideY = 0;
-          }
-          el.style.left      = `${x.toFixed(2)}px`;
-          el.style.top       = `${cy.toFixed(2)}px`;
+          if (step <= 1)       { x = col1; sz = sz_full; op = 0; slideY = 60; }
+          else if (step === 2) { x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp); }
+          else                 { x = lerp(col1, col2, sp); sz = lerp(sz_full, sz_final, sp); op = 1; slideY = 0; }
+          el.style.left = `${x.toFixed(2)}px`; el.style.top = `${cy.toFixed(2)}px`;
           el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
-          el.style.opacity   = op.toFixed(4);
-          num.style.fontSize = `${sz.toFixed(2)}px`;
+          el.style.opacity = op.toFixed(4); num.style.fontSize = `${sz.toFixed(2)}px`;
           if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
         }
       }
@@ -190,12 +206,8 @@ export default function V3() {
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
     const onResize = () => { measured = false; measureTop(); update(); };
 
-    /* Hide everything immediately, then measure after layout is painted */
     hideAll();
-    requestAnimationFrame(() => {
-      measureTop();
-      update();
-    });
+    requestAnimationFrame(() => { measureTop(); update(); });
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
@@ -225,7 +237,6 @@ export default function V3() {
 
       {/* ── Hero ── */}
       <section className="relative flex flex-col justify-end overflow-hidden" style={{ minHeight: "100vh", paddingTop: "86px" }}>
-        {/* BG */}
         <div className="absolute inset-0">
           <img
             src={`${BASE}/images/560/258/4215000/corporate/media/bilder/produkte/boxsysteme/lbx0458_ab_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`}
@@ -234,11 +245,8 @@ export default function V3() {
             style={{ transform: `scale(1.06) translateY(${scrollY * 0.07}px)` }}
           />
           <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #0a0a0a 55%, rgba(10,10,10,0.4) 100%)" }} />
-          {/* Grid */}
           <div className="absolute inset-0 opacity-[0.035]" style={{ backgroundImage: "linear-gradient(rgba(240,240,240,1) 1px, transparent 1px), linear-gradient(90deg, rgba(240,240,240,1) 1px, transparent 1px)", backgroundSize: "80px 80px" }} />
-          {/* Red shape */}
           <div className="absolute" style={{ right: 0, top: "86px", width: "45%", height: "100%", backgroundColor: "#c8102e", clipPath: "polygon(18% 0, 100% 0, 100% 100%, 0% 100%)", opacity: 0.05, transform: `translateY(${scrollY * 0.12}px)` }} />
-          {/* Rotating BG label */}
           <div className="absolute select-none transition-all duration-700" style={{ right: "-2%", bottom: "8%", fontSize: "clamp(80px,18vw,220px)", fontWeight: 900, color: "rgba(200,16,46,0.04)", letterSpacing: "-0.05em", lineHeight: 1, transform: `translateY(${scrollY * -0.04}px)` }}>
             {SYSTEMS[activeIdx].code}
           </div>
@@ -267,76 +275,23 @@ export default function V3() {
             </div>
           </div>
         </div>
-
-        {/* Stats bar */}
-        <div className="relative z-10 border-t" style={{ borderColor: "rgba(240,240,240,0.07)" }}>
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-3 divide-x divide-white/10">
-            {[
-              { num: "120+", label: "국가 판매" },
-              { num: "9,850명", label: "전 세계 임직원" },
-              { num: "1952", label: "브랜드 창립" },
-            ].map((s) => (
-              <div key={s.num} className="py-5 px-4 text-center md:text-left">
-                <div style={{ fontSize: "clamp(1.4rem,4vw,2.2rem)", fontWeight: 900, letterSpacing: "-0.03em" }}>{s.num}</div>
-                <div style={{ fontSize: "8px", letterSpacing: "0.4em", color: "rgba(240,240,240,0.3)", marginTop: "3px" }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* static stats bar removed */}
       </section>
 
       {/* ── Scroll Stats Sequence ── */}
       <div ref={statsWrapRef} style={{ height: "500vh", position: "relative" }}>
-        <div style={{
-          position: "sticky", top: 0, height: "100vh",
-          overflow: "hidden", backgroundColor: "#0a0a0a",
-        }}>
-          {/* Subtle red glow */}
+        <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", backgroundColor: "#0a0a0a" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(200,16,46,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
-
           {SCROLL_STATS.map((s, i) => (
             <div
               key={s.value}
               ref={(el) => { statsItemRefs.current[i] = el; }}
-              style={{
-                position: "absolute",
-                /* initial values; JS will override every frame */
-                left: "50%", top: "50%",
-                transform: "translate(-50%, calc(-50% + 60px))",
-                opacity: 0,
-                textAlign: "center",
-                willChange: "left, top, transform, opacity",
-              }}
+              style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, calc(-50% + 60px))", opacity: 0, textAlign: "center", willChange: "left, top, transform, opacity" }}
             >
-              {/* Number */}
-              <div
-                ref={(el) => { statsNumRefs.current[i] = el; }}
-                style={{
-                  fontWeight: 900,
-                  whiteSpace: "nowrap",
-                  color: "#f0f0f0",
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1,
-                  fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-                }}
-              >
+              <div ref={(el) => { statsNumRefs.current[i] = el; }} style={{ fontWeight: 900, whiteSpace: "nowrap", color: "#f0f0f0", letterSpacing: "-0.03em", lineHeight: 1, fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
                 {s.value}
               </div>
-              {/* Label */}
-              <div
-                ref={(el) => { statsLblRefs.current[i] = el; }}
-                style={{
-                  opacity: 0,
-                  marginTop: 14,
-                  fontSize: 14,
-                  letterSpacing: "0.35em",
-                  textTransform: "uppercase",
-                  color: "rgba(240,240,240,0.55)",
-                  fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-                  whiteSpace: "nowrap",
-                  textShadow: "0 2px 12px rgba(0,0,0,0.9)",
-                }}
-              >
+              <div ref={(el) => { statsLblRefs.current[i] = el; }} style={{ opacity: 0, marginTop: 14, fontSize: 14, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(240,240,240,0.55)", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif", whiteSpace: "nowrap", textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
                 {s.label}
               </div>
             </div>
@@ -446,24 +401,24 @@ export default function V3() {
       {/* ── Manifesto ── */}
       <section id="manifesto" style={{ backgroundColor: "#c8102e", padding: "80px 0 90px" }}>
         <div className="max-w-7xl mx-auto px-6">
-          <BoldReveal>
+          <ManifestoSlide>
             <p style={{ fontSize: "9px", letterSpacing: "0.5em", color: "rgba(255,255,255,0.55)", marginBottom: "22px" }}>OUR MANIFESTO</p>
             <blockquote style={{ fontSize: "clamp(1.5rem,4vw,3.5rem)", fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.15, maxWidth: "900px", marginBottom: "48px" }}>
               "편리함을 높이고 삶의 질을 향상시킵니다.<br />blum의 moving ideas."
             </blockquote>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
-              {[
-                { title: "FUNCTIONAL BEAUTY", body: "기능이 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다." },
-                { title: "100,000 CYCLES", body: "러너 시스템 기준 100,000회 개폐 테스트. 첫날과 마지막 날, 동일한 품질을 보장합니다." },
-                { title: "INVISIBLE PRECISION", body: "최고의 디자인은 보이지 않습니다. blum은 가구 뒤에서 조용히 완벽함을 만듭니다." },
-              ].map((v, i) => (
-                <BoldReveal key={v.title} delay={i * 100}>
-                  <h3 style={{ fontSize: "11px", fontWeight: 900, letterSpacing: "0.2em", color: "#fff", marginBottom: "10px" }}>{v.title}</h3>
-                  <p style={{ fontSize: "12px", lineHeight: "1.8", color: "rgba(255,255,255,0.65)" }}>{v.body}</p>
-                </BoldReveal>
-              ))}
-            </div>
-          </BoldReveal>
+          </ManifestoSlide>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10 border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}>
+            {[
+              { title: "FUNCTIONAL BEAUTY", body: "기능이 아름다움입니다. blum의 피팅은 작동하는 순간 그 가치가 완성됩니다." },
+              { title: "100,000 CYCLES", body: "러너 시스템 기준 100,000회 개폐 테스트. 첫날과 마지막 날, 동일한 품질을 보장합니다." },
+              { title: "INVISIBLE PRECISION", body: "최고의 디자인은 보이지 않습니다. blum은 가구 뒤에서 조용히 완벽함을 만듭니다." },
+            ].map((v, i) => (
+              <ManifestoSlide key={v.title} delay={i * 150}>
+                <h3 style={{ fontSize: "11px", fontWeight: 900, letterSpacing: "0.2em", color: "#fff", marginBottom: "10px" }}>{v.title}</h3>
+                <p style={{ fontSize: "12px", lineHeight: "1.8", color: "rgba(255,255,255,0.65)" }}>{v.body}</p>
+              </ManifestoSlide>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -479,12 +434,8 @@ export default function V3() {
             쇼룸에서 AVENTOS와 LEGRABOX를 직접 체험해보세요. 전문 컨설턴트가 최적의 솔루션을 제안합니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/v3/contact" style={{ backgroundColor: "#c8102e", color: "#fff", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
-              쇼룸 방문 신청
-            </Link>
-            <Link href="/v3/products" style={{ border: "1px solid rgba(240,240,240,0.15)", color: "#f0f0f0", textDecoration: "none", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", padding: "16px 32px", display: "inline-block" }}>
-              제품 전체 보기
-            </Link>
+            <CTABtn href="/v3/contact" variant="red">쇼룸 방문 신청</CTABtn>
+            <CTABtn href="/v3/products" variant="outline">제품 전체 보기</CTABtn>
           </div>
         </BoldReveal>
       </section>
