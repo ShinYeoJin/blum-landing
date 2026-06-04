@@ -50,6 +50,7 @@ const HEADLINE = "FULL SUPPORT.";
 export default function V3Services() {
   /* refs: [0]=hero, [1..4]=service sections */
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const ctaRef = useRef<HTMLElement | null>(null);
 
   /* ── Hero text animations on mount ── */
   const tagRef  = useRef<HTMLParagraphElement>(null);
@@ -87,12 +88,23 @@ export default function V3Services() {
     const update = () => {
       const y  = window.scrollY;
       const vh = window.innerHeight;
-      /* sections 1-4 (service panels), hero stays put */
+
+      /* service panels — same translateY logic; overflow:hidden on wrapper clips bleed */
       sectionRefs.current.forEach((el, i) => {
         if (!el || i === 0) return;
         const progress = Math.max(0, Math.min(1, (y - (i - 1) * vh) / vh));
         el.style.transform = `translateY(${(1 - progress) * 100}vh)`;
       });
+
+      /* CTA: animates during the last 100vh of scroll space (y: 4*vh → 5*vh)
+         translateY: 100vh → 50vh  (stops at vertical center of screen) */
+      const cta = ctaRef.current;
+      if (cta) {
+        const ctaStart = SERVICES.length * vh;
+        const ctaEnd   = (SERVICES.length + 1) * vh;
+        const ctaProgress = Math.max(0, Math.min(1, (y - ctaStart) / (ctaEnd - ctaStart)));
+        cta.style.transform = `translateY(${(1 - ctaProgress * 0.5) * 100}vh)`;
+      }
     };
 
     const onScroll = () => {
@@ -112,13 +124,13 @@ export default function V3Services() {
     sectionRefs.current[i] = el;
   };
 
-  /* shared fixed section style */
-  const fixed = (zIdx: number): React.CSSProperties => ({
-    position: "fixed",
+  /* shared absolute section style — position:absolute inside the overflow:hidden wrapper */
+  const abs = (zIdx: number): React.CSSProperties => ({
+    position: "absolute",
     top: 0,
     left: 0,
     width: "100%",
-    height: "100vh",
+    height: "100%",
     zIndex: zIdx,
     overflow: "hidden",
     fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
@@ -134,143 +146,166 @@ export default function V3Services() {
       `}</style>
 
       {/* ─────────────────────────────────────────
-          HERO — z-index 1, always behind services
+          Fixed overflow:hidden wrapper — clips sections so the
+          next panel's edge never bleeds into the current view.
       ───────────────────────────────────────── */}
-      <section
-        ref={setRef(0)}
-        style={{
-          ...fixed(1),
-          backgroundColor: "#000000",
-          color: "#f0f0f0",
-          display: "flex",
-          alignItems: "flex-end",
-          padding: "0 48px 80px",
-        }}
-      >
-        {/* dim bg image */}
-        <img
-          src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`}
-          alt=""
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }}
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000 40%, rgba(0,0,0,0.15) 100%)" }} />
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+        zIndex: 1,
+      }}>
+        {/* ─────────────────────────────────────────
+            HERO — z-index 1, always behind services
+        ───────────────────────────────────────── */}
+        <section
+          ref={setRef(0)}
+          style={{
+            ...abs(1),
+            backgroundColor: "#000000",
+            color: "#f0f0f0",
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "0 48px 80px",
+          }}
+        >
+          {/* dim bg image */}
+          <img
+            src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`}
+            alt=""
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000 40%, rgba(0,0,0,0.15) 100%)" }} />
 
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, width: "100%" }}>
-          <p ref={tagRef} style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 20 }}>
-            Services
-          </p>
+          <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, width: "100%" }}>
+            <p ref={tagRef} style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 20 }}>
+              Services
+            </p>
 
-          {/* Letter-flip headline */}
-          <h1 style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
-            {HEADLINE.split("").map((ch, i) => (
-              <span
-                key={i}
-                style={{
-                  display: "inline-block",
-                  color: i >= "FULL ".length ? RED : "#f0f0f0",
-                  width: ch === " " ? "0.3em" : undefined,
-                  animation: ch !== " "
-                    ? `v3LetterFlip 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 50}ms both`
-                    : "none",
-                }}
-              >
-                {ch === " " ? " " : ch}
-              </span>
-            ))}
-          </h1>
+            {/* Letter-flip headline */}
+            <h1 style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
+              {HEADLINE.split("").map((ch, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    color: i >= "FULL ".length ? RED : "#f0f0f0",
+                    width: ch === " " ? "0.3em" : undefined,
+                    animation: ch !== " "
+                      ? `v3LetterFlip 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 50}ms both`
+                      : "none",
+                  }}
+                >
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+            </h1>
 
-          <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 20 }} />
+            <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 20 }} />
 
-          <p ref={subRef} style={{ fontSize: 14, maxWidth: 520, lineHeight: 1.75, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-            제품 선택, 설계 지원, 디지털 서비스, 조립 지원까지 — blum의 종합 서비스 생태계.
-          </p>
-        </div>
-      </section>
+            <p ref={subRef} style={{ fontSize: 14, maxWidth: 520, lineHeight: 1.75, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+              제품 선택, 설계 지원, 디지털 서비스, 조립 지원까지 — blum의 종합 서비스 생태계.
+            </p>
+          </div>
+        </section>
 
-      {/* ─────────────────────────────────────────
-          SERVICE SECTIONS — z-index 2,3,4,5
-          start at translateY(100vh), stacks over hero
-      ───────────────────────────────────────── */}
-      {SERVICES.map((svc, i) => {
-        const imgLeft = i % 2 === 0;
-        return (
-          <section
-            key={svc.id}
-            ref={setRef(i + 1)}
-            id={svc.id}
-            style={{
-              ...fixed(i + 2),
-              backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
-              color: "#f0f0f0",
-              display: "flex",
-              /* start fully below viewport — JS update() will correct on scroll */
-              transform: "translateY(100vh)",
-              willChange: "transform",
-            }}
-          >
-            {/* Image side */}
-            <div style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
-              <img
-                src={svc.img}
-                alt={svc.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "grayscale(15%)" }}
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              {/* red overlay strip */}
-              <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 4, backgroundColor: RED }} />
-            </div>
-
-            {/* Text side */}
-            <div
+        {/* ─────────────────────────────────────────
+            SERVICE SECTIONS — z-index 2,3,4,5
+            start at translateY(100vh), stacks over hero
+        ───────────────────────────────────────── */}
+        {SERVICES.map((svc, i) => {
+          const imgLeft = i % 2 === 0;
+          return (
+            <section
+              key={svc.id}
+              ref={setRef(i + 1)}
+              id={svc.id}
               style={{
-                flex: "1 1 0",
-                order: imgLeft ? 2 : 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                padding: "0 64px",
+                ...abs(i + 2),
                 backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
+                color: "#f0f0f0",
+                display: "flex",
+                /* start fully below viewport — JS update() will correct on scroll */
+                transform: "translateY(100vh)",
+                willChange: "transform",
               }}
             >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
-                <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: "rgba(200,16,46,0.45)" }}>{svc.num}</span>
-                <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: RED }}>{svc.en}</span>
+              {/* Image side */}
+              <div style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
+                <img
+                  src={svc.img}
+                  alt={svc.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "grayscale(15%)" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                {/* red overlay strip */}
+                <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 4, backgroundColor: RED }} />
               </div>
-              <h2 style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
-                {svc.name}
-              </h2>
-              <div style={{ width: 40, height: 3, backgroundColor: RED, marginBottom: 20 }} />
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
-                {svc.desc}
-              </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-                {svc.items.map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-                    <span style={{ width: 6, height: 6, backgroundColor: RED, flexShrink: 0 }} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        );
-      })}
+
+              {/* Text side */}
+              <div
+                style={{
+                  flex: "1 1 0",
+                  order: imgLeft ? 2 : 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  padding: "0 64px",
+                  backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+                  <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: "rgba(200,16,46,0.45)" }}>{svc.num}</span>
+                  <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: RED }}>{svc.en}</span>
+                </div>
+                <h2 style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
+                  {svc.name}
+                </h2>
+                <div style={{ width: 40, height: 3, backgroundColor: RED, marginBottom: 20 }} />
+                <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
+                  {svc.desc}
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+                  {svc.items.map((item) => (
+                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+                      <span style={{ width: 6, height: 6, backgroundColor: RED, flexShrink: 0 }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          );
+        })}
+      </div>{/* end overflow:hidden wrapper */}
 
       {/* ─────────────────────────────────────────
-          SCROLL SPACE: 5 sections × 100vh
-          (1 hero + 4 transitions = 400vh scroll + 100vh viewport = 500vh)
+          SCROLL SPACE: 6 sections × 100vh
+          (1 hero + 4 service transitions + 1 CTA animation = 600vh total,
+           giving 500vh of scrollable distance)
       ───────────────────────────────────────── */}
-      <div style={{ height: `${(SERVICES.length + 1) * 100}vh` }} aria-hidden="true" />
+      <div style={{ height: `${(SERVICES.length + 2) * 100}vh` }} aria-hidden="true" />
 
       {/* ─────────────────────────────────────────
-          CTA — normal flow, appears after stack
-          z-index above all fixed sections
+          CTA — position:fixed, scroll-driven.
+          Animates from translateY(100vh) → translateY(50vh)
+          during the last 100vh of scroll space.
+          Stops at screen center and reverses on scroll-up.
       ───────────────────────────────────────── */}
       <section
+        ref={(el) => { ctaRef.current = el; }}
         style={{
-          position: "relative",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
           zIndex: 10,
+          transform: "translateY(100vh)",
+          willChange: "transform",
           padding: "80px 48px",
           textAlign: "center",
           borderTop: "1px solid rgba(200,16,46,0.2)",
