@@ -266,25 +266,25 @@ export default function V3Company() {
                 padding: "0 48px", opacity: 0, willChange: "opacity",
                 fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif", textAlign: "center",
               }}>
-                <p style={{ fontSize: 8, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 10 }}>Facts &amp; Figures</p>
-                <h2 style={{ fontSize: "clamp(18px, 2.2vw, 32px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 14, color: "#f0f0f0" }}>
+                <p style={{ fontSize: 16, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 20 }}>Facts &amp; Figures</p>
+                <h2 style={{ fontSize: "clamp(36px, 4.4vw, 64px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1.1, marginBottom: 28, color: "#f0f0f0" }}>
                   숫자로 보는 BLUM
                 </h2>
-                <div style={{ width: 32, height: 2, backgroundColor: RED, marginBottom: 16 }} />
+                <div style={{ width: 64, height: 4, backgroundColor: RED, marginBottom: 32 }} />
                 <div style={{
                   display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1px",
                   backgroundColor: "rgba(200,16,46,0.15)",
                   border: "1px solid rgba(200,16,46,0.15)",
-                  maxWidth: 460,
+                  maxWidth: 920,
                 }}>
                   {STATS.map((s) => (
-                    <div key={s.label} style={{ padding: "14px 10px", backgroundColor: "rgba(0,0,0,0.7)", textAlign: "center" }}>
-                      <div style={{ fontSize: "clamp(16px, 1.6vw, 24px)", fontWeight: 900, color: "#f0f0f0", lineHeight: 1, marginBottom: 3 }}>
+                    <div key={s.label} style={{ padding: "28px 20px", backgroundColor: "rgba(0,0,0,0.7)", textAlign: "center" }}>
+                      <div style={{ fontSize: "clamp(32px, 3.2vw, 48px)", fontWeight: 900, color: "#f0f0f0", lineHeight: 1, marginBottom: 6 }}>
                         <CountUp target={s.num} active={statsActive} />
                         {s.unit === "개국+" ? "+" : ""}
                       </div>
-                      <div style={{ fontSize: 7, fontWeight: 900, color: RED, marginBottom: 3 }}>{s.unit === "개국+" ? "개국" : s.unit}</div>
-                      <div style={{ fontSize: 7, lineHeight: 1.4, color: "rgba(240,240,240,0.3)", fontFamily: "Arial, sans-serif" }}>{s.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: RED, marginBottom: 6 }}>{s.unit === "개국+" ? "개국" : s.unit}</div>
+                      <div style={{ fontSize: 14, lineHeight: 1.4, color: "rgba(240,240,240,0.3)", fontFamily: "Arial, sans-serif" }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
