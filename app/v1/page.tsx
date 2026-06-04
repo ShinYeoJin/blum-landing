@@ -636,6 +636,21 @@ export default function V1() {
         .product-card:hover .card-text { transform: translateY(-4px); }
 
         .value-row:hover .value-num { color: #18181b; }
+
+        /* ── Fix 1: 제품 라인 섹션 50:50 모바일 ── */
+        @media (max-width: 768px) {
+          .v1-prod-row { gap: 0.75rem !important; }
+          .v1-prod-left { width: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; }
+          .v1-prod-right { width: 50% !important; overflow: hidden !important; min-width: 0 !important; }
+          .v1-prod-right .card-text { padding: 6px 5px !important; }
+          .v1-prod-right .card-text h3 { font-size: 10px !important; line-height: 1.3 !important; margin-bottom: 2px !important; }
+          .v1-prod-right .card-text p { font-size: 8px !important; line-height: 1.4 !important; }
+          .v1-prod-right .card-text span { font-size: 7px !important; letter-spacing: 0.1em !important; }
+        }
+
+        /* ── Fix 3: 터치 스크롤 정상 작동 ── */
+        .v1-brand-section { touch-action: pan-y; }
+        .v1-services-section { touch-action: pan-y; overflow-y: scroll; }
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -872,7 +887,7 @@ export default function V1() {
               부모에 overflow 없음 → position: sticky 정상 동작
             */}
             <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: "4rem" }}
-                 className="flex-col md:flex-row">
+                 className="flex-col md:flex-row v1-prod-row">
 
               {/* Left — sticky sidebar: 스크롤 내려도 화면에 고정 */}
               <div
@@ -909,7 +924,7 @@ export default function V1() {
               </div>
 
               {/* Mobile only: left header (normal flow) */}
-              <div className="block md:hidden mb-12">
+              <div className="block md:hidden mb-12 v1-prod-left">
                 <SlideLeft>
                   <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-300 mb-4">Product Lines</p>
                   <h2 className="text-3xl font-extralight mb-4" style={{ letterSpacing: "-0.02em" }}>
@@ -933,7 +948,7 @@ export default function V1() {
               </div>
 
               {/* Right — product cards (일반 스크롤, GSAP 개별 애니메이션) */}
-              <div style={{ width: "65%", minWidth: 0 }} className="w-full md:w-auto">
+              <div style={{ width: "65%", minWidth: 0 }} className="w-full md:w-auto v1-prod-right">
                 <div className="grid grid-cols-2 gap-3">
 
                   <Link href={PRODUCTS[0].href} className="product-card col-span-2 group block overflow-hidden bg-zinc-50" style={{ textDecoration: "none" }}>
@@ -994,6 +1009,7 @@ export default function V1() {
         ══════════════════════════════════════════════════════════════ */}
         <div
           ref={snapRef}
+          className="v1-brand-section"
           style={{ height: "100vh", position: "relative", overflow: "hidden" }}
         >
           {/* 배경 이미지 */}
@@ -1084,8 +1100,9 @@ export default function V1() {
             overflowY: "scroll",
             scrollSnapType: "y mandatory",
             scrollbarWidth: "none",
+            touchAction: "pan-y",
           } as React.CSSProperties}
-          className="[&::-webkit-scrollbar]:hidden"
+          className="[&::-webkit-scrollbar]:hidden v1-services-section"
         >
 
           {/* ── Snap 1: 서비스 제목 ── */}

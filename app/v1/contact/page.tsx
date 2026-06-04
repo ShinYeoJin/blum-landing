@@ -35,6 +35,13 @@ export default function V1Contact() {
 
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+      <style>{`
+        /* Fix 8: 모바일에서 문의서가 상단에 오도록 */
+        @media (max-width: 768px) {
+          .v1-contact-form { order: -1 !important; }
+          .v1-contact-info { order: 0 !important; }
+        }
+      `}</style>
       {/* Hero */}
       <section className="relative flex items-end overflow-hidden" style={{ minHeight: "360px", paddingTop: "80px" }}>
         <div className="absolute inset-0">
@@ -57,7 +64,7 @@ export default function V1Contact() {
         <main className="max-w-7xl mx-auto px-6 py-20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
             {/* Info */}
-            <div className="space-y-10">
+            <div className="space-y-10 v1-contact-info">
               <div>
                 <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>본사</p>
                 <p className="text-sm leading-7" style={{ color: "#52525b" }}>
@@ -129,7 +136,7 @@ export default function V1Contact() {
             </div>
 
             {/* Form */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 v1-contact-form">
               <p className="text-[9px] tracking-[0.4em] uppercase mb-6" style={{ color: "#a1a1aa" }}>문의서</p>
               <h2 className="text-2xl font-light mb-8">무엇을 도와드릴까요?</h2>
 

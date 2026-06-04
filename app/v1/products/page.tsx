@@ -151,6 +151,19 @@ export default function V1Products() {
           from { opacity: 0; transform: translateY(52px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        /* Fix 4: 제품 히어로 이미지 모바일 정사각형 */
+        @media (max-width: 768px) {
+          .v1-hero-single-img {
+            width: 90% !important;
+            height: auto !important;
+            aspect-ratio: 1 / 1 !important;
+            object-fit: cover !important;
+          }
+          .v1-hero-single-wrap {
+            width: 90% !important;
+            height: auto !important;
+          }
+        }
       `}</style>
 
       {/* ════════════════════════════════════════════════
@@ -210,10 +223,11 @@ export default function V1Products() {
             pointerEvents: "none",
           }}
         >
-          <div style={{ width: "60%", height: "60vh", overflow: "hidden", boxShadow: "0 16px 56px rgba(0,0,0,0.11)" }}>
+          <div className="v1-hero-single-wrap" style={{ width: "60%", height: "60vh", overflow: "hidden", boxShadow: "0 16px 56px rgba(0,0,0,0.11)" }}>
             <img
               src={CATEGORIES[1].img}
               alt="박스 시스템"
+              className="v1-hero-single-img"
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />

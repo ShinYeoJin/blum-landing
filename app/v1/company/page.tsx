@@ -375,12 +375,36 @@ export default function V1Company() {
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
+      <style>{`
+        /* Fix 6: 숫자로 보는 blum 모바일 2열 */
+        @media (max-width: 768px) {
+          .v1-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .v1-stats-section {
+            text-align: center;
+            padding: 60px 24px !important;
+          }
+          .v1-stats-section > div {
+            margin: 0 auto;
+          }
+        }
+        /* Fix 7: 사진 시퀀스 모바일 */
+        @media (max-width: 768px) {
+          .photo-sequence { display: none !important; }
+          .v1-photo-mobile { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .v1-photo-mobile { display: none !important; }
+        }
+      `}</style>
+
       {/* STEP 1: Hero — image full-screen, scroll → text */}
       <HeroSection />
 
       {/* STEP 2: 숫자로 보는 blum */}
-      <section style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", backgroundColor: "#fafafa", padding: "80px 48px", borderTop: "1px solid rgba(24,24,27,0.06)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%" }}>
+      <section className="v1-stats-section" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", backgroundColor: "#fafafa", padding: "80px 48px", borderTop: "1px solid rgba(24,24,27,0.06)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", textAlign: "center" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 12 }}>
               Facts &amp; Figures
@@ -389,7 +413,7 @@ export default function V1Company() {
               숫자로 보는 blum
             </h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, backgroundColor: "#e4e4e7" }}>
+          <div className="v1-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, backgroundColor: "#e4e4e7" }}>
             {STATS.map((s, i) => (
               <StatItem key={s.label} stat={s} delay={i * 80} />
             ))}
@@ -397,8 +421,41 @@ export default function V1Company() {
         </div>
       </section>
 
-      {/* STEP 3–6: GSAP pin photo sequence */}
+      {/* STEP 3–6: GSAP pin photo sequence (desktop) */}
       <PhotoSequence />
+
+      {/* STEP 3–6: 모바일 대체 사진 (landscape 스택) */}
+      <div
+        className="v1-photo-mobile"
+        style={{
+          flexDirection: "column",
+          gap: 12,
+          backgroundColor: "#f4f4f5",
+          padding: "40px 16px",
+        }}
+      >
+        {[
+          { src: PHOTO3, alt: "경영진", label: "Leadership", title: "Philipp & Martin Blum", sub: "공동 경영진" },
+          { src: PHOTO2, alt: "지속가능성", label: "Sustainability", title: "지속가능한 미래", sub: "환경·사회적 책임" },
+          { src: PHOTO1, alt: "blum workplace", label: "About Blum", title: "품질과 혁신", sub: "오스트리아 포어알베르크" },
+        ].map((item) => (
+          <div key={item.label} style={{ width: "100%", borderRadius: 12, overflow: "hidden", backgroundColor: "#ffffff" }}>
+            <div style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+              <img
+                src={item.src}
+                alt={item.alt}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              <p style={{ fontSize: 9, letterSpacing: "0.4em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 6 }}>{item.label}</p>
+              <h3 style={{ fontSize: 16, fontWeight: 300, color: "#18181b", marginBottom: 2 }}>{item.title}</h3>
+              <p style={{ fontSize: 11, color: "#71717a" }}>{item.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* STEP 7: CTA */}
       <section style={{ padding: "80px 48px", textAlign: "center", borderTop: "1px solid rgba(24,24,27,0.06)", backgroundColor: "#ffffff" }}>

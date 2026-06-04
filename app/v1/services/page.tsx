@@ -122,6 +122,8 @@ function ServicePanel({
     <div
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
+      onClick={() => { isActive ? onLeave() : onEnter(); }}
+      className={`v1-svc-panel${isActive ? " active" : ""}`}
       style={{
         flex: isActive ? "2 0 0" : hasActive ? "0.6 0 0" : "1 0 0",
         transition: "flex 0.5s ease",
@@ -266,6 +268,41 @@ export default function V1Services() {
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
+      <style>{`
+        /* Fix 2: 서비스 하단 이미지 모바일 max-height */
+        @media (max-width: 768px) {
+          .v1-svc-accordion {
+            height: auto !important;
+            max-height: none !important;
+            min-height: unset !important;
+            flex-direction: column !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+          }
+          /* Fix 5: 서비스 카드 세로 아코디언 */
+          .v1-svc-panel {
+            flex: none !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            border-radius: 0 !important;
+            max-height: 72px;
+            overflow: hidden;
+            transition: max-height 0.5s ease !important;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+          }
+          .v1-svc-panel.active {
+            max-height: 300px !important;
+          }
+          .v1-svc-panel:first-child { border-radius: 12px 12px 0 0 !important; }
+          .v1-svc-panel:last-child { border-radius: 0 0 12px 12px !important; border-bottom: none !important; }
+          .v1-svc-panel img {
+            max-height: 300px !important;
+            object-fit: cover !important;
+            object-position: center !important;
+          }
+        }
+      `}</style>
+
       {/* ══════════════════════════════════════════
           HERO SECTION
           - Gradient top: semi-white so dark nav text is readable
@@ -326,6 +363,7 @@ export default function V1Services() {
           HORIZONTAL ACCORDION — 4 services
       ══════════════════════════════════════════ */}
       <section
+        className="v1-svc-accordion"
         style={{
           marginTop: "22.4vh",     /* 28vh × 0.8 = 22.4vh  (20% 감소) */
           height: "75vh",
