@@ -60,100 +60,129 @@ export default function V3() {
   const statsItemRefs = useRef<(HTMLDivElement | null)[]>([null, null, null]);
   const statsNumRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
   const statsLblRefs  = useRef<(HTMLDivElement | null)[]>([null, null, null]);
+  const statsWrapTop  = useRef<number>(0);
 
   useEffect(() => {
     let raf = 0;
 
+    const measureTop = () => {
+      const wrap = statsWrapRef.current;
+      if (wrap) statsWrapTop.current = wrap.getBoundingClientRect().top + window.scrollY;
+    };
+
     const update = () => {
-      const y   = window.scrollY;
-      const vh  = window.innerHeight;
       const wrap = statsWrapRef.current;
       if (!wrap) return;
 
-      const raw = (y - wrap.offsetTop) / vh;
-      const cW  = wrap.clientWidth || window.innerWidth;
+      const y  = window.scrollY;
+      const vh = window.innerHeight;
+      const cW = wrap.clientWidth || window.innerWidth;
 
-      /* Size: items enter at sz_large, settle at sz_final */
-      const sz_large = Math.min(280, cW * 0.20);
-      const sz_final = Math.max(44,  cW * 0.058);
+      const scrollProgress = Math.max(0, Math.min(4 * vh, y - statsWrapTop.current));
+      const step = Math.min(3, Math.floor(scrollProgress / vh));
+      const sp   = Math.max(0, Math.min(1, (scrollProgress - step * vh) / vh));
 
-      /* Final column centers */
-      const col = [cW * 0.20, cW * 0.50, cW * 0.80];
-      const cx  = cW * 0.50; /* entry x (center) */
-      const cy  = vh * 0.50; /* entry y (center) */
+      const lerp  = (a: number, b: number, t: number) => a + (b - a) * t;
+      const cy    = vh * 0.5;
 
-      const cl01 = (v: number) => Math.max(0, Math.min(1, v));
-      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+      const sz_full  = cW * 0.20;
+      const sz_mid   = sz_full * 0.70;
+      const sz_final = Math.max(48, cW * 0.09);
 
-      /* Label opacity: only in stage 4 */
-      const lblOp = cl01(raw - 3);
+      /* column centers */
+      const col0 = cW / 6;
+      const col1 = cW / 2;
+      const col2 = (5 * cW) / 6;
 
-      for (let i = 0; i < 3; i++) {
-        const el  = statsItemRefs.current[i];
-        const num = statsNumRefs.current[i];
-        const lbl = statsLblRefs.current[i];
-        if (!el || !num) continue;
-
-        /*
-          Item i timeline:
-            enter phase : raw [ i,   i+1 ] — slides up at center, opacity 0→1, sz_large
-            move  phase : raw [ i+1, i+2 ] — x center→col[i], size sz_large→sz_final
-            settled     : raw > i+2        — stays at col[i], sz_final
-        */
-        if (raw < i) {
-          /* Not entered yet — hide completely */
-          el.style.opacity = "0";
-          el.style.left = `${cx}px`;
-          el.style.top  = `${cy + 60}px`;
-          num.style.fontSize = `${sz_large}px`;
-          if (lbl) lbl.style.opacity = "0";
-          continue;
+      /* ── item 0 ── */
+      {
+        const el  = statsItemRefs.current[0];
+        const num = statsNumRefs.current[0];
+        const lbl = statsLblRefs.current[0];
+        if (el && num) {
+          let x: number, sz: number, op: number, slideY: number;
+          if (step === 0) {
+            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
+          } else if (step === 1) {
+            x = lerp(col1, col0, sp); sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0;
+          } else if (step === 2) {
+            x = lerp(col0, col0, sp); sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0;
+          } else {
+            x = col0; sz = sz_final; op = 1; slideY = 0;
+          }
+          el.style.left      = `${x.toFixed(2)}px`;
+          el.style.top       = `${cy.toFixed(2)}px`;
+          el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
+          el.style.opacity   = op.toFixed(4);
+          num.style.fontSize = `${sz.toFixed(2)}px`;
+          if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
         }
+      }
 
-        const p_enter = cl01(raw - i);
-        const p_move  = cl01(raw - (i + 1));
-
-        let x: number, yPos: number, size: number, opacity: number, slideY: number;
-
-        if (raw < i + 1) {
-          /* Enter phase */
-          x      = cx;
-          yPos   = cy;
-          slideY = lerp(60, 0, p_enter);
-          size   = sz_large;
-          opacity = p_enter;
-        } else {
-          /* Move → settled */
-          x      = lerp(cx, col[i], p_move);
-          yPos   = cy;
-          slideY = 0;
-          size   = lerp(sz_large, sz_final, p_move);
-          opacity = 1;
+      /* ── item 1 ── */
+      {
+        const el  = statsItemRefs.current[1];
+        const num = statsNumRefs.current[1];
+        const lbl = statsLblRefs.current[1];
+        if (el && num) {
+          let x: number, sz: number, op: number, slideY: number;
+          if (step === 0) {
+            x = col1; sz = sz_full; op = 0; slideY = 60;
+          } else if (step === 1) {
+            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
+          } else if (step === 2) {
+            x = col1; sz = lerp(sz_full, sz_mid, sp); op = 1; slideY = 0;
+          } else {
+            x = lerp(col1, col1, sp); sz = lerp(sz_mid, sz_final, sp); op = 1; slideY = 0;
+          }
+          el.style.left      = `${x.toFixed(2)}px`;
+          el.style.top       = `${cy.toFixed(2)}px`;
+          el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
+          el.style.opacity   = op.toFixed(4);
+          num.style.fontSize = `${sz.toFixed(2)}px`;
+          if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
         }
+      }
 
-        el.style.left      = `${x.toFixed(2)}px`;
-        el.style.top       = `${yPos.toFixed(2)}px`;
-        el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
-        el.style.opacity   = opacity.toFixed(4);
-        el.style.zIndex    = String(20 - i); /* entering item on top */
-        num.style.fontSize = `${size.toFixed(2)}px`;
-        if (lbl) lbl.style.opacity = lblOp.toFixed(4);
+      /* ── item 2 ── */
+      {
+        const el  = statsItemRefs.current[2];
+        const num = statsNumRefs.current[2];
+        const lbl = statsLblRefs.current[2];
+        if (el && num) {
+          let x: number, sz: number, op: number, slideY: number;
+          if (step <= 1) {
+            x = col1; sz = sz_full; op = 0; slideY = 60;
+          } else if (step === 2) {
+            x = col1; sz = sz_full; op = sp; slideY = lerp(60, 0, sp);
+          } else {
+            x = lerp(col1, col2, sp); sz = lerp(sz_full, sz_final, sp); op = 1; slideY = 0;
+          }
+          el.style.left      = `${x.toFixed(2)}px`;
+          el.style.top       = `${cy.toFixed(2)}px`;
+          el.style.transform = `translate(-50%, calc(-50% + ${slideY.toFixed(2)}px))`;
+          el.style.opacity   = op.toFixed(4);
+          num.style.fontSize = `${sz.toFixed(2)}px`;
+          if (lbl) lbl.style.opacity = step === 3 ? sp.toFixed(4) : "0";
+        }
       }
     };
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+
+    measureTop();
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", update);
+    window.addEventListener("resize", () => { measureTop(); update(); });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", measureTop);
       cancelAnimationFrame(raf);
     };
   }, []);
 
   return (
-    <div className="overflow-x-hidden" style={{ backgroundColor: "#0a0a0a", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
+    <div style={{ overflowX: "clip", backgroundColor: "#0a0a0a", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
       <style>{`
         @keyframes v3-ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
         @keyframes v3-hero-in{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
@@ -231,15 +260,8 @@ export default function V3() {
         </div>
       </section>
 
-      {/* ── Scroll Stats Sequence ──
-          600vh wrapper → 500vh of scroll animation (raw 0→5).
-          raw 0→1 : "120+"   slides up, fills screen
-          raw 1→2 : "120+"   moves to col-0 + "9,850명" enters
-          raw 2→3 : "9,850명" moves to col-1 + "1952" enters
-          raw 3→4 : "1952"   moves to col-2, labels fade in
-          raw 4→5 : final state rests
-      ── */}
-      <div ref={statsWrapRef} style={{ height: "600vh", position: "relative" }}>
+      {/* ── Scroll Stats Sequence ── */}
+      <div ref={statsWrapRef} style={{ height: "500vh", position: "relative" }}>
         <div style={{
           position: "sticky", top: 0, height: "100vh",
           overflow: "hidden", backgroundColor: "#0a0a0a",
