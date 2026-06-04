@@ -36,10 +36,14 @@ export default function V1Contact() {
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
       <style>{`
-        /* Fix 8: 모바일에서 문의서가 상단에 오도록 */
+        /* Fix 3: 모바일에서 문의서가 상단에 오도록 (flex + order) */
         @media (max-width: 768px) {
-          .v1-contact-form { order: -1 !important; }
-          .v1-contact-info { order: 0 !important; }
+          .v1-contact-grid {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .v1-contact-form { order: 1 !important; }
+          .v1-contact-info { order: 2 !important; }
         }
       `}</style>
       {/* Hero */}
@@ -62,7 +66,7 @@ export default function V1Contact() {
 
       <RevealOnce>
         <main className="max-w-7xl mx-auto px-6 py-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 v1-contact-grid">
             {/* Info */}
             <div className="space-y-10 v1-contact-info">
               <div>

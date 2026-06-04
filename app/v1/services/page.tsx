@@ -269,34 +269,47 @@ export default function V1Services() {
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
       <style>{`
-        /* Fix 2: 서비스 하단 이미지 모바일 max-height */
+        /* Fix 1: 서비스 Hero 이미지 모바일 정사각형 */
+        @media (max-width: 768px) {
+          .v1-svc-hero {
+            height: auto !important;
+            min-height: unset !important;
+            aspect-ratio: 1 / 1 !important;
+          }
+          .v1-svc-hero img {
+            aspect-ratio: 1 / 1 !important;
+            object-fit: cover !important;
+            object-position: center !important;
+          }
+        }
+
+        /* Fix 2: 서비스 카드 모바일 세로 나열 — 카드가 보이도록 완전 재작성 */
         @media (max-width: 768px) {
           .v1-svc-accordion {
             height: auto !important;
             max-height: none !important;
             min-height: unset !important;
             flex-direction: column !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+            margin-top: 40px !important;
+            gap: 12px !important;
           }
-          /* Fix 5: 서비스 카드 세로 아코디언 */
           .v1-svc-panel {
             flex: none !important;
             width: 100% !important;
             min-width: 0 !important;
-            border-radius: 0 !important;
-            max-height: 72px;
-            overflow: hidden;
-            transition: max-height 0.5s ease !important;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px !important;
+            max-height: none !important;
+            overflow: hidden !important;
+            border-bottom: none !important;
+            /* 이미지가 absolute라 부모에 height 필요 */
+            aspect-ratio: 1 / 1 !important;
+            position: relative !important;
           }
-          .v1-svc-panel.active {
-            max-height: 300px !important;
-          }
-          .v1-svc-panel:first-child { border-radius: 12px 12px 0 0 !important; }
-          .v1-svc-panel:last-child { border-radius: 0 0 12px 12px !important; border-bottom: none !important; }
           .v1-svc-panel img {
-            max-height: 300px !important;
             object-fit: cover !important;
             object-position: center !important;
           }
@@ -309,6 +322,7 @@ export default function V1Services() {
           - Gradient bottom: dark for hero text legibility
       ══════════════════════════════════════════ */}
       <section
+        className="v1-svc-hero"
         style={{
           position: "relative",
           height: "100vh",
