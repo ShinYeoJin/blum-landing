@@ -36,14 +36,10 @@ export default function V1Contact() {
   return (
     <div style={{ backgroundColor: "#ffffff", color: "#18181b", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
       <style>{`
-        /* Fix 3: 모바일에서 문의서가 상단에 오도록 (flex + order) */
-        @media (max-width: 768px) {
-          .v1-contact-grid {
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          .v1-contact-form { order: 1 !important; }
-          .v1-contact-info { order: 2 !important; }
+        /* Fix 3: 데스크탑에서 grid 배치 복원 (DOM 순서는 Form → Info) */
+        @media (min-width: 769px) {
+          .v1-contact-form-wrap { grid-column: 2 / 4; grid-row: 1; }
+          .v1-contact-info-wrap { grid-column: 1 / 2; grid-row: 1; }
         }
       `}</style>
       {/* Hero */}
@@ -66,81 +62,15 @@ export default function V1Contact() {
 
       <RevealOnce>
         <main className="max-w-7xl mx-auto px-6 py-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 v1-contact-grid">
-            {/* Info */}
-            <div className="space-y-10 v1-contact-info">
-              <div>
-                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>본사</p>
-                <p className="text-sm leading-7" style={{ color: "#52525b" }}>
-                  Julius Blum GmbH<br />
-                  Werk 2, Industriestrasse 1<br />
-                  6973 Höchst, Austria
-                </p>
-                <a href="https://www.blum.com/kr/ko/" target="_blank" rel="noopener noreferrer"
-                  className="inline-block mt-3 text-xs" style={{ color: "#18181b", textDecoration: "underline" }}>
-                  공식 사이트 방문 →
-                </a>
-              </div>
+          {/*
+            DOM 순서: Form(1st) → Info(2nd)
+            모바일: 그대로 — 문의서가 위, 본사/채널/쇼룸이 아래
+            데스크탑: CSS grid-column으로 Info를 1열, Form을 2~3열로 배치
+          */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
 
-              <div>
-                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>상담 채널</p>
-                <ul className="space-y-5">
-                  {[
-                    { label: "온라인 문의", value: "blum.com 공식 문의 폼", href: "https://www.blum.com/kr/ko/contact/" },
-                    { label: "영업소 찾기", value: "전국 영업소 안내", href: "https://www.blum.com/kr/ko/contact/sales-offices/" },
-                    { label: "쇼룸", value: "제품 직접 체험", href: "https://www.blum.com/kr/ko/contact/showrooms/" },
-                  ].map((c) => (
-                    <li key={c.label}>
-                      <p className="text-xs font-medium mb-1">{c.label}</p>
-                      <a href={c.href} target="_blank" rel="noopener noreferrer"
-                        className="text-xs" style={{ color: "#71717a", textDecoration: "none" }}>{c.value} →</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>쇼룸 안내</p>
-                <img
-                  src={`${BASE}/images/560/258/4214768/corporate/media/bilder/virtueller-schauraum/blum-virtueller-schauraum_2_4:3.png`}
-                  alt="blum showroom"
-                  className="w-full aspect-[4/3] object-cover mb-3"
-                  style={{ borderRadius: "2px" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-                <p className="text-xs leading-6 mb-4" style={{ color: "#71717a" }}>
-                  전 세계 blum 쇼룸에서 AVENTOS, LEGRABOX, CLIP top을 직접 체험하실 수 있습니다.
-                </p>
-                <Link
-                  href="/v1/contact"
-                  style={{
-                    display: "inline-block",
-                    fontSize: 11,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    padding: "10px 20px",
-                    border: "1px solid #18181b",
-                    color: "#ffffff",
-                    backgroundColor: "#18181b",
-                    textDecoration: "none",
-                    transition: "background-color 0.3s ease, color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#ffffff";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "#18181b";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#18181b";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff";
-                  }}
-                >
-                  쇼룸 찾기
-                </Link>
-              </div>
-            </div>
-
-            {/* Form */}
-            <div className="md:col-span-2 v1-contact-form">
+            {/* ── Form (DOM 1번, 모바일 상단) ── */}
+            <div className="v1-contact-form-wrap">
               <p className="text-[9px] tracking-[0.4em] uppercase mb-6" style={{ color: "#a1a1aa" }}>문의서</p>
               <h2 className="text-2xl font-light mb-8">무엇을 도와드릴까요?</h2>
 
@@ -232,6 +162,79 @@ export default function V1Contact() {
                 </form>
               )}
             </div>
+
+            {/* ── Info (DOM 2번, 모바일 하단) ── */}
+            <div className="space-y-10 v1-contact-info-wrap">
+              <div>
+                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>본사</p>
+                <p className="text-sm leading-7" style={{ color: "#52525b" }}>
+                  Julius Blum GmbH<br />
+                  Werk 2, Industriestrasse 1<br />
+                  6973 Höchst, Austria
+                </p>
+                <a href="https://www.blum.com/kr/ko/" target="_blank" rel="noopener noreferrer"
+                  className="inline-block mt-3 text-xs" style={{ color: "#18181b", textDecoration: "underline" }}>
+                  공식 사이트 방문 →
+                </a>
+              </div>
+
+              <div>
+                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>상담 채널</p>
+                <ul className="space-y-5">
+                  {[
+                    { label: "온라인 문의", value: "blum.com 공식 문의 폼", href: "https://www.blum.com/kr/ko/contact/" },
+                    { label: "영업소 찾기", value: "전국 영업소 안내", href: "https://www.blum.com/kr/ko/contact/sales-offices/" },
+                    { label: "쇼룸", value: "제품 직접 체험", href: "https://www.blum.com/kr/ko/contact/showrooms/" },
+                  ].map((c) => (
+                    <li key={c.label}>
+                      <p className="text-xs font-medium mb-1">{c.label}</p>
+                      <a href={c.href} target="_blank" rel="noopener noreferrer"
+                        className="text-xs" style={{ color: "#71717a", textDecoration: "none" }}>{c.value} →</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <p className="text-[9px] tracking-[0.4em] uppercase mb-4" style={{ color: "#a1a1aa" }}>쇼룸 안내</p>
+                <img
+                  src={`${BASE}/images/560/258/4214768/corporate/media/bilder/virtueller-schauraum/blum-virtueller-schauraum_2_4:3.png`}
+                  alt="blum showroom"
+                  className="w-full aspect-[4/3] object-cover mb-3"
+                  style={{ borderRadius: "2px" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                <p className="text-xs leading-6 mb-4" style={{ color: "#71717a" }}>
+                  전 세계 blum 쇼룸에서 AVENTOS, LEGRABOX, CLIP top을 직접 체험하실 수 있습니다.
+                </p>
+                <Link
+                  href="/v1/contact"
+                  style={{
+                    display: "inline-block",
+                    fontSize: 11,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    padding: "10px 20px",
+                    border: "1px solid #18181b",
+                    color: "#ffffff",
+                    backgroundColor: "#18181b",
+                    textDecoration: "none",
+                    transition: "background-color 0.3s ease, color 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#ffffff";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "#18181b";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#18181b";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff";
+                  }}
+                >
+                  쇼룸 찾기
+                </Link>
+              </div>
+            </div>
+
           </div>
         </main>
       </RevealOnce>

@@ -651,6 +651,46 @@ export default function V1() {
         /* ── Fix 3: 터치 스크롤 정상 작동 ── */
         .v1-brand-section { touch-action: pan-y; }
         .v1-services-section { touch-action: pan-y; overflow-y: scroll; }
+
+        /* ── 홈 서비스 스냅 이미지 모바일 정사각형 ── */
+        @media (max-width: 768px) {
+          .v1-svc-snap-panel {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .v1-svc-plan-img-wrap {
+            position: relative !important;
+            width: 100% !important;
+            aspect-ratio: 1 / 1 !important;
+            height: auto !important;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
+          }
+          .v1-svc-plan-img-wrap img {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+          }
+          .v1-svc-esvc-img-wrap {
+            width: 100% !important;
+            aspect-ratio: 1 / 1 !important;
+            height: auto !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: stretch !important;
+          }
+          .v1-svc-esvc-img-wrap img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+          }
+        }
       `}</style>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -1123,7 +1163,7 @@ export default function V1() {
 
           {/* ── Snap 2: 계획/설계 콘텐츠 ── */}
           {/* 우측 이미지: scale(1.8)→scale(1) 축소 효과 (overflow:hidden 으로 클리핑) */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
+          <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 텍스트 슬라이드 업 */}
             <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcPlanRef}>
@@ -1152,7 +1192,7 @@ export default function V1() {
               </div>
             </div>
             {/* 우: 이미지 — overflow:hidden 으로 scale 클리핑 */}
-            <div style={{ position: "relative", overflow: "hidden" }}>
+            <div className="v1-svc-plan-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
               <img
                 ref={svcPlanImgRef}
                 src={`${BASE}/images/560/420/4207482/corporate/media/bilder/services/services-overview/technischer_support_w2_220916_4927_enlarged_4:3.jpg`}
@@ -1164,9 +1204,9 @@ export default function V1() {
           </div>
 
           {/* ── Snap 3: E-Services ── */}
-          <div style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
+          <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 이미지 scale 0.5→1 */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px" }}>
+            <div className="v1-svc-esvc-img-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px" }}>
               <img
                 ref={svcEsvcImgRef}
                 src={`${BASE}/images/560/420/4207498/corporate/media/bilder/services/services-overview/me19632151_all_src_4:3.jpg`}
