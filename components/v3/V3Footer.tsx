@@ -1,6 +1,25 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 
 const RED = "#c8102e";
+
+function ContactUsBtn() {
+  const [on, setOn] = useState(false);
+  return (
+    <a
+      href="/v3/contact"
+      className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black"
+      style={{ backgroundColor: RED, color: "#fff", textDecoration: "none", overflow: "hidden", verticalAlign: "bottom" }}
+      onMouseEnter={() => setOn(true)}
+      onMouseLeave={() => setOn(false)}
+    >
+      <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>CONTACT US</span>
+      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)" }}>LET'S CONNECT</span>
+    </a>
+  );
+}
 
 export default function V3Footer() {
   return (
@@ -59,10 +78,7 @@ export default function V3Footer() {
               Industriestrasse 1<br />
               6973 Höchst, Austria
             </p>
-            <Link href="/v3/contact" className="inline-block mt-5 px-5 py-2.5 text-[10px] tracking-[0.2em] uppercase font-black transition-opacity hover:opacity-90"
-              style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}>
-              CONTACT US
-            </Link>
+            <ContactUsBtn />
           </div>
         </div>
 

@@ -23,6 +23,22 @@ const MENU = [
 
 const RED = "#c8102e";
 
+function ContactBtn() {
+  const [on, setOn] = useState(false);
+  return (
+    <a
+      href="/v3/contact"
+      className="ml-4 px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-black"
+      style={{ backgroundColor: RED, color: "#fff", textDecoration: "none", display: "inline-block", overflow: "hidden", verticalAlign: "bottom" }}
+      onMouseEnter={() => setOn(true)}
+      onMouseLeave={() => setOn(false)}
+    >
+      <span style={{ display: "block", transition: "transform 0.28s ease", transform: on ? "translateY(-100%)" : "translateY(0)" }}>CONTACT</span>
+      <span style={{ display: "block", position: "relative", marginTop: "-1em", transition: "transform 0.28s ease", transform: on ? "translateY(0)" : "translateY(100%)" }}>LET'S CONNECT</span>
+    </a>
+  );
+}
+
 export default function V3Nav() {
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -122,13 +138,7 @@ export default function V3Nav() {
               </div>
             ))}
 
-            <Link
-              href="/v3/contact"
-              className="ml-4 px-5 py-2 text-[10px] tracking-[0.2em] uppercase font-black transition-opacity hover:opacity-90"
-              style={{ backgroundColor: RED, color: "#fff", textDecoration: "none" }}
-            >
-              CONTACT
-            </Link>
+            <ContactBtn />
           </div>
 
           {/* Mobile */}
