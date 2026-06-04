@@ -64,13 +64,32 @@ export default function V3() {
 
   useEffect(() => {
     let raf = 0;
+    let measured = false;
 
     const measureTop = () => {
       const wrap = statsWrapRef.current;
-      if (wrap) statsWrapTop.current = wrap.getBoundingClientRect().top + window.scrollY;
+      if (!wrap) return;
+      const rect = wrap.getBoundingClientRect();
+      const top  = rect.top + window.scrollY;
+      /* Only accept measurement if the wrapper has a realistic position
+         (hero is ~100vh tall, so top must be at least 200px). */
+      if (top > 200) {
+        statsWrapTop.current = top;
+        measured = true;
+      }
+    };
+
+    /* Force all items to opacity 0 before first valid measurement */
+    const hideAll = () => {
+      for (let i = 0; i < 3; i++) {
+        const el = statsItemRefs.current[i];
+        if (el) el.style.opacity = "0";
+      }
     };
 
     const update = () => {
+      if (!measured) { hideAll(); return; }
+
       const wrap = statsWrapRef.current;
       if (!wrap) return;
 
@@ -169,14 +188,20 @@ export default function V3() {
     };
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    const onResize = () => { measured = false; measureTop(); update(); };
 
-    measureTop();
-    update();
+    /* Hide everything immediately, then measure after layout is painted */
+    hideAll();
+    requestAnimationFrame(() => {
+      measureTop();
+      update();
+    });
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", () => { measureTop(); update(); });
+    window.addEventListener("resize", onResize);
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", measureTop);
+      window.removeEventListener("resize", onResize);
       cancelAnimationFrame(raf);
     };
   }, []);
