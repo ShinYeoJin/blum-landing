@@ -1,5 +1,5 @@
-import V3Nav from "@/components/v2/V3Nav";
-import V3Footer from "@/components/v2/V3Footer";
+import V3Nav from "@/components/v3/V3Nav";
+import V3Footer from "@/components/v3/V3Footer";
 
 export const metadata = {
   title: { default: "BLUM — BOLD & TRENDY", template: "%s | BLUM V3" },
