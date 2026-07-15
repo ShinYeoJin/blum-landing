@@ -99,7 +99,7 @@ export default function V1Footer() {
         >
           <span className="text-[10px]" style={{ color: "#d4d4d8" }}>© 2025 Julius Blum GmbH. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            {[["V1 — 미니멀", "/v1"], ["V2 — 감성", "/v2"], ["V3 — 볼드", "/v3"], ["V4 — 시네마틱", "/v4"]].map(([l, h]) => (
+            {[["V1 — 미니멀", "/v1"], ["V2 — 볼드", "/v2"], ["V3 — 시네마틱", "/v3"]].map(([l, h]) => (
               <Link key={l} href={h} className="text-[10px] hover:text-zinc-600 transition-colors" style={{ color: "#d4d4d8", textDecoration: "none" }}>
                 {l}
               </Link>
