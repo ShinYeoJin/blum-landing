@@ -20,20 +20,6 @@ const VERSIONS = [
   {
     href: "/v2",
     num: "V2",
-    title: "따뜻한 자연",
-    subtitle: "Warm Natural",
-    desc: "3열 카드 그리드 · 전폭 교차 이미지 행 · 따뜻한 우드톤",
-    tag: "Card + Full Row",
-    accent: "#c68642",
-    bg: "#2a1e12",
-    border: "#6b4c2a",
-    thumbBg: "#faf7f2",
-    img: `${BASE}/images/560/258/4213747/corporate/media/bilder/produkte/boxsysteme/legrabox-design/me10782852_aa_fot_fo_bau_-sall_-amc_-v1_4:3.jpg`,
-    imgOverlay: "rgba(42,30,18,0.45)",
-  },
-  {
-    href: "/v3",
-    num: "V3",
     title: "트렌디 볼드",
     subtitle: "Trendy Bold",
     desc: "전폭 배경 텍스트 오버레이 · 비대칭 12열 그리드 · 레드 포인트",
@@ -46,8 +32,8 @@ const VERSIONS = [
     imgOverlay: "rgba(10,10,10,0.52)",
   },
   {
-    href: "/v4",
-    num: "V4",
+    href: "/v3",
+    num: "V3",
     title: "시네마틱",
     subtitle: "Cinematic",
     desc: "풀스크린 슬라이드쇼 · 클릭 전환 제품 뷰어 · 수직 타임라인",
@@ -143,13 +129,13 @@ export default function Home() {
             fontWeight: 300, fontSize: "clamp(22px, 4vw, 36px)",
             color: "#fff", margin: "0 0 14px", letterSpacing: "0.02em", lineHeight: 1.2,
           }}>
-            랜딩 페이지 디자인 시안 4종
+            랜딩 페이지 디자인 시안 3종
           </h1>
           <p style={{
             fontSize: "clamp(12px, 1.6vw, 14px)", color: "rgba(255,255,255,0.38)",
             maxWidth: 460, margin: "0 auto", lineHeight: 1.8, letterSpacing: "0.01em",
           }}>
-            동일한 브랜드 콘텐츠 · 4가지 서로 다른 디자인 방향<br />
+            동일한 브랜드 콘텐츠 · 3가지 서로 다른 디자인 방향<br />
             카드를 클릭해 각 버전을 확인하세요
           </p>
         </header>
@@ -159,7 +145,7 @@ export default function Home() {
 
           {/* 카운트 레이블 */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
-            <span style={{ fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>4 Versions</span>
+            <span style={{ fontSize: 9, letterSpacing: "0.35em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>3 Versions</span>
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
           </div>
 

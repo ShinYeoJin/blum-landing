@@ -1,141 +1,361 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
+import { useRef, useEffect } from "react";
 
 const BASE = "https://www.blum.com";
-const CREAM = "#faf7f2";
-const BROWN = "#3b2a1a";
-const AMBER = "#c68642";
+const RED = "#c8102e";
 
 const SERVICES = [
   {
     id: "plan",
     name: "계획 / 설계 지원",
+    en: "PLANNING",
     desc: "가구 기획 단계부터 blum이 함께합니다. 구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
     img: `${BASE}/images/560/258/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
     items: ["구역 플래너", "캐비닛 구성 시뮬레이터", "제품 구성 프로그램", "도면 데이터 제공"],
+    num: "01",
   },
   {
     id: "digital",
     name: "E-Services",
+    en: "E-SERVICES",
     desc: "언제 어디서나 온라인으로 blum의 모든 서비스를 이용하세요. CAD/CAM 데이터부터 주문 관리까지 디지털로 완결됩니다.",
     img: `${BASE}/images/560/258/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
     items: ["CAD/CAM 데이터 서비스", "제품 DB", "온라인 주문 인터페이스", "EASY ASSEMBLY 앱"],
+    num: "02",
   },
   {
     id: "assembly",
     name: "조립 / 조정 지원",
+    en: "ASSEMBLY",
     desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 blum의 조립 장치로 작업을 단순화합니다.",
     img: `${BASE}/images/560/258/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
     items: ["ECODRILL 드릴링 기기", "EASYSTICK 스탬핑 도구", "MINIPRESS top", "조립 장치 선택기"],
+    num: "03",
   },
   {
     id: "marketing",
     name: "마케팅 / 판매 지원",
+    en: "MARKETING",
     desc: "blum 제품을 판매하는 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 멀티미디어 자료를 제공합니다.",
     img: `${BASE}/images/560/258/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
     items: ["마케팅 멀티미디어 자료실", "제품 이미지 / 영상", "기술 문서", "판매 지원 자료"],
+    num: "04",
   },
 ];
 
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold: 0.1 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={className} style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "none" : "translateY(28px)",
-      transition: `opacity 1s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 1s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-    }}>
-      {children}
-    </div>
-  );
-}
+/* "FULL SUPPORT." split into spans with letter-flip */
+const HEADLINE = "FULL SUPPORT.";
 
-export default function V2Services() {
+export default function V3Services() {
+  /* refs: [0]=hero, [1..4]=service sections */
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
+  const ctaRef = useRef<HTMLElement | null>(null);
+
+  /* ── Hero text animations on mount ── */
+  const tagRef  = useRef<HTMLParagraphElement>(null);
+  const subRef  = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    /* "SERVICES" tag */
+    const tag = tagRef.current;
+    if (tag) {
+      tag.style.opacity   = "0";
+      tag.style.transform = "translateY(40px)";
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        tag.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out";
+        tag.style.opacity    = "1";
+        tag.style.transform  = "translateY(0)";
+      }));
+    }
+    /* subtitle */
+    const sub = subRef.current;
+    if (sub) {
+      sub.style.opacity   = "0";
+      sub.style.transform = "translateY(40px)";
+      setTimeout(() => {
+        sub!.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
+        sub!.style.opacity    = "1";
+        sub!.style.transform  = "translateY(0)";
+      }, 200);
+    }
+  }, []);
+
+  /* ── Scroll-driven stack ── */
+  useEffect(() => {
+    let raf = 0;
+
+    const update = () => {
+      const y  = window.scrollY;
+      const vh = window.innerHeight;
+
+      /* service panels — same translateY logic; overflow:hidden on wrapper clips bleed */
+      sectionRefs.current.forEach((el, i) => {
+        if (!el || i === 0) return;
+        const progress = Math.max(0, Math.min(1, (y - (i - 1) * vh) / vh));
+        el.style.transform = `translateY(${(1 - progress) * 100}vh)`;
+      });
+
+      /* CTA: animates during the last 100vh of scroll space (y: 4*vh → 5*vh)
+         translateY: 100vh → 50vh  (stops at vertical center of screen) */
+      const cta = ctaRef.current;
+      if (cta) {
+        const ctaStart = SERVICES.length * vh;
+        const ctaEnd   = (SERVICES.length + 1) * vh;
+        const ctaProgress = Math.max(0, Math.min(1, (y - ctaStart) / (ctaEnd - ctaStart)));
+        cta.style.transform = `translateY(${(1 - ctaProgress * 0.5) * 100}vh)`;
+      }
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    };
+
+    update(); /* set initial transform */
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const setRef = (i: number) => (el: HTMLElement | null) => {
+    sectionRefs.current[i] = el;
+  };
+
+  /* shared absolute section style — position:absolute inside the overflow:hidden wrapper */
+  const abs = (zIdx: number): React.CSSProperties => ({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: zIdx,
+    overflow: "hidden",
+    fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+  });
+
   return (
-    <div style={{ backgroundColor: CREAM, color: BROWN, fontFamily: "'Georgia', serif" }}>
-      {/* Hero */}
-      <section className="relative flex items-end overflow-hidden" style={{ minHeight: "420px", paddingTop: "80px" }}>
-        <div className="absolute inset-0">
+    <>
+      <style>{`
+        @keyframes v3LetterFlip {
+          from { opacity: 0; transform: rotateY(-180deg); }
+          to   { opacity: 1; transform: rotateY(0deg);    }
+        }
+        @media (max-width: 768px) {
+          .v3-hero-headline { font-size: 7vw !important; flex-wrap: nowrap !important; }
+          .v3-svc-section { flex-direction: column !important; overflow-y: auto !important; }
+          .v3-svc-img-wrap { flex: none !important; width: 100% !important; height: 40vh !important; order: 1 !important; }
+          .v3-svc-img-wrap img { height: 100% !important; object-fit: cover !important; }
+          .v3-svc-text { flex: none !important; order: 2 !important; padding: 24px 20px !important; }
+          .v3-svc-title { font-size: 1.4rem !important; }
+          .v3-svc-desc { font-size: 0.9rem !important; }
+        }
+      `}</style>
+
+      {/* ─────────────────────────────────────────
+          Fixed overflow:hidden wrapper — clips sections so the
+          next panel's edge never bleeds into the current view.
+      ───────────────────────────────────────── */}
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+        zIndex: 1,
+      }}>
+        {/* ─────────────────────────────────────────
+            HERO — z-index 1, always behind services
+        ───────────────────────────────────────── */}
+        <section
+          ref={setRef(0)}
+          style={{
+            ...abs(1),
+            backgroundColor: "#000000",
+            color: "#f0f0f0",
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "0 48px 80px",
+          }}
+        >
+          {/* dim bg image */}
           <img
             src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`}
-            alt="blum services"
-            className="w-full h-full object-cover"
+            alt=""
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(44,30,15,0.92) 40%, rgba(44,30,15,0.1) 100%)" }} />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 w-full">
-          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: AMBER }}>Services</p>
-          <h1 className="text-4xl md:text-5xl leading-tight mb-4" style={{ color: CREAM, fontWeight: 300 }}>
-            설계부터 설치까지<br />blum이 함께합니다
-          </h1>
-          <p className="text-sm leading-7" style={{ color: "rgba(250,247,242,0.6)", maxWidth: "400px" }}>
-            제품 선택, 설계 지원, 디지털 서비스, 조립 지원까지 — blum의 종합 서비스 생태계를 경험하세요.
-          </p>
-        </div>
-      </section>
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000 40%, rgba(0,0,0,0.15) 100%)" }} />
 
-      {/* Services */}
-      <main className="max-w-7xl mx-auto px-6 py-24 space-y-24">
-        {SERVICES.map((svc, i) => (
-          <Reveal key={svc.id}>
-            <section id={svc.id} className="grid grid-cols-1 md:grid-cols-2 gap-14 items-center scroll-mt-20">
-              <div className={i % 2 === 1 ? "md:order-2" : ""}>
-                <div className="overflow-hidden rounded-2xl aspect-[4/3]" style={{ backgroundColor: "#e8d5be" }}>
-                  <img
-                    src={svc.img}
-                    alt={svc.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                </div>
+          <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, width: "100%" }}>
+            <p ref={tagRef} style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 20 }}>
+              Services
+            </p>
+
+            {/* Letter-flip headline */}
+            <h1 className="v3-hero-headline" style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
+              {HEADLINE.split("").map((ch, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    color: i >= "FULL ".length ? RED : "#f0f0f0",
+                    width: ch === " " ? "0.3em" : undefined,
+                    animation: ch !== " "
+                      ? `v3LetterFlip 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 50}ms both`
+                      : "none",
+                  }}
+                >
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+            </h1>
+
+            <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 20 }} />
+
+            <p ref={subRef} style={{ fontSize: 14, maxWidth: 520, lineHeight: 1.75, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+              제품 선택, 설계 지원, 디지털 서비스, 조립 지원까지 — blum의 종합 서비스 생태계.
+            </p>
+          </div>
+        </section>
+
+        {/* ─────────────────────────────────────────
+            SERVICE SECTIONS — z-index 2,3,4,5
+            start at translateY(100vh), stacks over hero
+        ───────────────────────────────────────── */}
+        {SERVICES.map((svc, i) => {
+          const imgLeft = i % 2 === 0;
+          return (
+            <section
+              key={svc.id}
+              ref={setRef(i + 1)}
+              id={svc.id}
+              className="v3-svc-section"
+              style={{
+                ...abs(i + 2),
+                backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
+                color: "#f0f0f0",
+                display: "flex",
+                /* start fully below viewport — JS update() will correct on scroll */
+                transform: "translateY(100vh)",
+                willChange: "transform",
+              }}
+            >
+              {/* Image side */}
+              <div className="v3-svc-img-wrap" style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
+                <img
+                  src={svc.img}
+                  alt={svc.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "grayscale(15%)" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                {/* red overlay strip */}
+                <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 4, backgroundColor: RED }} />
               </div>
-              <div className={i % 2 === 1 ? "md:order-1" : ""}>
-                <p className="text-xs tracking-widest uppercase mb-3" style={{ color: AMBER }}>Service</p>
-                <h2 className="text-2xl md:text-3xl mb-5" style={{ fontWeight: 300 }}>{svc.name}</h2>
-                <div style={{ width: "32px", height: "2px", backgroundColor: AMBER, marginBottom: "20px", borderRadius: "2px" }} />
-                <p className="text-sm leading-8 mb-6" style={{ color: "#6b4c30" }}>{svc.desc}</p>
-                <ul className="space-y-3">
+
+              {/* Text side */}
+              <div
+                className="v3-svc-text"
+                style={{
+                  flex: "1 1 0",
+                  order: imgLeft ? 2 : 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  padding: "0 64px",
+                  backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+                  <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: "rgba(200,16,46,0.45)" }}>{svc.num}</span>
+                  <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: RED }}>{svc.en}</span>
+                </div>
+                <h2 className="v3-svc-title" style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
+                  {svc.name}
+                </h2>
+                <div style={{ width: 40, height: 3, backgroundColor: RED, marginBottom: 20 }} />
+                <p className="v3-svc-desc" style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
+                  {svc.desc}
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                   {svc.items.map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-sm" style={{ color: "#6b4c30" }}>
-                      <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: AMBER, flexShrink: 0, display: "inline-block" }} />
+                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+                      <span style={{ width: 6, height: 6, backgroundColor: RED, flexShrink: 0 }} />
                       {item}
                     </li>
                   ))}
                 </ul>
               </div>
             </section>
-          </Reveal>
-        ))}
-      </main>
+          );
+        })}
+      </div>{/* end overflow:hidden wrapper */}
 
-      {/* E-Services */}
-      <section className="py-20" style={{ backgroundColor: "#f0e8dc" }}>
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-xs tracking-widest uppercase mb-4" style={{ color: AMBER }}>Online Portal</p>
-          <h2 className="text-3xl mb-4" style={{ fontWeight: 300 }}>E-Services 바로가기</h2>
-          <p className="text-sm mb-8" style={{ color: "#8a6a4a" }}>제품 구성, CAD 데이터, 주문 관리를 온라인으로 한 번에.</p>
-          <a
-            href="https://e-services.blum.com/main/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-sm px-8 py-4 rounded-full transition-opacity hover:opacity-80"
-            style={{ backgroundColor: BROWN, color: CREAM, textDecoration: "none" }}
-          >
-            E-Services 접속
-          </a>
-        </div>
+      {/* ─────────────────────────────────────────
+          SCROLL SPACE: 6 sections × 100vh
+          (1 hero + 4 service transitions + 1 CTA animation = 600vh total,
+           giving 500vh of scrollable distance)
+      ───────────────────────────────────────── */}
+      <div style={{ height: `${(SERVICES.length + 2) * 100}vh` }} aria-hidden="true" />
+
+      {/* ─────────────────────────────────────────
+          CTA — position:fixed, scroll-driven.
+          Animates from translateY(100vh) → translateY(50vh)
+          during the last 100vh of scroll space.
+          Stops at screen center and reverses on scroll-up.
+      ───────────────────────────────────────── */}
+      <section
+        ref={(el) => { ctaRef.current = el; }}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          zIndex: 10,
+          transform: "translateY(100vh)",
+          willChange: "transform",
+          padding: "80px 48px",
+          textAlign: "center",
+          borderTop: "1px solid rgba(200,16,46,0.2)",
+          backgroundColor: "#0a0a0a",
+          fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+          color: "#f0f0f0",
+        }}
+      >
+        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>
+          Online Portal
+        </p>
+        <h2 style={{ fontSize: 36, fontWeight: 900, textTransform: "uppercase", marginBottom: 16 }}>
+          E-SERVICES
+        </h2>
+        <p style={{ fontSize: 13, marginBottom: 32, color: "rgba(240,240,240,0.4)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
+          제품 구성, CAD 데이터, 주문 관리를 온라인으로 한 번에.
+        </p>
+        <a
+          href="https://e-services.blum.com/main/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            fontWeight: 900,
+            padding: "16px 40px",
+            backgroundColor: RED,
+            color: "#fff",
+            textDecoration: "none",
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.8"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
+        >
+          E-Services 접속
+        </a>
       </section>
-    </div>
+    </>
   );
 }

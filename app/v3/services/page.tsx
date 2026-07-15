@@ -1,361 +1,598 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 
-const BASE = "https://www.blum.com";
-const RED = "#c8102e";
+/* ── Design tokens ──────────────────────────────────────────────── */
+const GOLD  = "#D4AF37";
+const NAVY  = "#0D1117";
+const CREAM = "#F5F0E8";
+const GRAY  = "rgba(245,240,232,0.55)";
+const LINE  = "rgba(212,175,55,0.18)";
+const BASE  = "https://www.blum.com";
 
+/* ── Data ───────────────────────────────────────────────────────── */
 const SERVICES = [
   {
-    id: "plan",
+    num:  "01",
     name: "계획 / 설계 지원",
-    en: "PLANNING",
     desc: "가구 기획 단계부터 blum이 함께합니다. 구역 플래너와 캐비닛 구성 시뮬레이터로 최적의 레이아웃을 설계할 수 있습니다.",
-    img: `${BASE}/images/560/258/4196180/corporate/media/bilder/services/vab0524_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
     items: ["구역 플래너", "캐비닛 구성 시뮬레이터", "제품 구성 프로그램", "도면 데이터 제공"],
-    num: "01",
+    img: `${BASE}/images/560/258/4215872/corporate/media/bilder/services/img2487_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
   },
   {
-    id: "digital",
+    num:  "02",
     name: "E-Services",
-    en: "E-SERVICES",
     desc: "언제 어디서나 온라인으로 blum의 모든 서비스를 이용하세요. CAD/CAM 데이터부터 주문 관리까지 디지털로 완결됩니다.",
-    img: `${BASE}/images/560/258/4188803/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
     items: ["CAD/CAM 데이터 서비스", "제품 DB", "온라인 주문 인터페이스", "EASY ASSEMBLY 앱"],
-    num: "02",
+    img: `${BASE}/images/560/258/4215632/corporate/media/bilder/services/korpus-konfigurator/blum_korpuskonfigurator_me168496_4:3.png`,
   },
   {
-    id: "assembly",
+    num:  "03",
     name: "조립 / 조정 지원",
-    en: "ASSEMBLY",
-    desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 blum의 조립 장치로 작업을 단순화합니다.",
-    img: `${BASE}/images/560/258/4214411/corporate/media/bilder/services/vab0523_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
+    desc: "정밀한 설치와 완벽한 조정을 위한 전문 도구와 가이드. ECODRILL, EASYSTICK 등 전문 조립 장치로 작업을 단순화합니다.",
     items: ["ECODRILL 드릴링 기기", "EASYSTICK 스탬핑 도구", "MINIPRESS top", "조립 장치 선택기"],
-    num: "03",
+    img: `${BASE}/images/560/258/4214417/corporate/media/bilder/services/vab0526_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
   {
-    id: "marketing",
+    num:  "04",
     name: "마케팅 / 판매 지원",
-    en: "MARKETING",
-    desc: "blum 제품을 판매하는 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 멀티미디어 자료를 제공합니다.",
-    img: `${BASE}/images/560/258/4207496/corporate/media/bilder/services/img2443_aa_fot_fo_bau_-sall_-apr6i_-v1_4:3.jpg`,
+    desc: "blum 파트너를 위한 포괄적인 마케팅 자료와 기술 지원. 고해상도 이미지, 영상, 기술 문서 등 판매에 필요한 모든 자료를 제공합니다.",
     items: ["마케팅 멀티미디어 자료실", "제품 이미지 / 영상", "기술 문서", "판매 지원 자료"],
-    num: "04",
+    img: `${BASE}/images/560/258/4212635/corporate/media/bilder/services/Blum_ME5340169_AA_FOT_FO_BAU_-SALL_-AMC_-V1_4:3.jpg`,
+  },
+  {
+    num:  "05",
+    name: "교육 / 트레이닝",
+    desc: "blum 제품의 정확한 설치와 조정을 위한 전문 교육 프로그램. 온라인 튜토리얼과 EASY ASSEMBLY 앱을 통해 언제 어디서나 학습이 가능합니다.",
+    items: ["제품 설치 및 조정 교육", "온라인 튜토리얼", "EASY ASSEMBLY 앱 가이드", "파트너 트레이닝 프로그램"],
+    img: `${BASE}/images/560/258/4207516/corporate/media/bilder/services/vab0527_aa_fot_fo_bau_-sall_-apr6i_-v2_4:3.jpg`,
   },
 ];
 
-/* "FULL SUPPORT." split into spans with letter-flip */
-const HEADLINE = "FULL SUPPORT.";
+const TOTAL = 1 + SERVICES.length + 1; // 7 sections total
 
-export default function V3Services() {
-  /* refs: [0]=hero, [1..4]=service sections */
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-  const ctaRef = useRef<HTMLElement | null>(null);
+/* ── Easing ─────────────────────────────────────────────────────── */
+const EASE = "cubic-bezier(0.16,1,0.3,1)";
 
-  /* ── Hero text animations on mount ── */
-  const tagRef  = useRef<HTMLParagraphElement>(null);
-  const subRef  = useRef<HTMLParagraphElement>(null);
+/* ── ServicePanel ────────────────────────────────────────────────
+   Isolated component so useEffect can cleanly manage its own
+   animation state without closure issues in the parent.
+─────────────────────────────────────────────────────────────────── */
+type PanelProps = {
+  s: (typeof SERVICES)[0];
+  i: number;
+  sectionStyle: (idx: number) => React.CSSProperties;
+  animKey: number;   // increments every navigation → re-triggers effect
+  isActive: boolean;
+  direction: "down" | "up";
+};
+
+function ServicePanel({ s, i, sectionStyle, animKey, isActive, direction }: PanelProps) {
+  /* Each boolean drives one visual element */
+  const [showImg,   setShowImg]   = useState(false);
+  const [showNum,   setShowNum]   = useState(false);
+  const [showTitle, setShowTitle] = useState(false);
+  const [showLine,  setShowLine]  = useState(false);
+  const [showDesc,  setShowDesc]  = useState(false);
+  const [showItems, setShowItems] = useState(false);
 
   useEffect(() => {
-    /* "SERVICES" tag */
-    const tag = tagRef.current;
-    if (tag) {
-      tag.style.opacity   = "0";
-      tag.style.transform = "translateY(40px)";
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        tag.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out";
-        tag.style.opacity    = "1";
-        tag.style.transform  = "translateY(0)";
-      }));
-    }
-    /* subtitle */
-    const sub = subRef.current;
-    if (sub) {
-      sub.style.opacity   = "0";
-      sub.style.transform = "translateY(40px)";
-      setTimeout(() => {
-        sub!.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
-        sub!.style.opacity    = "1";
-        sub!.style.transform  = "translateY(0)";
-      }, 200);
-    }
-  }, []);
+    /* Always reset first so outgoing panels become invisible for next visit */
+    setShowImg(false);
+    setShowNum(false);
+    setShowTitle(false);
+    setShowLine(false);
+    setShowDesc(false);
+    setShowItems(false);
 
-  /* ── Scroll-driven stack ── */
-  useEffect(() => {
-    let raf = 0;
+    if (!isActive) return; // nothing more to do for off-screen panels
 
-    const update = () => {
-      const y  = window.scrollY;
-      const vh = window.innerHeight;
+    /* Chain with timeouts — panel is sliding in from translateY(100vh),
+       transition takes 600ms, so start the sequence right away;
+       by the time the panel arrives elements are already fading in. */
+    const timers = [
+      setTimeout(() => setShowImg(true),   60),
+      setTimeout(() => setShowNum(true),   160),
+      setTimeout(() => setShowTitle(true), 260),
+      setTimeout(() => setShowLine(true),  360),
+      setTimeout(() => setShowDesc(true),  460),
+      setTimeout(() => setShowItems(true), 560),
+    ];
+    return () => timers.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animKey]); // animKey changes every navigation — this is intentional
 
-      /* service panels — same translateY logic; overflow:hidden on wrapper clips bleed */
-      sectionRefs.current.forEach((el, i) => {
-        if (!el || i === 0) return;
-        const progress = Math.max(0, Math.min(1, (y - (i - 1) * vh) / vh));
-        el.style.transform = `translateY(${(1 - progress) * 100}vh)`;
-      });
-
-      /* CTA: animates during the last 100vh of scroll space (y: 4*vh → 5*vh)
-         translateY: 100vh → 50vh  (stops at vertical center of screen) */
-      const cta = ctaRef.current;
-      if (cta) {
-        const ctaStart = SERVICES.length * vh;
-        const ctaEnd   = (SERVICES.length + 1) * vh;
-        const ctaProgress = Math.max(0, Math.min(1, (y - ctaStart) / (ctaEnd - ctaStart)));
-        cta.style.transform = `translateY(${(1 - ctaProgress * 0.5) * 100}vh)`;
-      }
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
-    };
-
-    update(); /* set initial transform */
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  const setRef = (i: number) => (el: HTMLElement | null) => {
-    sectionRefs.current[i] = el;
+  const imgOffset  = direction === "down" ? "-60px" : "60px";
+  const imgStyle: React.CSSProperties = {
+    flex: "0 0 52%", position: "relative", overflow: "hidden",
+    opacity:    showImg ? 1 : 0,
+    transform:  showImg ? "none" : `translateY(${imgOffset})`,
+    transition: `opacity 0.75s ${EASE}, transform 0.75s ${EASE}`,
   };
 
-  /* shared absolute section style — position:absolute inside the overflow:hidden wrapper */
-  const abs = (zIdx: number): React.CSSProperties => ({
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    zIndex: zIdx,
-    overflow: "hidden",
-    fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-  });
+  const textStyle: React.CSSProperties = {
+    flex: 1, display: "flex", alignItems: "center",
+    padding: "0 clamp(28px,5%,72px)",
+  };
+
+  const imgLeft = i % 2 === 0;
+  const bgColor = i % 2 === 0 ? "#0A0E14" : "#080B10";
 
   return (
-    <>
-      <style>{`
-        @keyframes v3LetterFlip {
-          from { opacity: 0; transform: rotateY(-180deg); }
-          to   { opacity: 1; transform: rotateY(0deg);    }
-        }
-        @media (max-width: 768px) {
-          .v3-hero-headline { font-size: 7vw !important; flex-wrap: nowrap !important; }
-          .v3-svc-section { flex-direction: column !important; overflow-y: auto !important; }
-          .v3-svc-img-wrap { flex: none !important; width: 100% !important; height: 40vh !important; order: 1 !important; }
-          .v3-svc-img-wrap img { height: 100% !important; object-fit: cover !important; }
-          .v3-svc-text { flex: none !important; order: 2 !important; padding: 24px 20px !important; }
-          .v3-svc-title { font-size: 1.4rem !important; }
-          .v3-svc-desc { font-size: 0.9rem !important; }
-        }
-      `}</style>
-
-      {/* ─────────────────────────────────────────
-          Fixed overflow:hidden wrapper — clips sections so the
-          next panel's edge never bleeds into the current view.
-      ───────────────────────────────────────── */}
-      <div style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100vh",
-        overflow: "hidden",
-        zIndex: 1,
+    <div style={sectionStyle(i + 1)}>
+      <div className="v4s-panel-inner" style={{
+        width: "100%", height: "100%",
+        backgroundColor: bgColor,
+        display: "flex",
+        flexDirection: imgLeft ? "row" : "row-reverse",
       }}>
-        {/* ─────────────────────────────────────────
-            HERO — z-index 1, always behind services
-        ───────────────────────────────────────── */}
-        <section
-          ref={setRef(0)}
-          style={{
-            ...abs(1),
-            backgroundColor: "#000000",
-            color: "#f0f0f0",
-            display: "flex",
-            alignItems: "flex-end",
-            padding: "0 48px 80px",
-          }}
-        >
-          {/* dim bg image */}
+        {/* ── Image half ───────────────────────────────────────── */}
+        <div className="v4s-img-half" style={imgStyle}>
           <img
-            src={`${BASE}/images/560/258/4213161/corporate/media/bilder/produkte/bewegungstechnologien/blum_box1596_aa_fot_fo_bau_-sall_-aof4_-v1_4:3.jpg`}
-            alt=""
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.12 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            src={s.img}
+            alt={s.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }}
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000 40%, rgba(0,0,0,0.15) 100%)" }} />
+          <div style={{
+            position: "absolute", inset: 0,
+            background: imgLeft
+              ? `linear-gradient(to right, transparent 65%, ${bgColor} 100%)`
+              : `linear-gradient(to left,  transparent 65%, ${bgColor} 100%)`,
+          }} />
+        </div>
 
-          <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, width: "100%" }}>
-            <p ref={tagRef} style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 20 }}>
-              Services
-            </p>
+        {/* ── Text half ────────────────────────────────────────── */}
+        <div className="v4s-text-half" style={textStyle}>
+          <div style={{ width: "100%" }}>
 
-            {/* Letter-flip headline */}
-            <h1 className="v3-hero-headline" style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
-              {HEADLINE.split("").map((ch, i) => (
-                <span
-                  key={i}
-                  style={{
-                    display: "inline-block",
-                    color: i >= "FULL ".length ? RED : "#f0f0f0",
-                    width: ch === " " ? "0.3em" : undefined,
-                    animation: ch !== " "
-                      ? `v3LetterFlip 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 50}ms both`
-                      : "none",
-                  }}
-                >
-                  {ch === " " ? " " : ch}
-                </span>
+            {/* Number */}
+            <div style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: "clamp(4rem,8vw,7rem)", fontWeight: 300,
+              color: GOLD, lineHeight: 1, marginBottom: "4px",
+              opacity:    showNum ? 1 : 0,
+              transform:  showNum ? "none" : "translateY(16px)",
+              transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
+            }}>{s.num}</div>
+
+            {/* Service name */}
+            <h2 style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: "clamp(1.8rem,3.5vw,3rem)", fontWeight: 300,
+              color: CREAM, lineHeight: 1.1, marginBottom: "16px", margin: "0 0 16px",
+              opacity:    showTitle ? 1 : 0,
+              transform:  showTitle ? "none" : "translateX(-40px)",
+              transition: `opacity 0.7s ${EASE}, transform 0.7s ${EASE}`,
+            }}>{s.name}</h2>
+
+            {/* Gold divider line */}
+            <div style={{
+              width: showLine ? "40px" : "0px", height: "1px",
+              backgroundColor: `${GOLD}77`, marginBottom: "20px",
+              transition: showLine ? `width 0.5s ${EASE}` : "none",
+            }} />
+
+            {/* Description */}
+            <p style={{
+              fontSize: "14px", color: GRAY, lineHeight: 1.95,
+              maxWidth: "360px", marginBottom: "32px",
+              opacity:    showDesc ? 1 : 0,
+              transform:  showDesc ? "none" : "translateY(20px)",
+              transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
+            }}>{s.desc}</p>
+
+            {/* Items — each staggered */}
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+              {s.items.map((item, j) => (
+                <li key={item} style={{
+                  fontSize: "13px", color: CREAM,
+                  display: "flex", alignItems: "center", gap: "12px",
+                  fontWeight: 300, letterSpacing: "0.02em",
+                  opacity:    showItems ? 1 : 0,
+                  transform:  showItems ? "none" : "translateY(12px)",
+                  transition: showItems
+                    ? `opacity 0.5s ${EASE} ${j * 80}ms, transform 0.5s ${EASE} ${j * 80}ms`
+                    : "none",
+                }}>
+                  <span style={{ width: "18px", height: "1px", backgroundColor: GOLD, flexShrink: 0, display: "inline-block" }} />
+                  {item}
+                </li>
               ))}
-            </h1>
-
-            <div style={{ width: 60, height: 3, backgroundColor: RED, marginBottom: 20 }} />
-
-            <p ref={subRef} style={{ fontSize: 14, maxWidth: 520, lineHeight: 1.75, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-              제품 선택, 설계 지원, 디지털 서비스, 조립 지원까지 — blum의 종합 서비스 생태계.
-            </p>
+            </ul>
           </div>
-        </section>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* ─────────────────────────────────────────
-            SERVICE SECTIONS — z-index 2,3,4,5
-            start at translateY(100vh), stacks over hero
-        ───────────────────────────────────────── */}
-        {SERVICES.map((svc, i) => {
-          const imgLeft = i % 2 === 0;
-          return (
-            <section
-              key={svc.id}
-              ref={setRef(i + 1)}
-              id={svc.id}
-              className="v3-svc-section"
-              style={{
-                ...abs(i + 2),
-                backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
-                color: "#f0f0f0",
-                display: "flex",
-                /* start fully below viewport — JS update() will correct on scroll */
-                transform: "translateY(100vh)",
-                willChange: "transform",
-              }}
-            >
-              {/* Image side */}
-              <div className="v3-svc-img-wrap" style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
-                <img
-                  src={svc.img}
-                  alt={svc.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "grayscale(15%)" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                />
-                {/* red overlay strip */}
-                <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 4, backgroundColor: RED }} />
-              </div>
+/* ── CtaSection ──────────────────────────────────────────────────── */
+type CtaProps = {
+  sectionStyle: (idx: number) => React.CSSProperties;
+  animKey: number;
+  isActive: boolean;
+};
 
-              {/* Text side */}
-              <div
-                className="v3-svc-text"
-                style={{
-                  flex: "1 1 0",
-                  order: imgLeft ? 2 : 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  padding: "0 64px",
-                  backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
-                  <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: "rgba(200,16,46,0.45)" }}>{svc.num}</span>
-                  <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: RED }}>{svc.en}</span>
-                </div>
-                <h2 className="v3-svc-title" style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
-                  {svc.name}
-                </h2>
-                <div style={{ width: 40, height: 3, backgroundColor: RED, marginBottom: 20 }} />
-                <p className="v3-svc-desc" style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
-                  {svc.desc}
-                </p>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {svc.items.map((item) => (
-                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "rgba(240,240,240,0.55)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-                      <span style={{ width: 6, height: 6, backgroundColor: RED, flexShrink: 0 }} />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          );
-        })}
-      </div>{/* end overflow:hidden wrapper */}
+/* Split the headline into individual characters for stagger */
+const CTA_LINE1 = "더 자세한 서비스 안내가";
+const CTA_LINE2 = "필요하신가요?";
 
-      {/* ─────────────────────────────────────────
-          SCROLL SPACE: 6 sections × 100vh
-          (1 hero + 4 service transitions + 1 CTA animation = 600vh total,
-           giving 500vh of scrollable distance)
-      ───────────────────────────────────────── */}
-      <div style={{ height: `${(SERVICES.length + 2) * 100}vh` }} aria-hidden="true" />
+function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
+  const [showLine,  setShowLine]  = useState(false); // gold bar expands
+  const [showLabel, setShowLabel] = useState(false); // "Get in Touch" label
+  const [charCount, setCharCount] = useState(0);     // chars revealed so far
+  const [showBtn,   setShowBtn]   = useState(false); // button
+  const [hovered,   setHovered]   = useState(false); // CTA hover state
 
-      {/* ─────────────────────────────────────────
-          CTA — position:fixed, scroll-driven.
-          Animates from translateY(100vh) → translateY(50vh)
-          during the last 100vh of scroll space.
-          Stops at screen center and reverses on scroll-up.
-      ───────────────────────────────────────── */}
-      <section
-        ref={(el) => { ctaRef.current = el; }}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 10,
-          transform: "translateY(100vh)",
-          willChange: "transform",
-          padding: "80px 48px",
-          textAlign: "center",
-          borderTop: "1px solid rgba(200,16,46,0.2)",
-          backgroundColor: "#0a0a0a",
-          fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-          color: "#f0f0f0",
-        }}
-      >
-        <p style={{ fontSize: 10, letterSpacing: "0.4em", textTransform: "uppercase", fontWeight: 900, color: RED, marginBottom: 16 }}>
-          Online Portal
-        </p>
-        <h2 style={{ fontSize: 36, fontWeight: 900, textTransform: "uppercase", marginBottom: 16 }}>
-          E-SERVICES
-        </h2>
-        <p style={{ fontSize: 13, marginBottom: 32, color: "rgba(240,240,240,0.4)", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
-          제품 구성, CAD 데이터, 주문 관리를 온라인으로 한 번에.
-        </p>
-        <a
-          href="https://e-services.blum.com/main/"
-          target="_blank"
-          rel="noopener noreferrer"
+  const totalChars = CTA_LINE1.length + CTA_LINE2.length;
+
+  useEffect(() => {
+    setShowLine(false);
+    setShowLabel(false);
+    setCharCount(0);
+    setShowBtn(false);
+
+    if (!isActive) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    timers.push(setTimeout(() => setShowLine(true),  80));
+    timers.push(setTimeout(() => setShowLabel(true), 200));
+
+    // stagger each character: start at 320ms, 40ms apart
+    for (let c = 0; c < totalChars; c++) {
+      timers.push(setTimeout(() => setCharCount(c + 1), 320 + c * 40));
+    }
+
+    timers.push(setTimeout(() => setShowBtn(true), 320 + totalChars * 40 + 120));
+
+    return () => timers.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animKey]);
+
+  /* Render a line of text with per-character reveal */
+  const renderChars = (text: string, offset: number) =>
+    text.split("").map((ch, j) => {
+      const idx   = offset + j;
+      const shown = charCount > idx;
+      return (
+        <span key={idx} style={{
+          display: "inline-block",
+          opacity:   shown ? 1 : 0,
+          transform: shown ? "none" : "translateY(28px)",
+          transition: shown ? `opacity 0.45s ${EASE}, transform 0.45s ${EASE}` : "none",
+          whiteSpace: ch === " " ? "pre" : "normal",
+        }}>{ch}</span>
+      );
+    });
+
+  return (
+    <div style={sectionStyle(SERVICES.length + 1)}>
+      <div style={{
+        width: "100%", height: "100%",
+        backgroundColor: "#070B10",
+        display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "center",
+        padding: "0 2rem", boxSizing: "border-box",
+        textAlign: "center",
+      }}>
+
+        {/* Gold gradient line — expands left → right */}
+        <div style={{
+          width: showLine ? "180px" : "0px", height: "1px",
+          background: `linear-gradient(to right, ${GOLD}, ${GOLD}44)`,
+          marginBottom: "32px",
+          transition: showLine ? `width 0.7s ${EASE}` : "none",
+        }} />
+
+        {/* "Get in Touch" label */}
+        <p style={{
+          fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
+          color: `${GOLD}77`, marginBottom: "28px",
+          opacity:   showLabel ? 1 : 0,
+          transform: showLabel ? "none" : "translateY(16px)",
+          transition: `opacity 0.5s ${EASE}, transform 0.5s ${EASE}`,
+        }}>Get in Touch</p>
+
+        {/* Clickable headline with hover effect */}
+        <Link
+          href="/v3/contact"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           style={{
-            display: "inline-block",
-            fontSize: 11,
-            letterSpacing: "0.3em",
-            textTransform: "uppercase",
-            fontWeight: 900,
-            padding: "16px 40px",
-            backgroundColor: RED,
-            color: "#fff",
-            textDecoration: "none",
-            transition: "opacity 0.2s",
+            textDecoration: "none", cursor: "pointer",
+            display: "block", marginBottom: "40px",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.8"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
         >
-          E-Services 접속
-        </a>
-      </section>
-    </>
+          {/* Normal text — fades out on hover */}
+          <h2 style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
+            color: hovered ? GOLD : CREAM, lineHeight: 1.4,
+            transition: `color 0.3s ease, opacity 0.3s ease`,
+            opacity: hovered ? 0 : 1,
+            position: "relative",
+            margin: 0,
+          }}>
+            <span style={{ display: "block" }}>{renderChars(CTA_LINE1, 0)}</span>
+            <span style={{ display: "block" }}>{renderChars(CTA_LINE2, CTA_LINE1.length)}</span>
+          </h2>
+
+          {/* "문의하기" overlay — fades in on hover */}
+          <div style={{
+            position: "absolute",
+            left: "50%", transform: "translateX(-50%)",
+            marginTop: "-2.2em",
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: "clamp(1.8rem,4vw,3.2rem)", fontWeight: 300,
+            color: GOLD, letterSpacing: "0.05em",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            whiteSpace: "nowrap", pointerEvents: "none",
+          }}>
+            문의하기
+          </div>
+        </Link>
+
+        {/* Footer */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: `1px solid ${LINE}`, padding: "24px 2rem" }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+            <span style={{ fontSize: "10px", color: "rgba(245,240,232,0.18)", letterSpacing: "0.1em" }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
+            <div style={{ display: "flex", gap: "24px" }}>
+              {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v3"]] as [string, string][]).map(([l, h]) => (
+                <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}77` : "rgba(245,240,232,0.2)", textDecoration: "none" }}>{l}</Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+export default function V4Services() {
+  const [navScrolled, setNavScrolled] = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
+
+  const closeMenu = () => {
+    setMenuClosing(true);
+    setTimeout(() => { setMenuOpen(false); setMenuClosing(false); }, 400);
+  };
+
+  /* Hero animation stages */
+  const [h1,  setH1]  = useState(false);
+  const [h2,  setH2]  = useState(false);
+  const [sub, setSub] = useState(false);
+
+  /* Fullpage navigation state */
+  const [sectionIdx, setSectionIdx] = useState(0);
+  const [animate,    setAnimate]    = useState(false);
+
+  /* Passed to ServicePanel / CtaSection to re-trigger their effects */
+  const [panelAnim, setPanelAnim] = useState<{ key: number; dir: "down" | "up" }>({ key: 0, dir: "down" });
+
+  /* Refs for stale-closure-free event handlers */
+  const idxRef        = useRef(0);
+  const heroReadyRef  = useRef(false);
+  const transitionRef = useRef(false);
+  const touchStartY   = useRef(0);
+
+  useEffect(() => { idxRef.current = sectionIdx; }, [sectionIdx]);
+
+  /* Nav tint */
+  useEffect(() => {
+    const fn = () => setNavScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  /* Block native scroll */
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  /* Hero entrance sequence */
+  useEffect(() => {
+    const t1 = setTimeout(() => setH1(true),  120);
+    const t2 = setTimeout(() => setH2(true),  400);
+    const t3 = setTimeout(() => setSub(true), 720);
+    const t4 = setTimeout(() => { heroReadyRef.current = true; }, 1750);
+    const t5 = setTimeout(() => setAnimate(true), 50);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
+  }, []);
+
+  /* Navigate between sections */
+  const go = useCallback((dir: 1 | -1) => {
+    if (!heroReadyRef.current) return;
+    if (transitionRef.current) return;
+    const next = idxRef.current + dir;
+    if (next < 0 || next >= TOTAL) return;
+
+    const scrollDir: "down" | "up" = dir === 1 ? "down" : "up";
+    transitionRef.current = true;
+    idxRef.current = next;
+    setSectionIdx(next);
+    setPanelAnim(prev => ({ key: prev.key + 1, dir: scrollDir }));
+    setTimeout(() => { transitionRef.current = false; }, 820);
+  }, []);
+
+  /* Wheel */
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (transitionRef.current) return;
+      if (Math.abs(e.deltaY) < 10) return;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+    window.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () => window.removeEventListener("wheel", onWheel, { capture: true });
+  }, [go]);
+
+  /* Touch */
+  useEffect(() => {
+    const onStart = (e: TouchEvent) => { touchStartY.current = e.touches[0].clientY; };
+    const onEnd   = (e: TouchEvent) => {
+      const diff = touchStartY.current - e.changedTouches[0].clientY;
+      if (Math.abs(diff) < 50) return;
+      go(diff > 0 ? 1 : -1);
+    };
+    window.addEventListener("touchstart", onStart, { passive: true });
+    window.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onStart);
+      window.removeEventListener("touchend",   onEnd);
+    };
+  }, [go]);
+
+  /* Each section is position:fixed.  Offset = (sectionIdx - idx) * 100vh */
+  const sectionStyle = useCallback((idx: number): React.CSSProperties => ({
+    position:  "fixed",
+    top: 0, left: 0, right: 0, bottom: 0,
+    transform: `translateY(${(idx - sectionIdx) * 100}vh)`,
+    transition: animate ? "transform 0.6s cubic-bezier(0.76,0,0.24,1)" : "none",
+    willChange: "transform",
+    zIndex: idx === sectionIdx ? 10 : 5,
+  }), [sectionIdx, animate]);
+
+  /* CSS */
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+    .v4s-nav-link:hover { color:${GOLD} !important; }
+
+    @keyframes v4s-slide-r { from{opacity:0;transform:translateX(70px)} to{opacity:1;transform:none} }
+    @keyframes v4s-slide-l { from{opacity:0;transform:translateX(-70px)} to{opacity:1;transform:none} }
+    @keyframes v4s-fade    { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:none} }
+
+    .v4s-h1r { animation: v4s-slide-r 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
+
+    @keyframes v4s-menu-in  { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+    @keyframes v4s-menu-out { from{transform:translateY(0)} to{transform:translateY(-100%)} }
+    @keyframes v4s-item-in  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+
+    .v4s-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
+    .v4s-mobile-menu { position:fixed; inset:0; background:#0a0e1a; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; overflow:hidden; }
+    .v4s-mobile-menu.v4s-menu-opening { animation:v4s-menu-in 0.4s ease-out forwards; }
+    .v4s-mobile-menu.v4s-menu-closing { animation:v4s-menu-out 0.4s ease-in forwards; }
+    .v4s-mobile-link { color:#c9a84c; text-decoration:none; font-size:28px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; opacity:0; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link { animation:v4s-item-in 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(2) { animation-delay:0.12s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(3) { animation-delay:0.20s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(4) { animation-delay:0.28s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(5) { animation-delay:0.36s; }
+    .v4s-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#c9a84c; font-size:28px; cursor:pointer; line-height:1; }
+
+    @media (max-width:768px) {
+      .v4s-nav-desktop { display:none !important; }
+      .v4s-hamburger   { display:block !important; }
+      .v4s-panel-inner { position:relative !important; }
+      .v4s-img-half    { position:absolute !important; inset:0 !important; flex:none !important; width:100% !important; height:100% !important; opacity:1 !important; transform:none !important; }
+      .v4s-img-half::after { content:''; position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:1; pointer-events:none; }
+      .v4s-img-half > div { display:none !important; }
+      .v4s-text-half   { position:relative !important; z-index:2 !important; flex:none !important; width:100% !important; background:transparent !important; padding:80px 24px 24px !important; box-sizing:border-box !important; align-items:flex-start !important; }
+    }
+  `;
+
+  return (
+    <div style={{ backgroundColor: NAVY, color: CREAM, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+
+      {/* ══ NAV ════════════════════════════════════════════════════ */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: "64px",
+        backgroundColor: navScrolled ? "rgba(13,17,23,0.96)" : "rgba(13,17,23,0.7)",
+        backdropFilter: "blur(20px)",
+        borderBottom: navScrolled ? `1px solid ${LINE}` : "none",
+        transition: "all 0.4s ease",
+      }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Link href="/v3" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
+          <div className="v4s-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+            {([["제품", "/v3#products"], ["가치", "/v3#values"], ["서비스", "/v3/services"], ["연락처", "/v3/contact"]] as [string, string][]).map(([label, href]) => (
+              <Link key={label} href={href} className="v4s-nav-link" style={{
+                color: label === "서비스" ? GOLD : GRAY,
+                textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
+                borderBottom: label === "서비스" ? `1px solid ${GOLD}44` : "none",
+                paddingBottom: label === "서비스" ? "2px" : "0",
+              }}>{label}</Link>
+            ))}
+          </div>
+          <button className="v4s-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="메뉴 열기">☰</button>
+        </div>
+      </nav>
+
+      {/* ══ MOBILE MENU ════════════════════════════════════════════ */}
+      {menuOpen && (
+        <div className={`v4s-mobile-menu ${menuClosing ? "v4s-menu-closing" : "v4s-menu-opening"}`}>
+          <button className="v4s-mobile-close" onClick={closeMenu} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "/v3#products"], ["가치", "/v3/values"], ["서비스", "/v3/services"], ["연락처", "/v3/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4s-mobile-link" onClick={closeMenu}>{label}</Link>
+          ))}
+        </div>
+      )}
+
+      {/* ══ Section 0: Hero ════════════════════════════════════════ */}
+      <div style={sectionStyle(0)}>
+        <div style={{
+          width: "100%", height: "100%", backgroundColor: NAVY,
+          display: "flex", flexDirection: "column", justifyContent: "center",
+          padding: "0 2rem", boxSizing: "border-box",
+        }}>
+          <div style={{ maxWidth: "1280px", margin: "0 auto", width: "100%", paddingTop: "64px" }}>
+            <p style={{
+              fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase",
+              color: `${GOLD}88`, marginBottom: "24px",
+              opacity: h1 ? 1 : 0, transition: "opacity 0.6s ease 0.05s",
+            }}>Services · blum</p>
+
+            <div style={{ overflow: "hidden", marginBottom: "8px" }}>
+              {h1 && <h1 className="v4s-h1r" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300, color: CREAM, lineHeight: 0.95, margin: 0 }}>blum이 함께하는</h1>}
+            </div>
+            <div style={{ overflow: "hidden", marginBottom: "36px" }}>
+              {h2 && <h1 className="v4s-h1l" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(2.8rem,7vw,6rem)", fontWeight: 300, color: GOLD, fontStyle: "italic", lineHeight: 0.95, margin: 0 }}>전 과정 서비스</h1>}
+            </div>
+            {sub && (
+              <p className="v4s-sub" style={{ fontSize: "15px", color: GRAY, lineHeight: 2, fontWeight: 300, maxWidth: "480px" }}>
+                기획부터 설치, 판매까지 — blum은 파트너의 성공을 위해<br />
+                모든 단계에서 전문적인 지원을 제공합니다.
+              </p>
+            )}
+            {sub && (
+              <div style={{ marginTop: "56px", display: "flex", alignItems: "center", gap: "12px", opacity: 0.45 }}>
+                <span style={{ width: "32px", height: "1px", backgroundColor: GOLD }} />
+                <span style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: GOLD }}>Scroll</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ══ Sections 1–5: Service panels ══════════════════════════ */}
+      {SERVICES.map((s, i) => (
+        <ServicePanel
+          key={s.num}
+          s={s}
+          i={i}
+          sectionStyle={sectionStyle}
+          animKey={panelAnim.key}
+          isActive={sectionIdx === i + 1}
+          direction={panelAnim.dir}
+        />
+      ))}
+
+      {/* ══ Section 6: CTA ═════════════════════════════════════════ */}
+      <CtaSection
+        sectionStyle={sectionStyle}
+        animKey={panelAnim.key}
+        isActive={sectionIdx === SERVICES.length + 1}
+      />
+    </div>
   );
 }

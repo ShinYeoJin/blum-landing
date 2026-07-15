@@ -1,17 +1,8 @@
-import V3Nav from "@/components/v3/V3Nav";
-import V3Footer from "@/components/v3/V3Footer";
-
 export const metadata = {
-  title: { default: "BLUM — BOLD & TRENDY", template: "%s | BLUM V3" },
-  description: "트렌디하고 볼드한 BLUM 프리미엄 가구 피팅 브랜드 경험",
+  title: { default: "blum — Cinematic Story", template: "%s | blum V4" },
+  description: "blum의 70년 역사와 혁신 제품이 스크롤로 펼쳐지는 시네마틱 스토리텔링 경험",
 };
 
-export default function V3Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <V3Nav />
-      {children}
-      <V3Footer />
-    </>
-  );
+export default function V4Layout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

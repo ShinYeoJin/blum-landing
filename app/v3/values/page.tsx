@@ -123,9 +123,9 @@ export default function V4Values() {
         transition: "all 0.4s ease",
       }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/v4" className="v4v-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
+          <Link href="/v3" className="v4v-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
           <div className="v4v-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
-            {([["제품", "/v4#products"], ["가치", "/v4/values"], ["서비스", "/v4/services"], ["Contact Us", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            {([["제품", "/v3#products"], ["가치", "/v3/values"], ["서비스", "/v3/services"], ["Contact Us", "/v3/contact"]] as [string, string][]).map(([label, href]) => (
               <Link key={label} href={href} className="v4v-nav-link" style={{
                 color: label === "가치" ? GOLD : GRAY,
                 textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
@@ -142,7 +142,7 @@ export default function V4Values() {
       {menuOpen && (
         <div className={`v4v-mobile-menu ${menuClosing ? "v4v-menu-closing" : "v4v-menu-opening"}`}>
           <button className="v4v-mobile-close" onClick={closeMenu} aria-label="메뉴 닫기">✕</button>
-          {([["제품", "/v4#products"], ["가치", "/v4/values"], ["서비스", "/v4/services"], ["Contact Us", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+          {([["제품", "/v3#products"], ["가치", "/v3/values"], ["서비스", "/v3/services"], ["Contact Us", "/v3/contact"]] as [string, string][]).map(([label, href]) => (
             <Link key={label} href={href} className="v4v-mobile-link" onClick={closeMenu}>{label}</Link>
           ))}
         </div>
@@ -268,7 +268,7 @@ export default function V4Values() {
           <span className="v4v-serif" style={{ fontSize: "16px", fontWeight: 300, color: `${GOLD}66`, letterSpacing: "0.2em" }}>blum</span>
           <span style={{ fontSize: "11px", color: `${CREAM}33` }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]] as [string, string][]).map(([l, h]) => (
+            {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v3"]] as [string, string][]).map(([l, h]) => (
               <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}99` : `${CREAM}33`, textDecoration: "none" }}>{l}</Link>
             ))}
           </div>
