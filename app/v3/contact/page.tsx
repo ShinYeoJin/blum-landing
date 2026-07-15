@@ -83,6 +83,13 @@ export default function V3Contact() {
 
   return (
     <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .v3-info-grid { grid-template-columns: 1fr !important; }
+          .v3-channel-label { white-space: nowrap; }
+          .v3-showroom-btn { min-width: 100px; white-space: nowrap; font-size: 9px !important; }
+        }
+      `}</style>
 
       {/* ══ HERO ══ */}
       <section
@@ -225,7 +232,7 @@ export default function V3Contact() {
           maxWidth: "100%",
         }}
       >
-        <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 48 }}>
+        <div className="v3-info-grid" style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 48 }}>
 
           {/* 본사 */}
           <div>
@@ -261,7 +268,7 @@ export default function V3Contact() {
                 { label: "쇼룸", link: "제품 직접 체험 →", href: "https://www.blum.com/kr/ko/contact/showrooms/" },
               ].map((c) => (
                 <div key={c.label}>
-                  <p style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(240,240,240,0.7)", marginBottom: 4, fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
+                  <p className="v3-channel-label" style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(240,240,240,0.7)", marginBottom: 4, fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>
                     {c.label}
                   </p>
                   <a
@@ -291,6 +298,7 @@ export default function V3Contact() {
               href="https://www.blum.com/kr/ko/contact/showrooms/"
               target="_blank"
               rel="noopener noreferrer"
+              className="v3-showroom-btn"
               style={{
                 display: "inline-block",
                 padding: "12px 28px",

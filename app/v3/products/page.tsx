@@ -137,11 +137,11 @@ function CardDisplay({
   const textOpacity = isExit ? "0"    : "1";
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 48px", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: "80px", alignItems: "center", width: "100%", maxWidth: 1100 }}>
+    <div className="v3-card-outer" style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 48px", boxSizing: "border-box" }}>
+      <div className="v3-card-row" style={{ display: "flex", gap: "80px", alignItems: "center", width: "100%", maxWidth: 1100 }}>
 
         {/* Image — 3-D flip */}
-        <div style={{ flex: "0 0 52%", perspective: "1000px", overflow: "hidden" }}>
+        <div className="v3-card-img" style={{ flex: "0 0 52%", perspective: "1000px", overflow: "hidden" }}>
           <img
             key={cat.id + phase}
             src={cat.imgs[cat.imgIndex]}
@@ -322,6 +322,11 @@ export default function V3Products() {
         @keyframes flipInX   { from { transform: rotateX(-90deg); } to { transform: rotateX(0deg);    } }
         @keyframes flipOutXN { from { transform: rotateX(0deg);   } to { transform: rotateX(-90deg);  } }
         @keyframes flipInXN  { from { transform: rotateX(90deg);  } to { transform: rotateX(0deg);    } }
+        @media (max-width: 768px) {
+          .v3-card-outer { padding: 16px 16px 80px !important; align-items: flex-start !important; overflow-y: auto !important; }
+          .v3-card-row { flex-direction: column !important; gap: 24px !important; }
+          .v3-card-img { flex: none !important; width: 100% !important; }
+        }
       `}</style>
 
       <div style={{ backgroundColor: "#000000", color: "#f0f0f0", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}>

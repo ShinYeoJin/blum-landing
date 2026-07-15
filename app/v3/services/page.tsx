@@ -143,6 +143,15 @@ export default function V3Services() {
           from { opacity: 0; transform: rotateY(-180deg); }
           to   { opacity: 1; transform: rotateY(0deg);    }
         }
+        @media (max-width: 768px) {
+          .v3-hero-headline { font-size: 7vw !important; flex-wrap: nowrap !important; }
+          .v3-svc-section { flex-direction: column !important; overflow-y: auto !important; }
+          .v3-svc-img-wrap { flex: none !important; width: 100% !important; height: 40vh !important; order: 1 !important; }
+          .v3-svc-img-wrap img { height: 100% !important; object-fit: cover !important; }
+          .v3-svc-text { flex: none !important; order: 2 !important; padding: 24px 20px !important; }
+          .v3-svc-title { font-size: 1.4rem !important; }
+          .v3-svc-desc { font-size: 0.9rem !important; }
+        }
       `}</style>
 
       {/* ─────────────────────────────────────────
@@ -187,7 +196,7 @@ export default function V3Services() {
             </p>
 
             {/* Letter-flip headline */}
-            <h1 style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
+            <h1 className="v3-hero-headline" style={{ fontSize: "clamp(44px, 9vw, 110px)", fontWeight: 900, textTransform: "uppercase", lineHeight: 1, marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
               {HEADLINE.split("").map((ch, i) => (
                 <span
                   key={i}
@@ -224,6 +233,7 @@ export default function V3Services() {
               key={svc.id}
               ref={setRef(i + 1)}
               id={svc.id}
+              className="v3-svc-section"
               style={{
                 ...abs(i + 2),
                 backgroundColor: i % 2 === 0 ? "#0a0a0a" : "#050505",
@@ -235,7 +245,7 @@ export default function V3Services() {
               }}
             >
               {/* Image side */}
-              <div style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
+              <div className="v3-svc-img-wrap" style={{ flex: "0 0 52%", order: imgLeft ? 1 : 2, overflow: "hidden", position: "relative" }}>
                 <img
                   src={svc.img}
                   alt={svc.name}
@@ -248,6 +258,7 @@ export default function V3Services() {
 
               {/* Text side */}
               <div
+                className="v3-svc-text"
                 style={{
                   flex: "1 1 0",
                   order: imgLeft ? 2 : 1,
@@ -262,11 +273,11 @@ export default function V3Services() {
                   <span style={{ fontSize: 9, letterSpacing: "0.3em", fontWeight: 900, color: "rgba(200,16,46,0.45)" }}>{svc.num}</span>
                   <span style={{ fontSize: 9, letterSpacing: "0.35em", fontWeight: 900, color: RED }}>{svc.en}</span>
                 </div>
-                <h2 style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
+                <h2 className="v3-svc-title" style={{ fontSize: "clamp(24px, 3vw, 44px)", fontWeight: 900, textTransform: "uppercase", color: "#f0f0f0", lineHeight: 1.1, marginBottom: 20 }}>
                   {svc.name}
                 </h2>
                 <div style={{ width: 40, height: 3, backgroundColor: RED, marginBottom: 20 }} />
-                <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
+                <p className="v3-svc-desc" style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(240,240,240,0.45)", fontFamily: "Arial, sans-serif", fontWeight: 400, marginBottom: 28, maxWidth: 400 }}>
                   {svc.desc}
                 </p>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
