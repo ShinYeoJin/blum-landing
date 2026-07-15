@@ -471,6 +471,7 @@ export default function V4() {
       .v4-stat-card .v4-font-serif { font-size:3rem !important; }
       .v4-slide-panel { left:5% !important; right:5% !important; max-width:none !important; }
       .v4-slide-body  { text-align:left; }
+      .v4-prod-desc   { text-align:left !important; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
     }
   `;
 
@@ -829,7 +830,7 @@ export default function V4() {
                     <p style={{ fontSize: "9px", letterSpacing: "0.4em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "10px" }}>{p.cat}</p>
                     <h3 className="v4-font-serif" style={{ fontSize: "clamp(1.8rem,3.5vw,2.6rem)", fontWeight: 300, color: CREAM, lineHeight: 1, marginBottom: "16px", letterSpacing: "-0.01em" }}>{p.name}</h3>
                     <div style={{ width: "32px", height: "1px", backgroundColor: `${GOLD}55`, marginBottom: "16px" }} />
-                    <p style={{ color: GRAY, fontSize: "13px", lineHeight: 1.85 }}>{p.desc}</p>
+                    <p className="v4-prod-desc" style={{ color: GRAY, fontSize: "13px", lineHeight: 1.85 }}>{p.desc}</p>
                   </div>
                 </div>
               );
