@@ -323,7 +323,7 @@ export default function V3Products() {
         @keyframes flipOutXN { from { transform: rotateX(0deg);   } to { transform: rotateX(-90deg);  } }
         @keyframes flipInXN  { from { transform: rotateX(90deg);  } to { transform: rotateX(0deg);    } }
         @media (max-width: 768px) {
-          .v3-card-outer { padding: 16px 16px 80px !important; align-items: flex-start !important; overflow-y: auto !important; }
+          .v3-card-outer { padding: 16px 16px 80px !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; overflow-y: auto !important; }
           .v3-card-row { flex-direction: column !important; gap: 24px !important; }
           .v3-card-img { flex: none !important; width: 100% !important; }
         }
