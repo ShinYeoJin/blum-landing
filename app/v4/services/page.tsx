@@ -121,14 +121,14 @@ function ServicePanel({ s, i, sectionStyle, animKey, isActive, direction }: Pane
 
   return (
     <div style={sectionStyle(i + 1)}>
-      <div style={{
+      <div className="v4s-panel-inner" style={{
         width: "100%", height: "100%",
         backgroundColor: bgColor,
         display: "flex",
         flexDirection: imgLeft ? "row" : "row-reverse",
       }}>
         {/* ── Image half ───────────────────────────────────────── */}
-        <div style={imgStyle}>
+        <div className="v4s-img-half" style={imgStyle}>
           <img
             src={s.img}
             alt={s.name}
@@ -144,7 +144,7 @@ function ServicePanel({ s, i, sectionStyle, animKey, isActive, direction }: Pane
         </div>
 
         {/* ── Text half ────────────────────────────────────────── */}
-        <div style={textStyle}>
+        <div className="v4s-text-half" style={textStyle}>
           <div style={{ width: "100%" }}>
 
             {/* Number */}
@@ -355,6 +355,7 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V4Services() {
   const [navScrolled, setNavScrolled] = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
 
   /* Hero animation stages */
   const [h1,  setH1]  = useState(false);
@@ -465,6 +466,22 @@ export default function V4Services() {
     .v4s-h1r { animation: v4s-slide-r 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
+
+    .v4s-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
+    .v4s-mobile-menu { position:fixed; inset:0; background:${NAVY}; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; }
+    .v4s-mobile-link { color:${CREAM}; text-decoration:none; font-size:22px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; transition:color 0.2s; }
+    .v4s-mobile-link:hover { color:${GOLD}; }
+    .v4s-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:${CREAM}; font-size:28px; cursor:pointer; line-height:1; }
+
+    @media (max-width:768px) {
+      .v4s-nav-desktop { display:none !important; }
+      .v4s-hamburger   { display:block !important; }
+      .v4s-panel-inner { position:relative !important; }
+      .v4s-img-half    { position:absolute !important; inset:0 !important; flex:none !important; width:100% !important; height:100% !important; opacity:1 !important; transform:none !important; }
+      .v4s-img-half::after { content:''; position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:1; pointer-events:none; }
+      .v4s-img-half > div { display:none !important; }
+      .v4s-text-half   { position:relative !important; z-index:2 !important; flex:none !important; width:100% !important; background:transparent !important; padding:24px !important; box-sizing:border-box !important; align-items:flex-start !important; }
+    }
   `;
 
   return (
@@ -481,7 +498,7 @@ export default function V4Services() {
       }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/v4" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
-          <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+          <div className="v4s-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
             {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
               <Link key={label} href={href} className="v4s-nav-link" style={{
                 color: label === "서비스" ? GOLD : GRAY,
@@ -491,8 +508,19 @@ export default function V4Services() {
               }}>{label}</Link>
             ))}
           </div>
+          <button className="v4s-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="메뉴 열기">☰</button>
         </div>
       </nav>
+
+      {/* ══ MOBILE MENU ════════════════════════════════════════════ */}
+      {menuOpen && (
+        <div className="v4s-mobile-menu">
+          <button className="v4s-mobile-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4s-mobile-link" onClick={() => setMenuOpen(false)}>{label}</Link>
+          ))}
+        </div>
+      )}
 
       {/* ══ Section 0: Hero ════════════════════════════════════════ */}
       <div style={sectionStyle(0)}>

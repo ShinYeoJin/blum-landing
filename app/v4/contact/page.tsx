@@ -46,6 +46,7 @@ const INPUT: React.CSSProperties = {
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V4Contact() {
   const [navScrolled, setNavScrolled] = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
 
   /* Hero text animation */
   const [h1, setH1] = useState(false);
@@ -81,6 +82,23 @@ export default function V4Contact() {
     .v4c-h1r { animation: v4c-slide-r 0.95s cubic-bezier(0.16,1,0.3,1) both; }
     .v4c-h1l { animation: v4c-slide-l 0.95s cubic-bezier(0.16,1,0.3,1) both; }
     .v4c-sub { animation: v4c-fade    0.95s cubic-bezier(0.16,1,0.3,1) both; }
+
+    .v4c-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
+    .v4c-mobile-menu { position:fixed; inset:0; background:${NAVY}; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; }
+    .v4c-mobile-link { color:${CREAM}; text-decoration:none; font-size:22px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; transition:color 0.2s; }
+    .v4c-mobile-link:hover { color:${GOLD}; }
+    .v4c-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:${CREAM}; font-size:28px; cursor:pointer; line-height:1; }
+
+    @media (max-width:768px) {
+      .v4c-nav-desktop { display:none !important; }
+      .v4c-hamburger   { display:block !important; }
+      .v4c-contact-grid { grid-template-columns:1fr !important; gap:40px !important; }
+      .v4c-form-col    { order:-1 !important; }
+      .v4c-name-row    { grid-template-columns:1fr !important; }
+      .v4c-hq-grid     { grid-template-columns:1fr 1fr !important; }
+      .v4c-section-pad { padding:0 1rem 80px !important; }
+      .v4c-hero-pad    { padding:120px 1rem 60px !important; }
+    }
   `;
 
   return (
@@ -97,7 +115,7 @@ export default function V4Contact() {
       }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/v4" className="v4c-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
-          <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+          <div className="v4c-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
             {([
               ["제품",   "/v4#products"],
               ["가치",   "/v4#values"],
@@ -112,11 +130,22 @@ export default function V4Contact() {
               }}>{label}</Link>
             ))}
           </div>
+          <button className="v4c-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="메뉴 열기">☰</button>
         </div>
       </nav>
 
+      {/* ══ MOBILE MENU ════════════════════════════════════════════ */}
+      {menuOpen && (
+        <div className="v4c-mobile-menu">
+          <button className="v4c-mobile-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4c-mobile-link" onClick={() => setMenuOpen(false)}>{label}</Link>
+          ))}
+        </div>
+      )}
+
       {/* ══ HERO ═══════════════════════════════════════════════════ */}
-      <section style={{
+      <section className="v4c-hero-pad" style={{
         paddingTop: "160px", paddingBottom: "100px",
         maxWidth: "1280px", margin: "0 auto", padding: "160px 2rem 100px",
       }}>
@@ -150,10 +179,10 @@ export default function V4Contact() {
       </section>
 
       {/* ══ CONTACT GRID ═══════════════════════════════════════════ */}
-      <section style={{ padding: "0 2rem 120px", maxWidth: "1280px", margin: "0 auto" }}>
-        <div style={{
+      <section className="v4c-section-pad" style={{ padding: "0 2rem 120px", maxWidth: "1280px", margin: "0 auto" }}>
+        <div className="v4c-contact-grid" style={{
           display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px",
-        }} className="contact-grid">
+        }}>
           {/* Left — Korea showroom info */}
           <SlideIn from="left">
             <div>
@@ -179,8 +208,8 @@ export default function V4Contact() {
             </div>
           </SlideIn>
 
-          {/* Right — form */}
-          <SlideIn from="right" delay={80}>
+          {/* Right — form (first on mobile) */}
+          <SlideIn from="right" delay={80} className="v4c-form-col">
             <div style={{
               padding: "48px",
               backgroundColor: "rgba(255,255,255,0.03)",
@@ -190,7 +219,7 @@ export default function V4Contact() {
               <h2 className="v4c-serif" style={{ fontSize: "1.8rem", fontWeight: 300, color: CREAM, marginBottom: "36px" }}>Send a Message</h2>
 
               <form style={{ display: "flex", flexDirection: "column", gap: "28px" }} onSubmit={(e) => e.preventDefault()}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                <div className="v4c-name-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
                   <div>
                     <label style={{ fontSize: "9px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}77`, display: "block", marginBottom: "8px" }}>이름 *</label>
                     <input type="text" placeholder="홍길동" className="v4c-input" style={INPUT} />
@@ -229,7 +258,7 @@ export default function V4Contact() {
         <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
           <SlideIn from="bottom">
             <p style={{ fontSize: "9px", letterSpacing: "0.5em", textTransform: "uppercase", color: `${GOLD}55`, marginBottom: "32px" }}>Headquarters</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "40px" }}>
+            <div className="v4c-hq-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "40px" }}>
               {[
                 { label: "회사",   value: "Julius Blum GmbH" },
                 { label: "주소",   value: "Industriestrasse 1\n6973 Höchst, Austria" },

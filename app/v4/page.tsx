@@ -292,6 +292,7 @@ export default function V4() {
 
   /* Nav */
   const [navScrolled, setNavScrolled] = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
   const [scrollY,     setScrollY]     = useState(0);
 
   /* ── FIX 1: Brand Story – pure React state slideshow, no scroll math ── */
@@ -487,10 +488,25 @@ export default function V4() {
     .v4-line-anim { transform:scaleX(0);transform-origin:left; }
     .v4-line-anim.v4-line-go { animation:v4-line-grow 0.9s cubic-bezier(0.77,0,0.18,1) both; }
 
+    .v4-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
+    .v4-mobile-menu { position:fixed; inset:0; background:${NAVY}; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; }
+    .v4-mobile-menu-link { color:${CREAM}; text-decoration:none; font-size:22px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; transition:color 0.2s; }
+    .v4-mobile-menu-link:hover { color:${GOLD}; }
+    .v4-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:${CREAM}; font-size:28px; cursor:pointer; line-height:1; }
+
     @media (max-width:768px) {
-      .v4-prod-panel { flex-direction:column !important; }
-      .v4-prod-right { width:100% !important; height:45vh !important; }
-      .v4-prod-left  { width:100% !important; padding:24px !important; }
+      .v4-nav-desktop { display:none !important; }
+      .v4-hamburger   { display:block !important; }
+      .v4-prod-panel  { flex-direction:column !important; }
+      .v4-prod-right  { width:100% !important; height:45vh !important; }
+      .v4-prod-left   { width:100% !important; padding:24px !important; }
+      .v4-stats-grid  { grid-template-columns:repeat(2,1fr) !important; }
+      .v4-val-panel   { flex-direction:column !important; min-height:auto !important; }
+      .v4-val-img-wrap { flex:none !important; width:100% !important; max-height:250px !important; }
+      .v4-val-img-wrap img { max-height:250px; width:100%; object-fit:cover; object-position:center; }
+      .v4-val-text-block h3 { font-size:clamp(1.4rem,5vw,2.2rem) !important; white-space:nowrap; }
+      .v4-slide-panel { left:5% !important; right:5% !important; max-width:none !important; }
+      .v4-slide-body  { text-align:left; }
     }
   `;
 
@@ -529,25 +545,36 @@ export default function V4() {
       }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/v4" className="v4-font-serif" style={{ color: GOLD, textDecoration: "none", fontSize: "22px", fontWeight: 300, letterSpacing: "0.3em" }}>blum</Link>
-          <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
+          <div className="v4-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
             {([["제품", "#products"], ["가치", "#values"], ["서비스", "/v4/services"], ["Contact Us", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
               <Link key={label} href={href} className="v4-nav-link" style={{ color: GRAY, textDecoration: "none", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase" }}>{label}</Link>
             ))}
           </div>
+          <button className="v4-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="메뉴 열기">☰</button>
         </div>
       </nav>
+
+      {/* ══ MOBILE MENU ═════════════════════════════════════════════════ */}
+      {menuOpen && (
+        <div className="v4-mobile-menu">
+          <button className="v4-mobile-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "#products"], ["가치", "#values"], ["서비스", "/v4/services"], ["Contact Us", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4-mobile-menu-link" onClick={() => setMenuOpen(false)}>{label}</Link>
+          ))}
+        </div>
+      )}
 
       {/* ══ HERO ════════════════════════════════════════════════════════ */}
       <section style={{ position: "relative", height: "100vh", minHeight: "700px", display: "flex", alignItems: "flex-end", overflow: "hidden", backgroundColor: NAVY }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <img src={IMG.hero} alt="blum"
-            style={{ width: "100%", height: "115%", objectFit: "cover", opacity: 0.38, transform: `translateY(${heroParallax}px)` }}
+            style={{ width: "100%", height: "115%", objectFit: "cover", opacity: 0.38, transform: `translateY(${heroParallax}px)`, willChange: "transform" }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${NAVY} 16%, rgba(13,17,23,0.5) 55%, rgba(13,17,23,0.1) 100%)` }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,17,23,0.82) 0%, transparent 65%)" }} />
         </div>
 
-        <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 7rem", width: "100%", opacity: heroOpacity }}>
+        <div style={{ position: "relative", zIndex: 10, maxWidth: "1280px", margin: "0 auto", padding: "0 2rem 7rem", width: "100%", opacity: heroOpacity, willChange: "opacity", transform: "translateZ(0)" }}>
           <div style={{
             display: "flex", alignItems: "center", gap: "16px", marginBottom: "2rem",
             opacity: heroAnim ? 1 : 0, transition: "opacity 0.8s ease 0ms",
@@ -644,7 +671,7 @@ export default function V4() {
                   </span>
                 ))}
               </h2>
-              <p style={{ fontSize: "15px", color: GRAY, lineHeight: 1.95, fontWeight: 300, maxWidth: "480px" }}>{sl.body}</p>
+              <p className="v4-slide-body" style={{ fontSize: "15px", color: GRAY, lineHeight: 1.95, fontWeight: 300, maxWidth: "480px" }}>{sl.body}</p>
             </div>
           );
         })}
@@ -912,7 +939,7 @@ export default function V4() {
             </MaskReveal>
           </FadeIn>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", backgroundColor: LINE }}>
+          <div className="v4-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", backgroundColor: LINE }}>
             {STATS.map((s, i) => (
               <FadeIn key={s.l} delay={i * 110}>
                 <div className="v4-stat-card" style={{ padding: "52px 32px", backgroundColor: "#070B10" }}>
