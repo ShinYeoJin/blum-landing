@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# blum Landing Page
 
-## Getting Started
+## ✨ 주요 구현 기능
 
-First, run the development server:
+### 공통
+- 반응형 디자인 (모바일 / 태블릿 / 데스크탑)
+- 햄버거 메뉴 (모바일)
+- 페이지 이동 시 스크롤 최상단 복귀
+
+### V1 - 미니멀/모던
+- 3단계 제품 카드 애니메이션
+- 서비스 hover 확장 애니메이션
+- 사진 시퀀스 스크롤 애니메이션
+- 아코디언 메뉴
+
+### V2 - 볼드/블랙+레드
+- Sticky 스크롤 기반 제품 카드 3D flip 애니메이션 (랜덤 방향)
+- 스택 구조 서비스 섹션 (섹션이 위로 쌓이는 방식)
+- 카드 갤러리 확대/축소 전환 애니메이션
+- 숫자 카운트업 애니메이션
+- 버튼 hover 텍스트 교체 효과
+
+### V3 - 시네마틱/딥네이비+골드
+- 시네마틱 풀스크린 스크롤 스토리텔링
+- 제품 슬라이드 드래그 인터랙션
+- 서비스 섹션 배경 오버레이 텍스트
+- 숫자 스크롤 단계별 등장 애니메이션
+
+## 🚀 로컬 실행 방법
 
 ```bash
+# 패키지 설치
+npm install
+
+# 개발 서버 실행
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# 빌드
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+개발 서버 실행 후 [http://localhost:3000](http://localhost:3000) 접속
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📌 참고 사항
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 모든 콘텐츠(텍스트, 이미지)는 [blum 공식 사이트](https://www.blum.com/kr/ko/)를 참고하여 제작
+- 상업적 목적이 아닌 포트폴리오 용도로 제작된 프로젝트입니다
