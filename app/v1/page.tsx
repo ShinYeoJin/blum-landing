@@ -425,8 +425,8 @@ export default function V1() {
         e.preventDefault();
         if (!panelOpen) {
           busy = true; openPanel();
-          /* last phil-item animates at 350 + 6×150 + 600 = 1850ms */
-          setTimeout(() => { busy = false; }, 2000);
+          /* panel slide-in takes 0.8s; release lock after 900ms */
+          setTimeout(() => { busy = false; }, 900);
         } else if (svcEl) {
           busy = true;
           svcEl.scrollTop = 0; // reset to snap 1 so CTA section is never visible

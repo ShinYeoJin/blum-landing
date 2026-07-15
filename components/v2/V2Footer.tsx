@@ -75,7 +75,7 @@ export default function V2Footer() {
           style={{ borderColor: "rgba(138,106,74,0.2)" }}>
           <span className="text-[10px]" style={{ color: "rgba(138,106,74,0.5)" }}>© 2025 Julius Blum GmbH. All rights reserved.</span>
           <div className="flex items-center gap-5">
-            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]].map(([l, h]) => (
+            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]].map(([l, h]) => (
               <Link key={l} href={h} className="text-[10px] hover:opacity-80 transition-opacity" style={{ color: "rgba(138,106,74,0.5)", textDecoration: "none" }}>{l}</Link>
             ))}
             <a

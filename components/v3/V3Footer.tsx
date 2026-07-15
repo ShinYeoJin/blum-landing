@@ -87,7 +87,7 @@ export default function V3Footer() {
             © 2025 JULIUS BLUM GMBH. ALL RIGHTS RESERVED.
           </span>
           <div className="flex items-center gap-6">
-            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v4"]].map(([l, h]) => (
+            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]].map(([l, h]) => (
               <Link key={l} href={h} className="text-[9px] tracking-[0.2em] uppercase font-black hover:opacity-80 transition-opacity"
                 style={{ color: "rgba(240,240,240,0.2)", textDecoration: "none" }}>{l}</Link>
             ))}
