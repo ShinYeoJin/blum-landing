@@ -553,13 +553,15 @@ export default function V4() {
           <h1 className="v4-font-serif" style={{ marginBottom: "1.5rem", lineHeight: 0.88, fontWeight: 300, fontSize: "clamp(4.5rem,13vw,11rem)", letterSpacing: "-0.01em" }}>
             <span style={{
               color: CREAM, display: "block",
-              opacity: heroAnim ? 1 : 0, transform: heroAnim ? "none" : "translateX(80px)",
+              opacity: heroAnim ? 1 : 0, transform: heroAnim ? "translateZ(0)" : "translateX(80px)",
               transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1) 150ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) 150ms",
+              willChange: "transform, opacity", backfaceVisibility: "hidden",
             }}>moving</span>
             <span style={{
               color: GOLD, fontStyle: "italic", display: "block",
-              opacity: heroAnim ? 1 : 0, transform: heroAnim ? "none" : "translateX(-80px)",
+              opacity: heroAnim ? 1 : 0, transform: heroAnim ? "translateZ(0)" : "translateX(-80px)",
               transition: "opacity 0.9s cubic-bezier(0.16,1,0.3,1) 320ms, transform 0.9s cubic-bezier(0.16,1,0.3,1) 320ms",
+              willChange: "transform, opacity", backfaceVisibility: "hidden",
             }}>ideas.</span>
           </h1>
 
