@@ -471,6 +471,8 @@ export default function V4() {
       .v4-stat-card .v4-font-serif { font-size:3rem !important; }
       .v4-slide-panel { left:5% !important; right:5% !important; max-width:none !important; }
       .v4-slide-body  { text-align:left; }
+      .v4-carousel-card { width: calc(100vw - 48px) !important; }
+      .v4-carousel-track { padding-left: 24px !important; padding-right: 24px !important; }
       .v4-prod-desc   { text-align:left !important; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
     }
   `;
