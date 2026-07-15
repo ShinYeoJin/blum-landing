@@ -47,6 +47,12 @@ const INPUT: React.CSSProperties = {
 export default function V4Contact() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
+
+  const closeMenu = () => {
+    setMenuClosing(true);
+    setTimeout(() => { setMenuOpen(false); setMenuClosing(false); }, 400);
+  };
 
   /* Hero text animation */
   const [h1, setH1] = useState(false);
@@ -83,11 +89,22 @@ export default function V4Contact() {
     .v4c-h1l { animation: v4c-slide-l 0.95s cubic-bezier(0.16,1,0.3,1) both; }
     .v4c-sub { animation: v4c-fade    0.95s cubic-bezier(0.16,1,0.3,1) both; }
 
+    @keyframes v4c-menu-in  { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+    @keyframes v4c-menu-out { from{transform:translateY(0)} to{transform:translateY(-100%)} }
+    @keyframes v4c-item-in  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+
     .v4c-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
-    .v4c-mobile-menu { position:fixed; inset:0; background:${NAVY}; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; }
-    .v4c-mobile-link { color:${CREAM}; text-decoration:none; font-size:22px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; transition:color 0.2s; }
+    .v4c-mobile-menu { position:fixed; inset:0; background:#0a0e1a; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; overflow:hidden; }
+    .v4c-mobile-menu.v4c-menu-opening { animation:v4c-menu-in 0.4s ease-out forwards; }
+    .v4c-mobile-menu.v4c-menu-closing { animation:v4c-menu-out 0.4s ease-in forwards; }
+    .v4c-mobile-link { color:#c9a84c; text-decoration:none; font-size:28px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; opacity:0; }
     .v4c-mobile-link:hover { color:${GOLD}; }
-    .v4c-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:${CREAM}; font-size:28px; cursor:pointer; line-height:1; }
+    .v4c-mobile-menu.v4c-menu-opening .v4c-mobile-link { animation:v4c-item-in 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4c-mobile-menu.v4c-menu-opening .v4c-mobile-link:nth-child(2) { animation-delay:0.12s; }
+    .v4c-mobile-menu.v4c-menu-opening .v4c-mobile-link:nth-child(3) { animation-delay:0.20s; }
+    .v4c-mobile-menu.v4c-menu-opening .v4c-mobile-link:nth-child(4) { animation-delay:0.28s; }
+    .v4c-mobile-menu.v4c-menu-opening .v4c-mobile-link:nth-child(5) { animation-delay:0.36s; }
+    .v4c-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#c9a84c; font-size:28px; cursor:pointer; line-height:1; }
 
     @media (max-width:768px) {
       .v4c-nav-desktop { display:none !important; }
@@ -118,7 +135,7 @@ export default function V4Contact() {
           <div className="v4c-nav-desktop" style={{ display: "flex", alignItems: "center", gap: "36px" }}>
             {([
               ["제품",   "/v4#products"],
-              ["가치",   "/v4#values"],
+              ["가치",   "/v4/values"],
               ["서비스", "/v4/services"],
               ["연락처", "/v4/contact"],
             ] as [string, string][]).map(([label, href]) => (
@@ -136,10 +153,10 @@ export default function V4Contact() {
 
       {/* ══ MOBILE MENU ════════════════════════════════════════════ */}
       {menuOpen && (
-        <div className="v4c-mobile-menu">
-          <button className="v4c-mobile-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
-          {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
-            <Link key={label} href={href} className="v4c-mobile-link" onClick={() => setMenuOpen(false)}>{label}</Link>
+        <div className={`v4c-mobile-menu ${menuClosing ? "v4c-menu-closing" : "v4c-menu-opening"}`}>
+          <button className="v4c-mobile-close" onClick={closeMenu} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "/v4#products"], ["가치", "/v4/values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4c-mobile-link" onClick={closeMenu}>{label}</Link>
           ))}
         </div>
       )}

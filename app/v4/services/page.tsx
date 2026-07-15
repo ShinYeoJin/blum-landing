@@ -356,6 +356,12 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
 export default function V4Services() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
+
+  const closeMenu = () => {
+    setMenuClosing(true);
+    setTimeout(() => { setMenuOpen(false); setMenuClosing(false); }, 400);
+  };
 
   /* Hero animation stages */
   const [h1,  setH1]  = useState(false);
@@ -467,11 +473,21 @@ export default function V4Services() {
     .v4s-h1l { animation: v4s-slide-l 0.9s cubic-bezier(0.16,1,0.3,1) both; }
     .v4s-sub { animation: v4s-fade    0.9s cubic-bezier(0.16,1,0.3,1) both; }
 
+    @keyframes v4s-menu-in  { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+    @keyframes v4s-menu-out { from{transform:translateY(0)} to{transform:translateY(-100%)} }
+    @keyframes v4s-item-in  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+
     .v4s-hamburger { display:none; background:none; border:none; color:${CREAM}; font-size:22px; cursor:pointer; padding:4px 8px; line-height:1; }
-    .v4s-mobile-menu { position:fixed; inset:0; background:${NAVY}; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; }
-    .v4s-mobile-link { color:${CREAM}; text-decoration:none; font-size:22px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; transition:color 0.2s; }
-    .v4s-mobile-link:hover { color:${GOLD}; }
-    .v4s-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:${CREAM}; font-size:28px; cursor:pointer; line-height:1; }
+    .v4s-mobile-menu { position:fixed; inset:0; background:#0a0e1a; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; overflow:hidden; }
+    .v4s-mobile-menu.v4s-menu-opening { animation:v4s-menu-in 0.4s ease-out forwards; }
+    .v4s-mobile-menu.v4s-menu-closing { animation:v4s-menu-out 0.4s ease-in forwards; }
+    .v4s-mobile-link { color:#c9a84c; text-decoration:none; font-size:28px; letter-spacing:0.2em; text-transform:uppercase; font-family:'Cormorant Garamond',Georgia,serif; font-weight:300; opacity:0; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link { animation:v4s-item-in 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(2) { animation-delay:0.12s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(3) { animation-delay:0.20s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(4) { animation-delay:0.28s; }
+    .v4s-mobile-menu.v4s-menu-opening .v4s-mobile-link:nth-child(5) { animation-delay:0.36s; }
+    .v4s-mobile-close { position:absolute; top:20px; right:24px; background:none; border:none; color:#c9a84c; font-size:28px; cursor:pointer; line-height:1; }
 
     @media (max-width:768px) {
       .v4s-nav-desktop { display:none !important; }
@@ -480,7 +496,7 @@ export default function V4Services() {
       .v4s-img-half    { position:absolute !important; inset:0 !important; flex:none !important; width:100% !important; height:100% !important; opacity:1 !important; transform:none !important; }
       .v4s-img-half::after { content:''; position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:1; pointer-events:none; }
       .v4s-img-half > div { display:none !important; }
-      .v4s-text-half   { position:relative !important; z-index:2 !important; flex:none !important; width:100% !important; background:transparent !important; padding:24px !important; box-sizing:border-box !important; align-items:flex-start !important; }
+      .v4s-text-half   { position:relative !important; z-index:2 !important; flex:none !important; width:100% !important; background:transparent !important; padding:80px 24px 24px !important; box-sizing:border-box !important; align-items:flex-start !important; }
     }
   `;
 
@@ -514,10 +530,10 @@ export default function V4Services() {
 
       {/* ══ MOBILE MENU ════════════════════════════════════════════ */}
       {menuOpen && (
-        <div className="v4s-mobile-menu">
-          <button className="v4s-mobile-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
-          {([["제품", "/v4#products"], ["가치", "/v4#values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
-            <Link key={label} href={href} className="v4s-mobile-link" onClick={() => setMenuOpen(false)}>{label}</Link>
+        <div className={`v4s-mobile-menu ${menuClosing ? "v4s-menu-closing" : "v4s-menu-opening"}`}>
+          <button className="v4s-mobile-close" onClick={closeMenu} aria-label="메뉴 닫기">✕</button>
+          {([["제품", "/v4#products"], ["가치", "/v4/values"], ["서비스", "/v4/services"], ["연락처", "/v4/contact"]] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="v4s-mobile-link" onClick={closeMenu}>{label}</Link>
           ))}
         </div>
       )}
