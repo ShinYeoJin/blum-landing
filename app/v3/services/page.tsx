@@ -341,8 +341,8 @@ function CtaSection({ sectionStyle, animKey, isActive }: CtaProps) {
           <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <span style={{ fontSize: "10px", color: "rgba(245,240,232,0.18)", letterSpacing: "0.1em" }}>Julius Blum GmbH · Industriestrasse 1 · 6973 Höchst, Austria</span>
             <div style={{ display: "flex", gap: "24px" }}>
-              {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v3"]] as [string, string][]).map(([l, h]) => (
-                <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? `${GOLD}77` : "rgba(245,240,232,0.2)", textDecoration: "none" }}>{l}</Link>
+              {([["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]] as [string, string][]).map(([l, h]) => (
+                <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(245,240,232,0.2)", textDecoration: "none" }}>{l}</Link>
               ))}
             </div>
           </div>

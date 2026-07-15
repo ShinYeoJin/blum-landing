@@ -204,8 +204,8 @@ export default function V4Company() {
         <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>© 2025 Blum Korea. All rights reserved.</span>
           <div style={{ display: "flex", gap: "24px" }}>
-            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"], ["V4", "/v3"]].map(([l, h]) => (
-              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: l === "V4" ? "rgba(230,51,41,0.7)" : "rgba(255,255,255,0.2)", textDecoration: "none" }}>{l}</Link>
+            {[["V1", "/v1"], ["V2", "/v2"], ["V3", "/v3"]].map(([l, h]) => (
+              <Link key={l} href={h} style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", textDecoration: "none" }}>{l}</Link>
             ))}
           </div>
         </div>
