@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-/* ── Constants ── */
-const NAVY  = "#0D1117";
-const GOLD  = "#D4AF37";
-const CREAM = "#F5F0E8";
-const GRAY  = "rgba(245,240,232,0.55)";
-const LINE  = "rgba(212,175,55,0.18)";
+import StatsSection from "@/components/v3/StatsSection";
+import { NAVY, GOLD, CREAM, GRAY, LINE, GCounter, FadeIn, MaskReveal, WipeBanner } from "@/components/v3/v3Shared";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Blum official image URLs
@@ -115,137 +108,6 @@ const PRODUCTS = [
   },
 ];
 
-/* ── Stats (fills black gap between products and philosophy) ── */
-const STATS = [
-  { n: 1952, s: "",    l: "창립 연도",    sub: "오스트리아 포어알베르크" },
-  { n: 2441, s: "M€",  l: "전 세계 매출", sub: "2024/25 회계연도" },
-  { n: 9850, s: "명",   l: "전 세계 임직원", sub: "글로벌 네트워크" },
-  { n: 120,  s: "+",   l: "수출 대상국",   sub: "34개 자회사·대리점" },
-];
-
-
-/* ── GCounter ── */
-function GCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const [n, setN]   = useState(0);
-  const ref          = useRef<HTMLSpanElement>(null);
-  const started      = useRef(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting || started.current) return;
-      started.current = true;
-      io.disconnect();
-      const t0 = performance.now(), dur = 2000;
-      let raf: number;
-      const tick = (now: number) => {
-        const p = Math.min((now - t0) / dur, 1);
-        setN(Math.round((1 - Math.pow(1 - p, 3)) * to));
-        if (p < 1) raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-      return () => cancelAnimationFrame(raf);
-    }, { threshold: 0, rootMargin: "0px 0px -40px 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [to]);
-  return <span ref={ref}>{n.toLocaleString()}{suffix}</span>;
-}
-
-/* ── FadeIn ── */
-function FadeIn({ children, delay = 0, y = 32 }: { children: React.ReactNode; delay?: number; y?: number }) {
-  const ref          = useRef<HTMLDivElement>(null);
-  const [vis, setVis] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); io.disconnect(); } }, { threshold: 0.06 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} style={{
-      opacity:    vis ? 1 : 0,
-      transform:  vis ? "none" : `translateY(${y}px)`,
-      transition: `opacity 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.85s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-    }}>{children}</div>
-  );
-}
-
-/* ── MaskReveal — text clip-path wipe ── */
-function MaskReveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref           = useRef<HTMLDivElement>(null);
-  const [vis, setVis] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); io.disconnect(); } }, { threshold: 0.05 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`${className} v4-mask-reveal${vis ? " v4-mask-go" : ""}`}
-      style={{ animationDelay: vis ? `${delay}ms` : "0ms" }}>
-      {children}
-    </div>
-  );
-}
-
-/* ── WipeBanner
-   항상 3문장 GSAP ScrollTrigger — 진입 시 모임, 이탈 시 흩어짐
-── */
-function WipeBanner() {
-  gsap.registerPlugin(ScrollTrigger);
-
-  const ref      = useRef<HTMLDivElement>(null);
-  const line1Ref = useRef<HTMLDivElement>(null);
-  const line2Ref = useRef<HTMLDivElement>(null);
-  const line3Ref = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const l1 = line1Ref.current;
-    const l2 = line2Ref.current;
-    const l3 = line3Ref.current;
-    if (!l1 || !l2 || !l3 || !ref.current) return;
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: ref.current,
-          start:   "top bottom",
-          end:     "bottom top",
-          scrub:   1.4,
-        },
-      });
-
-      /* ① 진입: 흩어진 상태 → 모임 (0~0.35) */
-      tl.fromTo(l1, { x: -320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0)
-        .fromTo(l2, { x:  320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0.03)
-        .fromTo(l3, { x: -320, opacity: 0 }, { x: 0, opacity: 1, ease: "power2.out", duration: 0.35 }, 0.06)
-        /* ② hold: 중앙 유지 (0.35~0.65) */
-        .to([l1, l2, l3], { x: 0, opacity: 1, duration: 0.3 }, 0.35)
-        /* ③ 이탈: 반대 방향으로 흩어짐 (0.65~1.0) */
-        .to(l1, { x:  320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.65)
-        .to(l2, { x: -320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.68)
-        .to(l3, { x:  320, opacity: 0, ease: "power2.in", duration: 0.35 }, 0.71);
-    }, ref);
-
-    return () => ctx.revert();
-  }, []);
-
-  const lineStyle: React.CSSProperties = {
-    display: "block", willChange: "transform",
-    fontSize: "clamp(1.6rem,4vw,3.2rem)", fontWeight: 300,
-    color: CREAM, fontStyle: "italic", lineHeight: 1.55,
-  };
-
-  return (
-    <div ref={ref} style={{ backgroundColor: "#0A0E14", padding: "100px 2rem", textAlign: "center", overflow: "hidden" }}>
-      <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}88`, marginBottom: "28px" }}>Our Philosophy</p>
-      <div className="v4-font-serif" style={{ maxWidth: "760px", margin: "0 auto 36px" }}>
-        <div ref={line1Ref} style={lineStyle}>"가구의 열고 닫음을</div>
-        <div ref={line2Ref} style={lineStyle}>매력적인 경험으로</div>
-        <div ref={line3Ref} style={lineStyle}>만들어 드립니다."</div>
-      </div>
-      <span style={{ fontSize: "11px", letterSpacing: "0.35em", textTransform: "uppercase", color: `${GOLD}66` }}>Julius Blum GmbH · Since 1952</span>
-    </div>
-  );
-}
 
 /* ══════════════════════════════════════════════════════════════════════════ */
 export default function V4() {
@@ -886,44 +748,7 @@ export default function V4() {
 
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          FIX 3: STATS — fills black gap between products and philosophy
-          blum 핵심 수치 + 카운팅 애니메이션 + 순차 등장
-          ══════════════════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", backgroundColor: "#070B10", overflow: "hidden" }}>
-        {/* Subtle background image */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-          <img src={IMG.statsBg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.1 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, #070B10, transparent 30%, transparent 70%, #070B10)" }} />
-        </div>
-
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "1280px", margin: "0 auto", padding: "100px 2rem" }}>
-          <FadeIn>
-            <p style={{ fontSize: "9px", letterSpacing: "0.55em", textTransform: "uppercase", color: `${GOLD}77`, marginBottom: "12px" }}>BLUM IN NUMBERS</p>
-            <MaskReveal delay={100}>
-              <h2 className="v4-font-serif" style={{ fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 300, color: CREAM, marginBottom: "64px" }}>
-                숫자로 보는 <em style={{ color: GOLD }}>blum</em>
-              </h2>
-            </MaskReveal>
-          </FadeIn>
-
-          <div className="v4-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", backgroundColor: LINE }}>
-            {STATS.map((s, i) => (
-              <FadeIn key={s.l} delay={i * 110}>
-                <div className="v4-stat-card" style={{ padding: "52px 32px", backgroundColor: "#070B10" }}>
-                  <div className="v4-font-serif" style={{ fontSize: "clamp(2.8rem,5vw,4.5rem)", fontWeight: 300, color: GOLD, lineHeight: 1, marginBottom: "12px" }}>
-                    <GCounter to={s.n} suffix={s.s} />
-                  </div>
-                  <div style={{ fontSize: "14px", color: CREAM, marginBottom: "8px", fontWeight: 400 }}>{s.l}</div>
-                  <div style={{ width: "24px", height: "1px", backgroundColor: `${GOLD}44`, marginBottom: "8px" }} />
-                  <div style={{ fontSize: "12px", color: GRAY, lineHeight: 1.7 }}>{s.sub}</div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StatsSection />
 
       {/* ══ PHILOSOPHY ══════════════════════════════════════════════════ */}
       <WipeBanner />
