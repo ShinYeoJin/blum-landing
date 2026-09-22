@@ -34,8 +34,6 @@ const SERVICES = [
 /* ══════════════════════════════════════════════════════════════════ */
 export default function V1() {
   const [openValue, setOpenValue] = useState<number | null>(null);
-  const [showPlanText, setShowPlanText] = useState(false);
-  const [showEsvcText, setShowEsvcText] = useState(false);
 
   /* ── Divider ("SINCE 1952") refs ────────────────────────────── */
   const dividerWrapRef = useRef<HTMLDivElement>(null);
@@ -676,9 +674,6 @@ export default function V1() {
             z-index: 2 !important;
             display: block !important;
             align-items: unset !important;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
           }
           .v1-svc-text-overlay p,
           .v1-svc-text-overlay h3,
@@ -1027,7 +1022,7 @@ export default function V1() {
           {/* 우측 이미지: scale(1.8)→scale(1) 축소 효과 (overflow:hidden 으로 클리핑) */}
           <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 텍스트 슬라이드 업 */}
-            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw", opacity: showPlanText ? 1 : undefined, transition: "opacity 0.3s ease", pointerEvents: showPlanText ? "auto" : undefined }}>
+            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcPlanRef}>
                 <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Plan &amp; Design</p>
                 <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
@@ -1054,7 +1049,7 @@ export default function V1() {
               </div>
             </div>
             {/* 우: 이미지 — overflow:hidden 으로 scale 클리핑 */}
-            <div className="v1-svc-plan-img-wrap" style={{ position: "relative", overflow: "hidden", cursor: "pointer" }} onClick={() => setShowPlanText(v => !v)}>
+            <div className="v1-svc-plan-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
               <div className="v1-svc-img-gradient" />
               <img
                 ref={svcPlanImgRef}
@@ -1069,7 +1064,7 @@ export default function V1() {
           {/* ── Snap 3: E-Services ── */}
           <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 이미지 scale 0.5→1 */}
-            <div className="v1-svc-esvc-img-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px", cursor: "pointer" }} onClick={() => setShowEsvcText(v => !v)}>
+            <div className="v1-svc-esvc-img-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px" }}>
               <div className="v1-svc-img-gradient" />
               <img
                 ref={svcEsvcImgRef}
@@ -1080,7 +1075,7 @@ export default function V1() {
               />
             </div>
             {/* 우: 텍스트 슬라이드 다운 (0.7s 딜레이) */}
-            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw", opacity: showEsvcText ? 1 : undefined, transition: "opacity 0.3s ease", pointerEvents: showEsvcText ? "auto" : undefined }}>
+            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcEsvcRef}>
                 <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">E-Services</p>
                 <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
