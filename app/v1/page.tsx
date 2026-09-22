@@ -513,7 +513,14 @@ export default function V1() {
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
+      const scrollY = window.scrollY;
+      const brandTop = absTop(brandEl);
+      const svcTop = absTop(svcEl);
+      const nearBrandOrSvc =
+        (scrollY >= brandTop - 20 && scrollY <= svcTop + window.innerHeight);
+      if (nearBrandOrSvc) {
+        e.preventDefault();
+      }
     };
 
     const onTouchEnd = (e: TouchEvent) => {
