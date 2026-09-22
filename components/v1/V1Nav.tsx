@@ -238,7 +238,7 @@ export default function V1Nav() {
             ))}
             <div className="px-8 py-4">
               <Link
-                href="/contact"
+                href="/v1/contact"
                 className="block text-center py-3 text-xs tracking-[0.15em] uppercase border border-zinc-900"
                 style={{ color: "#18181b", textDecoration: "none" }}
                 onClick={() => setMobileOpen(false)}
