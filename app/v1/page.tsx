@@ -506,8 +506,46 @@ export default function V1() {
       }
     };
 
+    let touchStartY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const distance = touchStartY - touchEndY;
+      if (Math.abs(distance) < 30) return;
+
+      const deltaY = distance > 0 ? 100 : -100;
+      const scrollY = window.scrollY;
+      const brandTop = absTop(brandEl);
+      const svcTop = absTop(svcEl);
+      const onBrand = scrollY >= brandTop - 20 && scrollY <= brandTop + 20;
+      const onSvc = Math.abs(scrollY - svcTop) <= 20;
+      const between = !onBrand && !onSvc && scrollY > brandTop + 20 && scrollY < svcTop - 20;
+
+      if (onBrand && brandEl) {
+        brandEl.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: false, cancelable: true }));
+      } else {
+        window.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: false, cancelable: true }));
+      }
+    };
+
     window.addEventListener("wheel", onWinWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWinWheel);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", onWinWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   return (
