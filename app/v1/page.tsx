@@ -517,7 +517,7 @@ export default function V1() {
       const brandTop = absTop(brandEl);
       const svcTop = absTop(svcEl);
       const nearBrandOrSvc =
-        (scrollY >= brandTop - 20 && scrollY <= svcTop + window.innerHeight);
+        (scrollY >= brandTop - 20 && scrollY <= svcTop + 20);
       if (nearBrandOrSvc) {
         e.preventDefault();
       }
