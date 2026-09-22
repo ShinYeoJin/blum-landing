@@ -330,9 +330,54 @@ export default function V1() {
     };
     snapEl.addEventListener("wheel", onSnapWheel, { passive: false });
 
+    const absTopLocal = (el: HTMLElement) => el.getBoundingClientRect().top + window.scrollY;
+
+    let touchSeqIndex = 0;
+    let touchStartY   = 0;
+    let touchBusy     = false;
+
+    const goToSeq = (index: number) => {
+      if (index < 0) index = 0;
+      if (index > 4) {
+        touchSeqIndex = 5;
+        const nextTop = svcEl!.getBoundingClientRect().bottom + window.scrollY;
+        window.scrollTo({ top: nextTop, behavior: 'smooth' });
+        return;
+      }
+      touchSeqIndex = index;
+      touchBusy = true;
+      if (index === 0) {
+        closePanel();
+        window.scrollTo({ top: absTopLocal(snapEl), behavior: 'smooth' });
+      } else if (index === 1) {
+        openPanel();
+        window.scrollTo({ top: absTopLocal(snapEl), behavior: 'smooth' });
+      } else if (svcEl) {
+        window.scrollTo({ top: absTopLocal(svcEl), behavior: 'smooth' });
+        svcEl.scrollTo({ top: (index - 2) * window.innerHeight, behavior: 'smooth' });
+      }
+      setTimeout(() => { touchBusy = false; }, index === 2 ? 1200 : 700);
+    };
+
+    const onTouchStartNew = (e: TouchEvent) => { touchStartY = e.touches[0].clientY; };
+    const onTouchMoveNew  = (e: TouchEvent) => { if (touchSeqIndex < 5) e.preventDefault(); };
+    const onTouchEndNew   = (e: TouchEvent) => {
+      if (touchBusy || touchSeqIndex >= 5) return;
+      const dist = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(dist) < 30) return;
+      goToSeq(dist > 0 ? touchSeqIndex + 1 : touchSeqIndex - 1);
+    };
+
+    window.addEventListener('touchstart', onTouchStartNew, { passive: true });
+    window.addEventListener('touchmove',  onTouchMoveNew,  { passive: false });
+    window.addEventListener('touchend',   onTouchEndNew,   { passive: true });
+
     return () => {
       io1.disconnect();
       snapEl.removeEventListener("wheel", onSnapWheel);
+      window.removeEventListener('touchstart', onTouchStartNew);
+      window.removeEventListener('touchmove',  onTouchMoveNew);
+      window.removeEventListener('touchend',   onTouchEndNew);
     };
   }, []);
 
@@ -507,53 +552,8 @@ export default function V1() {
       }
     };
 
-    let touchStartY = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      const scrollY = window.scrollY;
-      const brandTop = absTop(brandEl);
-      const svcTop = absTop(svcEl);
-      const nearBrandOrSvc =
-        (scrollY >= brandTop - 20 && scrollY <= svcTop + 20);
-      if (nearBrandOrSvc) {
-        e.preventDefault();
-      }
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      const touchEndY = e.changedTouches[0].clientY;
-      const distance = touchStartY - touchEndY;
-      if (Math.abs(distance) < 30) return;
-
-      const deltaY = distance > 0 ? 100 : -100;
-      const scrollY = window.scrollY;
-      const brandTop = absTop(brandEl);
-      const svcTop = absTop(svcEl);
-      const onBrand = scrollY >= brandTop - 20 && scrollY <= brandTop + 20;
-      const onSvc = Math.abs(scrollY - svcTop) <= 20;
-      const between = !onBrand && !onSvc && scrollY > brandTop + 20 && scrollY < svcTop - 20;
-
-      if (onBrand && brandEl) {
-        brandEl.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: false, cancelable: true }));
-      } else {
-        window.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: false, cancelable: true }));
-      }
-    };
-
     window.addEventListener("wheel", onWinWheel, { passive: false });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      window.removeEventListener("wheel", onWinWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
-    };
+    return () => window.removeEventListener("wheel", onWinWheel);
   }, []);
 
   return (
