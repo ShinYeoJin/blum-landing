@@ -73,6 +73,9 @@ export default function V1() {
   const snapBeigePanelRef = useRef<HTMLDivElement>(null); // step 2 beige panel
   const snapServicesRef   = useRef<HTMLElement>(null);    // exit target
 
+  /* ── Transition flag: suppresses between-guard during brand→services scroll ── */
+  const toServiceRef = useRef(false);
+
   /* ── Services snap refs ──────────────────────────────────────── */
   const svcTitleRef       = useRef<HTMLDivElement>(null); // snap 1 title
   const svcPlanImgRef     = useRef<HTMLImageElement>(null); // snap 2 fullscreen img (scale)
@@ -306,10 +309,12 @@ export default function V1() {
           setTimeout(() => { busy = false; }, 900);
         } else if (svcEl) {
           busy = true;
+          toServiceRef.current = true;
           svcEl.scrollTop = 0; // reset to snap 1 so CTA section is never visible
           const top = svcEl.getBoundingClientRect().top + window.scrollY;
           window.scrollTo({ top, behavior: "smooth" });
           setTimeout(() => {
+            toServiceRef.current = false;
             const corrected = svcEl!.getBoundingClientRect().top + window.scrollY;
             if (Math.abs(window.scrollY - corrected) > 2) window.scrollTo({ top: corrected });
             busy = false;
@@ -451,7 +456,7 @@ export default function V1() {
       if (snapping) { e.preventDefault(); return; }
 
       /* 두 섹션 사이 중간에 걸렸을 때 → 항상 brand로 복귀 (베이지 패널 시퀀스를 반드시 거치게) */
-      if (between) {
+      if (between && !toServiceRef.current) {
         e.preventDefault();
         snapping = true;
         window.scrollTo({ top: brandTop, behavior: "smooth" });
@@ -469,18 +474,34 @@ export default function V1() {
       }
 
       /* services 섹션 위치인데 커서가 services div 밖 → 방향에 따라 처리 */
-      if (onSvc && !svcEl.contains(e.target as Node)) {
+      if (onSvc) {
+        if (toServiceRef.current) { e.preventDefault(); return; }
+        const vh = window.innerHeight;
+        const atLastSnap = svcEl.scrollTop >= vh * 1.9;
+
+        if (e.deltaY > 5 && atLastSnap) {
+          e.preventDefault();
+          if (!snapping) {
+            snapping = true;
+            const nextTop = svcEl.getBoundingClientRect().bottom + window.scrollY;
+            window.scrollTo({ top: nextTop, behavior: "smooth" });
+            setTimeout(() => { snapping = false; }, 1000);
+          }
+          return;
+        }
         e.preventDefault();
         if (e.deltaY < -30) {
           /* wheel-up: services 핸들러로 전달 (brand로 돌아가기) */
           svcEl.dispatchEvent(new WheelEvent("wheel", {
             deltaY: e.deltaY, deltaMode: e.deltaMode, bubbles: false, cancelable: true,
           }));
-        } else if (e.deltaY > 30) {
-          /* wheel-down: services 내부 다음 스냅으로 이동 */
-          const vh      = window.innerHeight;
-          const nextSnap = Math.min(Math.round(svcEl.scrollTop / vh) + 1, 2);
-          svcEl.scrollTo({ top: nextSnap * vh, behavior: "smooth" });
+        } else if (e.deltaY > 5) {
+          if (!snapping) {
+            snapping = true;
+            const nextSnap = Math.min(Math.round(svcEl.scrollTop / vh) + 1, 2);
+            svcEl.scrollTo({ top: nextSnap * vh, behavior: "smooth" });
+            setTimeout(() => { snapping = false; }, 600);
+          }
         }
       }
     };
@@ -566,6 +587,20 @@ export default function V1() {
             height: 100% !important;
             object-fit: cover !important;
             object-position: center !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .v1-svc-plan-img-wrap {
+            width: 55% !important;
+            align-self: center !important;
+            margin: 0 auto !important;
+          }
+          .v1-svc-esvc-img-wrap {
+            width: 55% !important;
+            padding: 0 !important;
+            align-self: center !important;
+            margin: 0 auto !important;
           }
         }
       `}</style>
