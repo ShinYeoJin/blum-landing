@@ -361,11 +361,12 @@ export default function V1() {
     const ei = svcEsvcImgRef.current;  // snap 3 left image
     const et = svcEsvcRef.current;     // snap 3 right text
 
-    /* Initial hidden states */
+    /* Initial hidden states — skip text animation on mobile (overlay layout) */
+    const isMobile = window.innerWidth <= 768;
     if (pi) { pi.style.transform = "scale(1.8)"; pi.style.transition = "transform 1s cubic-bezier(0.16,1,0.3,1)"; }
-    if (pt) { pt.style.opacity = "0"; pt.style.transform = "translateY(40px)"; pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s"; }
+    if (pt && !isMobile) { pt.style.opacity = "0"; pt.style.transform = "translateY(40px)"; pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s"; }
     if (ei) { ei.style.opacity = "0"; ei.style.transform = "scale(0.5)"; ei.style.transition = "opacity 0.9s ease, transform 0.9s cubic-bezier(0.16,1,0.3,1)"; }
-    if (et) { et.style.opacity = "0"; et.style.transform = "translateY(-40px)"; et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s"; }
+    if (et && !isMobile) { et.style.opacity = "0"; et.style.transform = "translateY(-40px)"; et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s"; }
 
     let inS2 = false;
     let inS3 = false;
@@ -380,7 +381,7 @@ export default function V1() {
       if (nowS2 !== inS2) {
         inS2 = nowS2;
         if (pi) pi.style.transform = inS2 ? "scale(1)" : "scale(1.8)";
-        if (pt) {
+        if (pt && !isMobile) {
           if (inS2) {
             /* forward: text slides up 1s after image starts */
             pt.style.transition = "opacity 0.9s ease 1s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 1s";
@@ -398,7 +399,7 @@ export default function V1() {
       if (nowS3 !== inS3) {
         inS3 = nowS3;
         if (ei) { ei.style.opacity = inS3 ? "1" : "0"; ei.style.transform = inS3 ? "scale(1)" : "scale(0.5)"; }
-        if (et) {
+        if (et && !isMobile) {
           if (inS3) {
             et.style.transition = "opacity 0.9s ease 0.7s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s";
             et.style.opacity = "1"; et.style.transform = "translateY(0)";
