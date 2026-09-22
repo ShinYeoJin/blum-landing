@@ -360,11 +360,7 @@ export default function V1() {
     };
 
     const onTouchStartNew = (e: TouchEvent) => { touchStartY = e.touches[0].clientY; };
-    const onTouchMoveNew  = (e: TouchEvent) => {
-      const scrollY = window.scrollY;
-      const brandTop = absTopLocal(snapEl);
-      if (scrollY >= brandTop - 20 && touchSeqIndex < 5) e.preventDefault();
-    };
+    const onTouchMoveNew  = (e: TouchEvent) => { if (touchSeqIndex < 5) e.preventDefault(); };
     const onTouchEndNew   = (e: TouchEvent) => {
       if (touchBusy || touchSeqIndex >= 5) return;
       const dist = touchStartY - e.changedTouches[0].clientY;
