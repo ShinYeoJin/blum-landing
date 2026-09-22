@@ -590,17 +590,58 @@ export default function V1() {
           }
         }
 
+        .v1-svc-img-gradient { display: none; }
+
         @media (max-width: 768px) {
+          .v1-svc-img-gradient {
+            display: block;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+            pointer-events: none;
+          }
+          .v1-svc-snap-panel {
+            position: relative !important;
+          }
           .v1-svc-plan-img-wrap {
-            width: 55% !important;
-            align-self: center !important;
-            margin: 0 auto !important;
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            align-self: unset !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .v1-svc-esvc-img-wrap {
-            width: 55% !important;
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            align-self: unset !important;
+            margin: 0 !important;
             padding: 0 !important;
-            align-self: center !important;
-            margin: 0 auto !important;
+          }
+          .v1-svc-text-overlay {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            padding: 24px 5vw !important;
+            z-index: 2 !important;
+            display: block !important;
+            align-items: unset !important;
+          }
+          .v1-svc-text-overlay p,
+          .v1-svc-text-overlay h3,
+          .v1-svc-text-overlay li,
+          .v1-svc-text-overlay span,
+          .v1-svc-text-overlay a {
+            color: #ffffff !important;
+          }
+          .v1-svc-text-overlay .w-8 {
+            background-color: rgba(255,255,255,0.4) !important;
+          }
+          .v1-svc-text-overlay .w-1 {
+            background-color: rgba(255,255,255,0.5) !important;
           }
         }
       `}</style>
@@ -936,7 +977,7 @@ export default function V1() {
           {/* 우측 이미지: scale(1.8)→scale(1) 축소 효과 (overflow:hidden 으로 클리핑) */}
           <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 텍스트 슬라이드 업 */}
-            <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
+            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcPlanRef}>
                 <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">Plan &amp; Design</p>
                 <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
@@ -964,6 +1005,7 @@ export default function V1() {
             </div>
             {/* 우: 이미지 — overflow:hidden 으로 scale 클리핑 */}
             <div className="v1-svc-plan-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
+              <div className="v1-svc-img-gradient" />
               <img
                 ref={svcPlanImgRef}
                 src={`${BASE}/images/560/420/4207482/corporate/media/bilder/services/services-overview/technischer_support_w2_220916_4927_enlarged_4:3.jpg`}
@@ -978,6 +1020,7 @@ export default function V1() {
           <div className="v1-svc-snap-panel" style={{ height: "100vh", scrollSnapAlign: "start", display: "grid", gridTemplateColumns: "1fr 1fr", backgroundColor: "#ffffff" }}>
             {/* 좌: 이미지 scale 0.5→1 */}
             <div className="v1-svc-esvc-img-wrap" style={{ display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "40px" }}>
+              <div className="v1-svc-img-gradient" />
               <img
                 ref={svcEsvcImgRef}
                 src={`${BASE}/images/560/420/4207498/corporate/media/bilder/services/services-overview/me19632151_all_src_4:3.jpg`}
@@ -987,7 +1030,7 @@ export default function V1() {
               />
             </div>
             {/* 우: 텍스트 슬라이드 다운 (0.7s 딜레이) */}
-            <div style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
+            <div className="v1-svc-text-overlay" style={{ display: "flex", alignItems: "center", padding: "0 5vw" }}>
               <div ref={svcEsvcRef}>
                 <p className="text-[9px] tracking-[0.45em] uppercase text-zinc-400 mb-4">E-Services</p>
                 <h3 className="text-3xl md:text-4xl font-extralight text-zinc-900 mb-6" style={{ letterSpacing: "-0.02em" }}>
