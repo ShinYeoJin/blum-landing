@@ -59,7 +59,7 @@ npm run build
 - **snap 3 → CTA 섹션 진입 불가 수정**: `atLastSnap` 조건에서 `window.scrollTo`로 명시적 전환
 - **연속 스크롤 시 snap 단계 건너뜀 수정**: `snapping` 락(600ms)으로 중복 호출 차단
 - **모바일 네비게이션 "문의하기" 링크 수정**: `/contact` → `/v1/contact`
-- **모바일 터치 스크롤 부분 지원**: brand~services 구간 touch swipe로 섹션 전환 가능
+- **모바일 터치 스크롤 부분 지원**: brand~services 구간에서 touch swipe로 섹션 전환 가능하나, 일부 케이스에서 재시도가 필요할 수 있음
 - **데스크탑 그라디언트 오버레이 노출 수정**: gradient div를 CSS class(`display: none` 기본값)로 전환
 
 #### 알려진 제약사항 (V1 모바일)
