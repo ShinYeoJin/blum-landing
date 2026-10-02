@@ -50,7 +50,7 @@ npm run build
 
 #### V2 버그 수정
 - `app/v2/layout.tsx`가 V3Nav/V3Footer를 잘못 참조하던 문제 수정
-- V2 전용 `V2Nav` / `V2Footer` 컴포넌트 신규 생성
+- V2 전용 `V2NavCorrect` / `V2FooterCorrect` 컴포넌트 신규 생성
 - 이로 인해 V2의 Products / Services / Company / Contact 라우팅 전부 정상화
 
 #### V1 모바일 개선
