@@ -13,15 +13,15 @@
 - Services 섹션 scroll-snap 3단 패널 (title / 계획·설계 / E-Services)
 - 서비스 이미지 scale·텍스트 fade-in 스크롤 애니메이션
 - 3단계 제품 카드 애니메이션
-- 서비스 hover 확장 애니메이션
+- 서비스 페이지 hover 확장 애니메이션
 - 아코디언 메뉴
 
 ### V2 - 볼드/블랙+레드
-- Sticky 스크롤 기반 제품 카드 3D flip 애니메이션 (랜덤 방향)
-- 스택 구조 서비스 섹션 (섹션이 위로 쌓이는 방식)
-- 카드 갤러리 확대/축소 전환 애니메이션
-- 숫자 카운트업 애니메이션
-- 버튼 hover 텍스트 교체 효과
+- Hero scrollY 기반 parallax
+- Sticky 스크롤 통계 시퀀스 (scrollY에 따라 통계 항목이 순차 전환)
+- IntersectionObserver 기반 등장 애니메이션 (BoldReveal, ManifestoSlide)
+- 제품 카드 hover 확대와 마우스 커서 미리보기 이미지
+- BlumGSAP 기반 텍스트 마스크 reveal, parallax
 
 ### V3 - 시네마틱/딥네이비+골드
 - 시네마틱 풀스크린 스크롤 스토리텔링
